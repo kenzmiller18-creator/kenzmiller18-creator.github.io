@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Covalent Bonding Simulator</title>
+
+<style>
+body {
+  margin: 0;
+  background: #ffffff;
+  font-family: Georgia, serif;
+}
+
+/* ---------- UI ---------- */
+
+#toolbar {
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  align-items: center;
+  background: #e8b4fe;
+  border-bottom: 1px solid #ccc;
+}
+
+#resetBtn {
+  margin-left: auto;
+  padding: 8px 14px;
+  font-size: 14px;
+  border-radius: 6px;
+  border: none;
+  background: #000;
+  color: white;
+  cursor: pointer;
+}
+
+#resetBtn:hover {
+  background: #222;
+}
+
+/* ---------- Atom Buttons ---------- */
+
+.atom-btn {
+  min-width: 44px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: none;
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+.atom-btn.hydrogen { background: #9ec9f5; }
+.atom-btn.carbon   { background: #9561f4; }
+.atom-btn.nitrogen { background: #5a60b4; }
+.atom-btn.oxygen   { background: #ff6262; }
+.atom-btn.phosphorus { background: #e25fc3; }
+.atom-btn.sulfur     { background: #c79d1f; }
+.atom-btn.selenium   { background: #5dceff; }
+.atom-btn.fluorine   { background: #6fcf97; }
+.atom-btn.chlorine   { background: #166f3b; }
+.atom-btn.bromine    { background: #8b4513; }
+.atom-btn.iodine     { background: #4b0082; }
+
+/* ---------- Workspace ---------- */
+
+#workspace {
+  position: relative;
+  width: 100vw;
+  height: calc(100vh - 60px);
+  overflow: hidden;
+}
+
+/* ---------- Atoms ---------- */
+
+.atom {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 42px;
+  font-weight: bold;
+  color: white;
+  cursor: grab;
+}
+
+.atom.satisfied {
+  box-shadow: 0 0 25px 10px rgba(140, 255, 140, 0.9);
+}
+
+.H  { background: #9ec9f5; }
+.C  { background: #9561f4; }
+.N  { background: #5a60b4; }
+.O  { background: #ff6262; }
+.P  { background: #e25fc3; }
+.S  { background: #c79d1f; }
+.Se { background: #5dceff; }
+.F  { background: #6fcf97; }
+.Cl { background: #166f3b; }
+.Br { background: #8b4513; }
+.I  { background: #4b0082; }
+
+/* ---------- Electron Count ---------- */
+
+.electron-count {
+  position: absolute;
+  bottom: 6px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.atom.satisfied .electron-count {
+  color: #ffffff;
+}
+
+/* ---------- Electrons ---------- */
+
+.electron {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: black;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.electron.selected {
+  box-shadow: 0 0 10px 4px gold;
+}
+
+/* ---------- Bonds ---------- */
+
+.bond {
+  position: absolute;
+  height: 10px;
+  background: #333;
+  border-radius: 5px;
+  transform-origin: left center;
+  pointer-events: none;
+}
+</style>
+</head>
+
+<body>
+
+<div id="toolbar">
+  <button class="atom-btn hydrogen" onclick="addAtom('H')">H</button>
+  <button class="atom-btn carbon" onclick="addAtom('C')">C</button>
+  <button class="atom-btn nitrogen" onclick="addAtom('N')">N</button>
+  <button class="atom-btn oxygen" onclick="addAtom('O')">O</button>
+  <button class="atom-btn phosphorus" onclick="addAtom('P')">P</button>
+  <button class="atom-btn sulfur" onclick="addAtom('S')">S</button>
+  <button class="atom-btn selenium" onclick="addAtom('Se')">Se</button>
+  <button class="atom-btn fluorine" onclick="addAtom('F')">F</button>
+  <button class="atom-btn chlorine" onclick="addAtom('Cl')">Cl</button>
+  <button class="atom-btn bromine" onclick="addAtom('Br')">Br</button>
+  <button class="atom-btn iodine" onclick="addAtom('I')">I</button>
+
+  <button id="resetBtn">Clear</button>
+</div>
+
+<div id="workspace"></div>
+
+<script>
+const workspace = document.getElementById('workspace');
+const ATOM_RADIUS = 50;
+
+const VALENCE = {
+  H:1, C:4, N:5, O:6,
+  P:5, S:6, Se:6,
+  F:7, Cl:7, Br:7, I:7
+};
+
+const TARGET_ELECTRONS = {
+  H:2, C:8, N:8, O:8,
+  P:8, S:8, Se:8,
+  F:8, Cl:8, Br:8, I:8
+};
+
+let bonds = [];
+let selectedElectron = null;
+
+/* ---------- ATOMS ---------- */
+
+function addAtom(symbol) {
+  const atom = document.createElement('div');
+  atom.className = `atom ${symbol}`;
+  atom.textContent = symbol;
+  atom.dataset.symbol = symbol;
+  atom.dataset.usedElectrons = 0;
+
+  atom.style.left = Math.random() * 600 + 150 + 'px';
+  atom.style.top = Math.random() * 300 + 150 + 'px';
+
+  const count = document.createElement('div');
+  count.className = 'electron-count';
+  count.textContent = VALENCE[symbol];
+  atom.appendChild(count);
+
+  workspace.appendChild(atom);
+  makeDraggable(atom);
+  createElectrons(atom);
+}
+
+/* ---------- ELECTRONS ---------- */
+
+function createElectrons(atom) {
+  const count = VALENCE[atom.dataset.symbol];
+  const angleStep = (Math.PI * 2) / Math.max(count, 4);
+  atom.electrons = [];
+
+  for (let i = 0; i < count; i++) {
+    const e = document.createElement('div');
+    e.className = 'electron';
+    const angle = i * angleStep;
+    positionElectron(atom, e, angle);
+
+    e.addEventListener('click', () => selectElectron(e, atom));
+    workspace.appendChild(e);
+    atom.electrons.push({ el: e, angle });
+  }
+}
+
+function positionElectron(atom, electron, angle) {
+  const r = atom.getBoundingClientRect();
+  const w = workspace.getBoundingClientRect();
+  const cx = r.left + r.width/2 - w.left;
+  const cy = r.top + r.height/2 - w.top;
+
+  electron.style.left = cx + Math.cos(angle)*65 - 6 + 'px';
+  electron.style.top  = cy + Math.sin(angle)*65 - 6 + 'px';
+}
+
+/* ---------- BONDING ---------- */
+
+function selectElectron(e, atom) {
+  if (!selectedElectron) {
+    selectedElectron = { e, atom };
+    e.classList.add('selected');
+  } else if (selectedElectron.e !== e) {
+    attemptBond(selectedElectron, { e, atom });
+    selectedElectron.e.classList.remove('selected');
+    selectedElectron = null;
+  }
+}
+
+function attemptBond(a, b) {
+  if (a.atom === b.atom) return;
+
+  a.e.remove();
+  b.e.remove();
+
+  a.atom.dataset.usedElectrons++;
+  b.atom.dataset.usedElectrons++;
+
+  updateElectronCount(a.atom);
+  updateElectronCount(b.atom);
+  updateSatisfaction(a.atom);
+  updateSatisfaction(b.atom);
+
+  let group = bonds.find(x =>
+    (x.a === a.atom && x.b === b.atom) ||
+    (x.a === b.atom && x.b === a.atom)
+  );
+
+  if (!group) {
+    group = { a: a.atom, b: b.atom, visuals: [] };
+    bonds.push(group);
+  }
+
+  const bond = document.createElement('div');
+  bond.className = 'bond';
+  workspace.appendChild(bond);
+  group.visuals.push(bond);
+
+  updateBonds();
+}
+
+/* ---------- ELECTRON COUNT ---------- */
+
+function updateElectronCount(atom) {
+  const valence = VALENCE[atom.dataset.symbol];
+  const used = Number(atom.dataset.usedElectrons);
+  atom.querySelector('.electron-count').textContent = valence + used;
+}
+
+/* ---------- SATISFACTION ---------- */
+
+function updateSatisfaction(atom) {
+  const valence = VALENCE[atom.dataset.symbol];
+  const used = Number(atom.dataset.usedElectrons);
+  const total = (valence - used) + (used * 2);
+
+  atom.classList.toggle(
+    'satisfied',
+    total >= TARGET_ELECTRONS[atom.dataset.symbol]
+  );
+}
+
+/* ---------- BONDS ---------- */
+
+function updateBonds() {
+  const w = workspace.getBoundingClientRect();
+
+  bonds.forEach(group => {
+    const a = group.a.getBoundingClientRect();
+    const b = group.b.getBoundingClientRect();
+
+    const ax = a.left + a.width/2 - w.left;
+    const ay = a.top + a.height/2 - w.top;
+    const bx = b.left + b.width/2 - w.left;
+    const by = b.top + b.height/2 - w.top;
+
+    const angle = Math.atan2(by-ay, bx-ax);
+    const dist = Math.hypot(bx-ax, by-ay);
+
+    const baseX = ax + Math.cos(angle)*ATOM_RADIUS;
+    const baseY = ay + Math.sin(angle)*ATOM_RADIUS;
+
+    const offset = 18;
+    const normal = angle + Math.PI/2;
+
+    group.visuals.forEach((bond,i) => {
+      const o = (i-(group.visuals.length-1)/2)*offset;
+      bond.style.width = (dist-ATOM_RADIUS*2)+'px';
+      bond.style.left = baseX + Math.cos(normal)*o + 'px';
+      bond.style.top  = baseY + Math.sin(normal)*o - 5 + 'px';
+      bond.style.transform = `rotate(${angle}rad)`;
+    });
+  });
+}
+
+/* ---------- DRAG ---------- */
+
+function makeDraggable(atom) {
+  let drag=false, dx, dy;
+
+  atom.addEventListener('mousedown', e => {
+    drag=true; dx=e.offsetX; dy=e.offsetY;
+  });
+
+  document.addEventListener('mousemove', e => {
+    if(!drag) return;
+    atom.style.left = e.pageX-dx+'px';
+    atom.style.top  = e.pageY-dy+'px';
+
+    atom.electrons.forEach(x => positionElectron(atom,x.el,x.angle));
+    updateBonds();
+  });
+
+  document.addEventListener('mouseup', () => drag=false);
+}
+
+/* ---------- RESET ---------- */
+
+document.getElementById('resetBtn').onclick = () => location.reload();
+</script>
+
+</body>
+</html>
