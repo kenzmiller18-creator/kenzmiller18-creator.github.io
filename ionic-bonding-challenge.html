@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Ionic Bonding Simulator</title>
+
+<style>
+:root { --unit: 40px; }
+
+body {
+  margin: 0;
+  font-family: Georgia, serif;
+  background: #efcffb;
+  padding: 20px;
+}
+
+
+h1 { text-align: center; }
+
+/* ===== MODE SWITCH ===== */
+#modeBar {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+#modeBar button {
+  padding: 10px 14px;
+  margin: 0 6px;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* ===== LAYOUT ===== */
+#container {
+  display: grid;
+  grid-template-columns: 360px 1fr 360px;
+  gap: 30px;
+}
+
+#cation-bank,
+#anion-bank {
+  width: 360px;   /* ← THIS is the key */
+}
+.charge-group {
+  display: grid;
+  row-gap: 16px;
+  grid-template-columns: repeat(2, max-content);
+  column-gap: 60px;
+}
+
+.ion-column {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 320px;
+}
+
+.column-title {
+  text-align: center;
+  font-weight: bold;
+}
+
+/* ===== IONS ===== */
+.ion {
+  position: relative;
+  width: 120px;          /* fixed width = allows side-by-side */
+  max-width: 120px;
+  height: calc(var(--charge) * var(--unit));
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: bold;
+  cursor: grab;
+}
+
+.cation { background: #79f1f6; }
+.anion { background: #fe4164; }
+
+sup { font-size: 65%; }
+
+.connectors {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  display: grid;
+  grid-template-rows: repeat(var(--charge), var(--unit));
+  align-items: center;
+}
+
+.cation .connectors { right: -22px; }
+.anion .connectors { left: -22px; }
+
+.slot, .plug {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+
+.slot { border: 3px dashed #000; }
+.plug { background: #ef5a6f; }
+
+/* ===== BONDING ===== */
+.bonding-wrapper {
+  width: 500px;
+  justify-self: center;
+}
+
+#bonding-area {
+  border: 3px dashed #eca0ff;
+  background: white;
+  border-radius: 18px;
+  padding: 20px;
+  min-height: 320px;
+  display: grid;
+  grid-template-columns: 1fr 61px 1fr;
+  margin-bottom: 24px;
+}
+
+#bonding-area.neutral {
+  background: #b6f5c6;
+  border-color: #16a34a;
+}
+
+.bond-cations,
+.bond-anions {
+  display: flex;
+  flex-direction: column;
+}
+
+.bond-cations { align-items: flex-end; }
+.bond-anions { align-items: flex-start; }
+
+.bond-cations .ion { margin-right: -18px; }
+.bond-anions .ion { margin-left: -18px; }
+
+/* ===== CONTROLS ===== */
+.controls {
+  margin-top: 12px;
+  text-align: center;
+}
+
+#challengeBox {
+  display: none;
+  margin-top: 10px;
+}
+
+#challengePrompt {
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+#challenge-answer {
+  width: 260px;
+  padding: 10px 14px;
+  font-size: 18px;
+  border-radius: 8px;
+  border: 2px solid #999;
+}
+button {
+  border-radius: 10px;          /* rounded rectangle */
+  border: 2px solid transparent;
+  padding: 10px 18px;
+  font-size: 18px;
+  font-family: Georgia, serif;
+  cursor: pointer;
+}
+
+/* Mode buttons */
+#sandboxBtn {
+  background: #4c17b0;
+  color: white;
+  border-color: #000000;
+}
+
+#challengeBtn {
+  background: #530c5e;
+  color: white;
+  border-color: #000000;
+}
+
+/* Check Answer */
+#check-challenge {
+  background: #c084fc;          /* purple example */
+  color: white;
+}
+
+/* Clear */
+#clear {
+  background: #25202c;          /* red example */
+  color: white;
+}
+button:hover {
+  filter: brightness(1.05);
+}
+#challenge-feedback {
+  font-size: 20px;        /* adjust as needed */
+  font-weight: bold;
+  margin-top: 10px;
+}
+#challenge-feedback:empty {
+  display: none;
+}
+
+#result {
+  font-size: 18px;        /* sandbox + challenge balance message */
+  font-weight: bold;
+  margin-top: 8px;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>Ionic Bonding Simulator</h1>
+
+
+
+<div id="container">
+  <div id="cation-bank">
+    <div class="ion-column">
+      <div class="column-title">CATIONS (+)</div>
+
+      <div class="charge-group">
+        <!-- +1 -->
+        <div class="ion cation" draggable="true" data-charge="1" style="--charge:1">
+          <div class="connectors"><div class="slot"></div></div>
+          Li<sup>+</sup>
+        </div>
+        <div class="ion cation" draggable="true" data-charge="1" style="--charge:1">
+          <div class="connectors"><div class="slot"></div></div>
+          Na<sup>+</sup>
+        </div>
+        <div class="ion cation" draggable="true" data-charge="1" style="--charge:1">
+          <div class="connectors"><div class="slot"></div></div>
+          K<sup>+</sup>
+        </div>
+        <div class="ion cation" draggable="true" data-charge="1" style="--charge:1">
+          <div class="connectors"><div class="slot"></div></div>
+          Rb<sup>+</sup>
+        </div>
+        <div class="ion cation" draggable="true" data-charge="1" style="--charge:1">
+          <div class="connectors"><div class="slot"></div></div>
+          Cs<sup>+</sup>
+        </div>
+
+        <!-- +2 -->
+        <div class="ion cation" draggable="true" data-charge="2" style="--charge:2">
+          <div class="connectors"><div class="slot"></div><div class="slot"></div></div>
+          Be<sup>2+</sup>
+        </div>
+        <div class="ion cation" draggable="true" data-charge="2" style="--charge:2">
+          <div class="connectors"><div class="slot"></div><div class="slot"></div></div>
+          Mg<sup>2+</sup>
+        </div>
+        <div class="ion cation" draggable="true" data-charge="2" style="--charge:2">
+          <div class="connectors"><div class="slot"></div><div class="slot"></div></div>
+          Ca<sup>2+</sup>
+        </div>
+        <div class="ion cation" draggable="true" data-charge="2" style="--charge:2">
+          <div class="connectors"><div class="slot"></div><div class="slot"></div></div>
+          Sr<sup>2+</sup>
+        </div>
+        <div class="ion cation" draggable="true" data-charge="2" style="--charge:2">
+          <div class="connectors"><div class="slot"></div><div class="slot"></div></div>
+          Ba<sup>2+</sup>
+        </div>
+        <div class="ion cation" draggable="true" data-charge="2" style="--charge:2">
+          <div class="connectors"><div class="slot"></div><div class="slot"></div></div>
+          Ra<sup>2+</sup>
+        </div>
+
+        <!-- +3 -->
+        <div class="ion cation" draggable="true" data-charge="3" style="--charge:3">
+          <div class="connectors"><div class="slot"></div><div class="slot"></div><div class="slot"></div></div>
+          B<sup>3+</sup>
+        </div>
+        <div class="ion cation" draggable="true" data-charge="3" style="--charge:3">
+          <div class="connectors"><div class="slot"></div><div class="slot"></div><div class="slot"></div></div>
+          Al<sup>3+</sup>
+        </div>
+        <div class="ion cation" draggable="true" data-charge="3" style="--charge:3">
+          <div class="connectors"><div class="slot"></div><div class="slot"></div><div class="slot"></div></div>
+          Ga<sup>3+</sup>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="bonding-wrapper">
+
+ <div id="bonding-area">
+      <div class="bond-cations"></div>
+      <div class="midline"></div>
+      <div class="bond-anions"></div>
+    </div>
+
+    <div id="modeBar">
+  <button id="sandboxBtn">Sandbox</button>
+  <button id="challengeBtn">Challenge</button>
+  <div id="challenge-area" style="display:none;">
+  <h2 id="challenge-prompt"></h2>
+
+  <input
+    id="challenge-answer"
+    placeholder="Enter formula or name"
+  />
+
+  <button id="check-challenge">Check Answer</button>
+  <div id="challenge-feedback"></div>
+</div>
+
+</div>
+
+    <div class="controls">
+      <button id="clear">Clear</button>
+      <div id="result"></div>
+    </div>
+
+  </div>
+  
+  
+<!-- ===== ION BANK ===== -->
+  <div id="anion-bank">
+
+
+
+    <!-- ANIONS -->
+    <div class="ion-column">
+      <div class="column-title">ANIONS (−)</div>
+
+      <div class="charge-group">
+        <!-- −1 -->
+        <div class="ion anion" draggable="true" data-charge="-1" style="--charge:1">
+          <div class="connectors"><div class="plug"></div></div>
+          F<sup>−</sup>
+        </div>
+        <div class="ion anion" draggable="true" data-charge="-1" style="--charge:1">
+          <div class="connectors"><div class="plug"></div></div>
+          Cl<sup>−</sup>
+        </div>
+        <div class="ion anion" draggable="true" data-charge="-1" style="--charge:1">
+          <div class="connectors"><div class="plug"></div></div>
+          Br<sup>−</sup>
+        </div>
+        <div class="ion anion" draggable="true" data-charge="-1" style="--charge:1">
+          <div class="connectors"><div class="plug"></div></div>
+          I<sup>−</sup>
+        </div>
+
+        <!-- −2 -->
+        <div class="ion anion" draggable="true" data-charge="-2" style="--charge:2">
+          <div class="connectors"><div class="plug"></div><div class="plug"></div></div>
+          O<sup>2−</sup>
+        </div>
+        <div class="ion anion" draggable="true" data-charge="-2" style="--charge:2">
+          <div class="connectors"><div class="plug"></div><div class="plug"></div></div>
+          S<sup>2−</sup>
+        </div>
+        <div class="ion anion" draggable="true" data-charge="-2" style="--charge:2">
+          <div class="connectors"><div class="plug"></div><div class="plug"></div></div>
+          Se<sup>2−</sup>
+        </div>
+
+        <!-- −3 -->
+        <div class="ion anion" draggable="true" data-charge="-3" style="--charge:3">
+          <div class="connectors"><div class="plug"></div><div class="plug"></div><div class="plug"></div></div>
+          N<sup>3−</sup>
+        </div>
+        <div class="ion anion" draggable="true" data-charge="-3" style="--charge:3">
+          <div class="connectors"><div class="plug"></div><div class="plug"></div><div class="plug"></div></div>
+          P<sup>3−</sup>
+        </div>
+
+      </div>
+    </div>
+  
+</div>
+
+<script>
+const bondCations = document.querySelector(".bond-cations");
+const bondAnions = document.querySelector(".bond-anions");
+const bondingArea = document.getElementById("bonding-area");
+const result = document.getElementById("result");
+
+const sandboxBtn = document.getElementById("sandboxBtn");
+const challengeBtn = document.getElementById("challengeBtn");
+
+const challengeArea = document.getElementById("challenge-area");
+const challengePrompt = document.getElementById("challenge-prompt");
+const challengeAnswer = document.getElementById("challenge-answer");
+const challengeFeedback = document.getElementById("challenge-feedback");
+
+let pos = 0;
+let neg = 0;
+let mode = "sandbox";
+
+const challenges = [
+  { prompt: "Build aluminum oxide", answer: "Al2O3" },
+  { prompt: "Build magnesium chloride", answer: "MgCl2" },
+  { prompt: "Build calcium nitride", answer: "Ca3N2" },
+  { prompt: "Build sodium sulfide", answer: "Na2S" },
+  { prompt: "Build barium bromide", answer: "BaBr2" },
+  { prompt: "Build lithium nitride", answer: "Li3N" },
+  { prompt: "Build cesium iodide", answer: "CsI" },
+  { prompt: "Build radium selenide", answer: "RaS" },
+  { prompt: "Build aluminum sulfide", answer: "Al2S3" },
+  { prompt: "Build sodium chloride", answer: "NaCl" },
+  { prompt: "Build strontium phosphide", answer: "Sr3P2" },
+  { prompt: "Build potassium oxide", answer: "K2O" },
+  { prompt: "Build calcium fluoride", answer: "CaF2" },
+];
+
+let currentChallenge = null;
+
+/* ===== DRAG ===== */
+document.querySelectorAll(".ion").forEach(ion => {
+  ion.addEventListener("dragstart", e => {
+    e.dataTransfer.setData("html", ion.outerHTML);
+    e.dataTransfer.setData("charge", ion.dataset.charge);
+  });
+});
+
+bondingArea.addEventListener("dragover", e => e.preventDefault());
+
+bondingArea.addEventListener("drop", e => {
+  e.preventDefault();
+
+  const html = e.dataTransfer.getData("html");
+  const charge = Number(e.dataTransfer.getData("charge"));
+
+  if (charge > 0) {
+    bondCations.insertAdjacentHTML("beforeend", html);
+    pos += charge;
+  } else {
+    bondAnions.insertAdjacentHTML("beforeend", html);
+    neg += Math.abs(charge);
+  }
+
+  updateCharge();
+});
+
+function updateCharge() {
+  if (pos === neg && pos > 0) {
+    result.textContent = "✔ Charges balanced";
+
+    if (mode === "sandbox") {
+      bondingArea.classList.add("neutral");
+    }
+
+  } else {
+    result.textContent = "⚠ Charges not balanced";
+    bondingArea.classList.remove("neutral");
+  }
+}
+
+
+/* ===== MODES ===== */
+sandboxBtn.onclick = () => {
+  mode = "sandbox";
+  challengeArea.style.display = "none";
+  clearAll();
+};
+
+challengeBtn.onclick = () => {
+  mode = "challenge";
+  challengeArea.style.display = "block";
+  loadChallenge();
+};
+
+/* ===== CHALLENGE ===== */
+function loadChallenge() {
+  clearAll();
+  currentChallenge =
+    challenges[Math.floor(Math.random() * challenges.length)];
+  challengePrompt.textContent = currentChallenge.prompt;
+  challengeFeedback.textContent = "";
+}
+
+document.getElementById("check-challenge").onclick = () => {
+  if (!currentChallenge) return;
+
+  const userAnswer = challengeAnswer.value.replace(/\s+/g, "");
+
+  if (pos !== neg || pos === 0) {
+    challengeFeedback.textContent = "❌ Charges not balanced";
+    bondingArea.classList.remove("neutral");
+    return;
+  }
+
+  if (userAnswer === currentChallenge.answer) {
+    challengeFeedback.textContent = "✔ Correct!";
+    bondingArea.classList.add("neutral");   // ✅ green ONLY here
+  } else {
+    challengeFeedback.textContent = "✘ Try again";
+    bondingArea.classList.remove("neutral");
+  }
+};
+
+
+/* ===== CLEAR ===== */
+function clearAll() {
+  bondCations.innerHTML = "";
+  bondAnions.innerHTML = "";
+  pos = 0;
+  neg = 0;
+  result.textContent = "";
+  bondingArea.classList.remove("neutral");
+  challengeAnswer.value = "";
+  challengeFeedback.textContent = "";
+}
+
+document.getElementById("clear").onclick = clearAll;
+</script>
+
+
+</body>
+</html>
