@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Atomic Structure & Lewis Dot Simulator</title>
+
+<style>
+body {
+  margin: 0;
+  font-family: Georgia, serif;
+  background: white;
+}
+
+/* ===== TOOLBAR ===== */
+#toolbar {
+  display: flex;
+  gap: 10px;
+  padding: 12px;
+  background: #e2a8ff;
+  border-bottom: 1px solid #ccc;
+  align-items: center;
+}
+
+button, select {
+  padding: 6px 12px;
+  font-size: 15px;
+  border-radius: 6px;
+  border: none;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.protonBtn { background: #8de790; color: white; }
+.neutronBtn { background: #98beff; color: white; }
+.electronBtn { background: #ff5c5c; color: white; }
+
+#reset {
+  margin-left: auto;
+  background: black;
+  color: white;
+}
+
+/* ===== WORKSPACE ===== */
+#workspace {
+  position: relative;
+  width: 100vw;
+  height: calc(100vh - 60px);
+}
+
+/* ===== BOHR MODEL ===== */
+#nucleus {
+  position: absolute;
+  left: 30%;
+  top: 50%;
+  width: 140px;
+  height: 140px;
+  background: #dabdfe;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  border: 2px solid black;
+}
+
+.shell {
+  position: absolute;
+  border: 2px dashed #999;
+  border-radius: 50%;
+  left: 30%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+#shell1 { width: 260px; height: 260px; }
+#shell2 { width: 360px; height: 360px; }
+#shell3 { width: 460px; height: 460px; }
+
+/* ===== PARTICLES ===== */
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid black;
+}
+
+.proton, .neutron {
+  width: 20px;
+  height: 20px;
+}
+
+.electron {
+  width: 10px;
+  height: 10px;
+  background: #ff5c5c;
+}
+
+.proton { background: #8de790; }
+.neutron { background: #98beff; }
+
+/* ===== COUNTER TABLE ===== */
+#counterWrapper {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+}
+
+#counterTable {
+  border: 4px solid black;
+  border-radius: 14px;
+  overflow: hidden;
+  border-collapse: collapse;
+  background: white;
+}
+
+#counterTable th,
+#counterTable td {
+  padding: 10px 18px;
+  text-align: center;
+  font-weight: bold;
+  border-right: 4px solid black;
+}
+
+#counterTable th:last-child,
+#counterTable td:last-child {
+  border-right: none;
+}
+
+#counterTable th {
+  font-size: 22px;
+}
+
+#counterTable td {
+  font-size: 26px;
+}
+
+th.protons { color: #4d8f51; }
+th.neutrons { color: #3f6fdc; }
+th.electrons { color: #d43a3a; }
+
+.correctGlow {
+  box-shadow: 0 0 25px 10px rgba(80, 220, 120, 0.9);
+}
+
+/* ===== LEWIS PANEL ===== */
+#lewisPanel {
+  position: absolute;
+  left: 65%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 280px;
+  height: 280px;
+  border: 3px solid black;
+  border-radius: 18px;
+}
+
+#lewisTitle {
+  text-align: center;
+  font-weight: bold;
+  margin-top: 6px;
+}
+
+#lewisSymbol {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 48px;
+  font-weight: bold;
+}
+
+/* ===== LEWIS ELECTRON SPOTS ===== */
+.lewisSpot {
+  position: absolute;
+  cursor: pointer;
+}
+
+.lewisSpot.horizontal {
+  width: 56px;
+  height: 22px;
+}
+
+.lewisSpot.vertical {
+  width: 22px;
+  height: 56px;
+}
+
+.lewisSpot .dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #aaa;
+  background: transparent;
+  display: block;
+  margin: 3px auto;
+}
+
+.lewisSpot.horizontal .dot {
+  display: inline-block;
+  margin: 0 4px;
+}
+
+.lewisSpot.one .dot:first-child {
+  background: black;
+  border-color: black;
+}
+
+.lewisSpot.two .dot {
+  background: black;
+  border-color: black;
+}
+
+/* Positions */
+.top    { top: 46px; left: 50%; transform: translateX(-50%); }
+.bottom { bottom: 46px; left: 50%; transform: translateX(-50%); }
+.left   { left: 44px; top: 50%; transform: translateY(-50%); }
+.right  { right: 44px; top: 50%; transform: translateY(-50%); }
+
+/* ===== FEEDBACK ===== */
+#feedback {
+  margin-top: 8px;
+  font-weight: bold;
+  text-align: center;
+}
+</style>
+</head>
+
+<body>
+
+<div id="toolbar">
+  <select id="elementSelect">
+    <option value="">-- Choose Element --</option>
+    <option>Hydrogen</option>
+    <option>Helium</option>
+    <option>Lithium</option>
+    <option>Beryllium</option>
+    <option>Boron</option>
+    <option>Carbon</option>
+    <option>Nitrogen</option>
+    <option>Oxygen</option>
+    <option>Fluorine</option>
+    <option>Neon</option>
+    <option>Sodium</option>
+    <option>Magnesium</option>
+    <option>Aluminum</option>
+    <option>Silicon</option>
+    <option>Phosphorus</option>
+    <option>Sulfur</option>
+    <option>Chlorine</option>
+    <option>Argon</option>
+    
+  </select>
+
+  <button class="protonBtn" onclick="addNucleon('proton')">+ Proton</button>
+  <button class="neutronBtn" onclick="addNucleon('neutron')">+ Neutron</button>
+  <button class="electronBtn" onclick="addElectron()">+ Electron</button>
+
+  <button onclick="checkAtom()">Check Atom</button>
+  <button id="reset" onclick="location.reload()">Reset</button>
+</div>
+
+<div id="workspace">
+
+  <div id="nucleus"></div>
+  <div class="shell" id="shell1" data-max="2"></div>
+  <div class="shell" id="shell2" data-max="8"></div>
+  <div class="shell" id="shell3" data-max="8"></div>
+
+  <div id="counterWrapper">
+    <table id="counterTable">
+      <tr>
+        <th class="protons">Protons</th>
+        <th class="neutrons">Neutrons</th>
+        <th class="electrons">Electrons</th>
+      </tr>
+      <tr>
+        <td id="pCount">0</td>
+        <td id="nCount">0</td>
+        <td id="eCount">0</td>
+      </tr>
+    </table>
+    <div id="feedback"></div>
+  </div>
+
+  <div id="lewisPanel">
+    <div id="lewisTitle">Lewis Dot Diagram</div>
+    <div id="lewisSymbol">?</div>
+
+    <div class="lewisSpot horizontal top" data-count="0">
+      <span class="dot"></span><span class="dot"></span>
+    </div>
+    <div class="lewisSpot vertical right" data-count="0">
+      <span class="dot"></span><span class="dot"></span>
+    </div>
+    <div class="lewisSpot horizontal bottom" data-count="0">
+      <span class="dot"></span><span class="dot"></span>
+    </div>
+    <div class="lewisSpot vertical left" data-count="0">
+      <span class="dot"></span><span class="dot"></span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const ELEMENTS = {
+  Hydrogen:   { p: 1,  mass: 1,  valence: 1, symbol: "H"  },
+  Helium:     { p: 2,  mass: 4,  valence: 2, symbol: "He" },
+  Lithium:    { p: 3,  mass: 7,  valence: 1, symbol: "Li" },
+  Beryllium:  { p: 4,  mass: 9,  valence: 2, symbol: "Be" },
+  Boron:      { p: 5,  mass: 11, valence: 3, symbol: "B"  },
+  Carbon:     { p: 6,  mass: 12, valence: 4, symbol: "C"  },
+  Nitrogen:   { p: 7,  mass: 14, valence: 5, symbol: "N"  },
+  Oxygen:     { p: 8,  mass: 16, valence: 6, symbol: "O"  },
+  Fluorine:   { p: 9,  mass: 19, valence: 7, symbol: "F"  },
+  Neon:       { p: 10, mass: 20, valence: 8, symbol: "Ne" },
+  Sodium:     { p: 11, mass: 23, valence: 1, symbol: "Na" },
+  Magnesium:  { p: 12, mass: 24, valence: 2, symbol: "Mg" },
+  Aluminum:   { p: 13, mass: 27, valence: 3, symbol: "Al" },
+  Silicon:    { p: 14, mass: 28, valence: 4, symbol: "Si" },
+  Phosphorus: { p: 15, mass: 31, valence: 5, symbol: "P"  },
+  Sulfur:     { p: 16, mass: 32, valence: 6, symbol: "S"  },
+  Chlorine:   { p: 17, mass: 35, valence: 7, symbol: "Cl" },
+  Argon:      { p: 18, mass: 40, valence: 8, symbol: "Ar" }
+};
+
+
+let protons=0, neutrons=0, electrons=0;
+let target=null;
+
+const nucleus=document.getElementById("nucleus");
+const shells=[...document.querySelectorAll(".shell")];
+const spots=[...document.querySelectorAll(".lewisSpot")];
+const table=document.getElementById("counterTable");
+
+spots.forEach(s=>{
+  s.onclick=()=>{
+    let c=(+s.dataset.count+1)%3;
+    s.dataset.count=c;
+    s.classList.remove("one","two");
+    if(c===1)s.classList.add("one");
+    if(c===2)s.classList.add("two");
+  };
+});
+
+elementSelect.onchange=e=>{
+  target=e.target.value;
+  lewisSymbol.textContent = target ? ELEMENTS[target].symbol : "?";
+
+  spots.forEach(s=>{s.dataset.count=0;s.classList.remove("one","two");});
+  table.classList.remove("correctGlow");
+  feedback.textContent="";
+};
+
+function addNucleon(type){
+  if(!target)return alert("Choose an element first");
+  const p=document.createElement("div");
+  p.className=`particle ${type}`;
+  const r=Math.random()*40,a=Math.random()*Math.PI*2;
+  p.style.left="50%";p.style.top="50%";
+  p.style.transform=`translate(-50%,-50%) translate(${Math.cos(a)*r}px,${Math.sin(a)*r}px)`;
+  nucleus.appendChild(p);
+  type==="proton"?protons++:neutrons++;
+  update();
+}
+
+function addElectron(){
+  if(!target)return alert("Choose an element first");
+  for(const shell of shells){
+    const max=+shell.dataset.max;
+    if(shell.children.length<max){
+      const i=shell.children.length;
+      const ang=(i/max)*2*Math.PI;
+      const r=shell.offsetWidth/2;
+      const e=document.createElement("div");
+      e.className="particle electron";
+      e.style.left="50%";e.style.top="50%";
+      e.style.transform=`translate(-50%,-50%) translate(${Math.cos(ang)*r}px,${Math.sin(ang)*r}px)`;
+      shell.appendChild(e);
+      electrons++; update(); return;
+    }
+  }
+}
+
+function update(){
+  pCount.textContent=protons;
+  nCount.textContent=neutrons;
+  eCount.textContent=electrons;
+  table.classList.remove("correctGlow");
+}
+
+function checkAtom(){
+  const el=ELEMENTS[target];
+  const lewis=spots.reduce((s,p)=>s+ +p.dataset.count,0);
+  if(protons===el.p && neutrons===el.mass-el.p && electrons===el.p && lewis===el.valence){
+    feedback.textContent="✔ Correct!";
+    feedback.style.color="green";
+    table.classList.add("correctGlow");
+  } else {
+    feedback.textContent="Not correct yet";
+    feedback.style.color="red";
+  }
+}
+</script>
+
+</body>
+</html>
