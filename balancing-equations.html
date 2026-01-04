@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Balancing Chemical Equations</title>
+
+<style>
+body {
+  font-family: Georgia, serif;
+  margin: 0;
+  background: white;
+}
+
+/* ===== COLORS ===== */
+:root {
+  --H: #f6b6c9;
+  --Na: #a6d98b;
+  --Cl: #f4c37d;
+  --toolbar: #e9c8ff;
+  
+  --C: #444444;
+  --N: #3050f8;
+  --O: #8d5656;
+  --F: #90e050;
+  
+  --Br: #a62929;
+  --I: #940094;
+
+  
+  --K: #8f40d4;
+  --Li: #cc80ff;
+  --Cs: #57178f;
+  --Rb: #702eb0;
+
+  --Mg: #8aff00;
+  --Ca: #3dff00;
+  --Al: #bfa6a6;
+
+  --P: #ff8000;
+  --S: #b1b126;
+  --B: #ffb5b5;
+  --Si: #f0c8a0;
+
+  --Fe: #e06633;
+}
+
+
+
+/* ===== TOOLBAR ===== */
+#toolbar {
+  background: var(--toolbar);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#difficulty-badge {
+  margin-left: 18px;
+  padding: 6px 14px;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: bold;
+  color: white;
+}
+
+.easy   { background: #5fbf7a; }
+.medium { background: #f0a500; }
+.hard   { background: #d9534f; }
+
+#instructions {
+  font-size: 20px;
+}
+
+#toolbar button {
+  font-size: 18px;
+  padding: 8px 16px;
+  margin-left: 10px;
+    border-radius: 10px;
+    background-color: #4f2f92;
+    color: #ffffff;
+    border-color: #000000;
+}
+
+
+/* ===== EQUATION ===== */
+#equation {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  font-size: 36px;
+  margin: 20px 40px 10px;
+}
+
+.side {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 24px;
+}
+
+.term {
+  display: flex;
+  align-items: center;
+}
+
+.plus {
+  font-size: 36px;
+}
+
+.coeff {
+  display: inline-block;
+  min-width: 1.2em;
+  text-align: center;
+  font-size: 1.6rem;
+  font-weight: bold;
+  color: #2b2b2b;
+  cursor: pointer;
+  user-select: none;
+  z-index: 5;
+  position: relative;
+}
+
+
+
+
+/* ===== COUNTER ===== */
+#counter {
+  margin: 10px 40px 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+  font-size: 26px;
+}
+
+.counter-row {
+  margin: 6px 0;
+}
+
+.unbalanced {
+  color: red !important;
+  font-weight: bold;
+}
+
+/* ===== VISUAL ===== */
+#visual {
+
+  height: 900px;
+  padding-bottom: 40px;
+  margin: 0 40px 40px;
+  border: 4px solid #cdb4f6;
+  border-radius: 28px;
+  position: relative;
+  transition: border-color 0.3s;
+  background: #f8eaff;
+}
+
+
+#visual.balanced {
+  border-color: #6fdc8c;
+  background: #def7e5;
+}
+
+.divider {
+  position: absolute;
+  left: 50%;
+  top: 20px;
+  bottom: 20px;
+  border-left: 3px dashed #ababab;
+}
+
+.column {
+  position: absolute;
+  top: 60px;
+  width: 260px;
+  text-align: center;
+}
+
+.molecule {
+  margin-bottom: 20px;
+}
+
+.atom {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  margin: 4px;
+}
+
+.atom.H  { background: var(--H); }
+.atom.C  { background: var(--C); }
+.atom.N  { background: var(--N); }
+.atom.O  { background: var(--O); }
+.atom.Na { background: var(--Na); }
+.atom.Cl { background: var(--Cl); }
+.atom.K  { background: var(--K); }
+.atom.Ca { background: var(--Ca); }
+.atom.Mg { background: var(--Mg); }
+.atom.Al { background: var(--Al); }
+.atom.S  { background: var(--S); }
+.atom.P  { background: var(--P); }
+.atom.F  { background: var(--F); }
+.atom.Br { background: var(--Br); }
+.atom.I  { background: var(--I); }
+.atom.B  { background: var(--B); }
+.atom.Fe  { background: var(--Fe); }
+.atom.Cs  { background: var(--Cs); }
+.atom.Rb  { background: var(--Rb); }
+.atom.Si  { background: var(--Si); }
+.atom.Li  { background: var(--Li); }
+
+</style>
+</head>
+
+<body>
+
+<!-- ===== TOOLBAR ===== -->
+<div id="toolbar">
+  <div id="instructions">
+    <strong>Click</strong> a coefficient to add molecules.  
+    <strong>Shift + Click</strong> to remove.  
+    Balance the equation by matching atom counts.
+    <span id="difficulty-badge"></span>
+  </div>
+  <div>
+    <button onclick="clearAll()">Clear</button>
+    <button onclick="newEquation()">New Equation</button>
+  </div>
+</div>
+
+<!-- ===== EQUATION ===== -->
+<div id="equation">
+  <div class="side">
+    <div class="term">
+      <span class="coeff" onclick="changeCoeff(event,'hcl')">_</span>
+      <span><span style="color:var(--H)">H</span><span style="color:var(--Cl)">Cl</span></span>
+    </div>
+    <div class="plus">+</div>
+    <div class="term">
+      <span class="coeff" onclick="changeCoeff(event,'na')">_</span>
+      <span style="color:var(--Na)">Na</span>
+    </div>
+  </div>
+
+  <div style="font-size:42px;">→</div>
+
+  <div class="side">
+    <div class="term">
+      <span class="coeff" onclick="changeCoeff(event,'nacl')">_</span>
+      <span><span style="color:var(--Na)">Na</span><span style="color:var(--Cl)">Cl</span></span>
+    </div>
+    <div class="plus">+</div>
+    <div class="term">
+      <span class="coeff" onclick="changeCoeff(event,'h2')">_</span>
+      <span><span style="color:var(--H)">H</span>₂</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== COUNTER ===== -->
+<div id="counter">
+  <div>
+    <strong>Reactants</strong>
+    <div id="reactants"></div>
+  </div>
+
+  <div>
+    <strong>Products</strong>
+    <div id="products"></div>
+  </div>
+</div>
+
+<!-- ===== VISUAL ===== -->
+<div id="visual">
+  <div class="divider"></div>
+  <div class="column" style="left:8%" id="col-hcl"></div>
+  <div class="column" style="left:28%" id="col-na"></div>
+  <div class="column" style="left:58%" id="col-nacl"></div>
+  <div class="column" style="left:78%" id="col-h2"></div>
+</div>
+
+<script>
+/* ===============================
+   EQUATION DATA
+================================ */
+
+const equations = [
+
+{
+  difficulty: "Medium",
+  reactants:[
+    { key:"h3po4", formula:"H₃PO₄", comp:{H:3,P:1,O:4} },
+    { key:"koh", formula:"KOH", comp:{K:1,O:1,H:1} }
+  ],
+  products:[
+    { key:"k3po4", formula:"K₃PO₄", comp:{K:3,P:1,O:4} },
+    { key:"h2o", formula:"H₂O", comp:{H:2,O:1} }
+  ],
+  answer:{ h3po4:1, koh:3, k3po4:1, h2o:3 }
+},
+
+{
+  difficulty:"Hard",
+  reactants:[
+    { key:"k", formula:"K", comp:{K:1} },
+    { key:"b2o3", formula:"B₂O₃", comp:{B:2,O:3} }
+  ],
+  products:[
+    { key:"k2o", formula:"K₂O", comp:{K:2,O:1} },
+    { key:"b", formula:"B", comp:{B:1} }
+  ],
+  answer:{ k:6, b2o3:1, k2o:3, b:2 }
+},
+
+{
+  difficulty:"Easy",
+  reactants:[
+    { key:"hcl", formula:"HCl", comp:{H:1,Cl:1} },
+    { key:"naoh", formula:"NaOH", comp:{Na:1,O:1,H:1} }
+  ],
+  products:[
+    { key:"nacl", formula:"NaCl", comp:{Na:1,Cl:1} },
+    { key:"h2o", formula:"H₂O", comp:{H:2,O:1} }
+  ],
+  answer:{ hcl:1, naoh:1, nacl:1, h2o:1 }
+},
+
+{
+  difficulty:"Hard",
+  reactants:[
+    { key:"na", formula:"Na", comp:{Na:1} },
+    { key:"nano3", formula:"NaNO₃", comp:{Na:1,N:1,O:3} }
+  ],
+  products:[
+    { key:"na2o", formula:"Na₂O", comp:{Na:2,O:1} },
+    { key:"n2", formula:"N₂", comp:{N:2} }
+  ],
+  answer:{ na:10, nano3:2, na2o:6, n2:1 }
+},
+
+{
+  difficulty:"Easy",
+  reactants:[
+    { key:"c", formula:"C", comp:{C:1} },
+    { key:"s8", formula:"S₈", comp:{S:8} }
+  ],
+  products:[
+    { key:"cs2", formula:"CS₂", comp:{C:1,S:2} }
+  ],
+  answer:{ c:4, s8:1, cs2:4 }
+},
+
+{
+  difficulty:"Easy",
+  reactants:[
+    { key:"na", formula:"Na", comp:{Na:1} },
+    { key:"o2", formula:"O₂", comp:{O:2} }
+  ],
+  products:[
+    { key:"na2o", formula:"Na₂O", comp:{Na:2,O:1} }
+  ],
+  answer:{ na:4, o2:1, na2o:2 }
+},
+
+{
+  difficulty:"Medium",
+  reactants:[
+    { key:"n2", formula:"N₂", comp:{N:2} },
+    { key:"o2", formula:"O₂", comp:{O:2} }
+  ],
+  products:[
+    { key:"n2o5", formula:"N₂O₅", comp:{N:2,O:5} }
+  ],
+  answer:{ n2:2, o2:5, n2o5:2 }
+},
+
+{
+  difficulty:"Hard",
+  reactants:[
+    { key:"h3po4", formula:"H₃PO₄", comp:{H:3,P:1,O:4} },
+    { key:"mgoh2", formula:"Mg(OH)₂", comp:{Mg:1,O:2,H:2} }
+  ],
+  products:[
+    { key:"mg3po42", formula:"Mg₃(PO₄)₂", comp:{Mg:3,P:2,O:8} },
+    { key:"h2o", formula:"H₂O", comp:{H:2,O:1} }
+  ],
+  answer:{ h3po4:2, mgoh2:3, mg3po42:1, h2o:6 }
+},
+
+{
+  difficulty:"Medium",
+  reactants:[
+    { key:"naoh", formula:"NaOH", comp:{Na:1,O:1,H:1} },
+    { key:"h2co3", formula:"H₂CO₃", comp:{H:2,C:1,O:3} }
+  ],
+  products:[
+    { key:"na2co3", formula:"Na₂CO₃", comp:{Na:2,C:1,O:3} },
+    { key:"h2o", formula:"H₂O", comp:{H:2,O:1} }
+  ],
+  answer:{ naoh:2, h2co3:1, na2co3:1, h2o:2 }
+},
+{
+  difficulty:"Easy",
+  reactants:[
+    { key:"koh", formula:"KOH", comp:{K:1,O:1,H:1} },
+    { key:"hbr", formula:"HBr", comp:{H:1,Br:1} }
+  ],
+  products:[
+    { key:"kbr", formula:"KBr", comp:{K:1,Br:1} },
+    { key:"h2o", formula:"H₂O", comp:{H:2,O:1} }
+  ],
+  answer:{ koh:1, hbr:1, kbr:1, h2o:1 }
+},
+
+{
+  difficulty:"Easy",
+  reactants:[
+    { key:"na", formula:"Na", comp:{Na:1} },
+    { key:"o2", formula:"O₂", comp:{O:2} }
+  ],
+  products:[
+    { key:"na2o", formula:"Na₂O", comp:{Na:2,O:1} }
+  ],
+  answer:{ na:4, o2:1, na2o:2 }
+},
+
+{
+  difficulty:"Medium",
+  reactants:[
+    { key:"aloh3", formula:"Al(OH)₃", comp:{Al:1,O:3,H:3} },
+    { key:"h2co3", formula:"H₂CO₃", comp:{H:2,C:1,O:3} }
+  ],
+  products:[
+    { key:"al2co33", formula:"Al₂(CO₃)₃", comp:{Al:2,C:3,O:9} },
+    { key:"h2o", formula:"H₂O", comp:{H:2,O:1} }
+  ],
+  answer:{ aloh3:2, h2co3:3, al2co33:1, h2o:6 }
+},
+
+{
+  difficulty:"Medium",
+  reactants:[
+    { key:"al", formula:"Al", comp:{Al:1} },
+    { key:"s8", formula:"S₈", comp:{S:8} }
+  ],
+  products:[
+    { key:"al2s3", formula:"Al₂S₃", comp:{Al:2,S:3} }
+  ],
+  answer:{ al:16, s8:3, al2s3:8 }
+},
+
+{
+  difficulty:"Easy",
+  reactants:[
+    { key:"cs", formula:"Cs", comp:{Cs:1} },
+    { key:"n2", formula:"N₂", comp:{N:2} }
+  ],
+  products:[
+    { key:"cs3n", formula:"Cs₃N", comp:{Cs:3,N:1} }
+  ],
+  answer:{ cs:6, n2:1, cs3n:2 }
+},
+
+{
+  difficulty:"Easy",
+  reactants:[
+    { key:"mg", formula:"Mg", comp:{Mg:1} },
+    { key:"cl2", formula:"Cl₂", comp:{Cl:2} }
+  ],
+  products:[
+    { key:"mgcl2", formula:"MgCl₂", comp:{Mg:1,Cl:2} }
+  ],
+  answer:{ mg:1, cl2:1, mgcl2:1 }
+},
+
+{
+  difficulty:"Hard",
+  reactants:[
+    { key:"rb", formula:"Rb", comp:{Rb:1} },
+    { key:"rbno3", formula:"RbNO₃", comp:{Rb:1,N:1,O:3} }
+  ],
+  products:[
+    { key:"rb2o", formula:"Rb₂O", comp:{Rb:2,O:1} },
+    { key:"n2", formula:"N₂", comp:{N:2} }
+  ],
+  answer:{ rb:10, rbno3:2, rb2o:6, n2:1 }
+},
+
+{
+  difficulty:"Hard",
+  reactants:[
+    { key:"c6h6", formula:"C₆H₆", comp:{C:6,H:6} },
+    { key:"o2", formula:"O₂", comp:{O:2} }
+  ],
+  products:[
+    { key:"co2", formula:"CO₂", comp:{C:1,O:2} },
+    { key:"h2o", formula:"H₂O", comp:{H:2,O:1} }
+  ],
+  answer:{ c6h6:2, o2:15, co2:12, h2o:6 }
+},
+
+{
+  difficulty:"Easy",
+  reactants:[
+    { key:"n2", formula:"N₂", comp:{N:2} },
+    { key:"h2", formula:"H₂", comp:{H:2} }
+  ],
+  products:[
+    { key:"nh3", formula:"NH₃", comp:{N:1,H:3} }
+  ],
+  answer:{ n2:1, h2:3, nh3:2 }
+},
+
+{
+  difficulty:"Hard",
+  reactants:[
+    { key:"c10h22", formula:"C₁₀H₂₂", comp:{C:10,H:22} },
+    { key:"o2", formula:"O₂", comp:{O:2} }
+  ],
+  products:[
+    { key:"co2", formula:"CO₂", comp:{C:1,O:2} },
+    { key:"h2o", formula:"H₂O", comp:{H:2,O:1} }
+  ],
+  answer:{ c10h22:2, o2:31, co2:20, h2o:22 }
+},
+
+{
+  difficulty:"Medium",
+  reactants:[
+    { key:"aloh3", formula:"Al(OH)₃", comp:{Al:1,O:3,H:3} },
+    { key:"hbr", formula:"HBr", comp:{H:1,Br:1} }
+  ],
+  products:[
+    { key:"albr3", formula:"AlBr₃", comp:{Al:1,Br:3} },
+    { key:"h2o", formula:"H₂O", comp:{H:2,O:1} }
+  ],
+  answer:{ aloh3:1, hbr:3, albr3:1, h2o:3 }
+},
+
+{
+  difficulty:"Hard",
+  reactants:[
+    { key:"c4h10", formula:"C₄H₁₀", comp:{C:4,H:10} },
+    { key:"o2", formula:"O₂", comp:{O:2} }
+  ],
+  products:[
+    { key:"co2", formula:"CO₂", comp:{C:1,O:2} },
+    { key:"h2o", formula:"H₂O", comp:{H:2,O:1} }
+  ],
+  answer:{ c4h10:2, o2:13, co2:8, h2o:10 }
+},
+
+{
+  difficulty:"Hard",
+  reactants:[
+    { key:"c3h8", formula:"C₃H₈", comp:{C:3,H:8} },
+    { key:"o2", formula:"O₂", comp:{O:2} }
+  ],
+  products:[
+    { key:"co2", formula:"CO₂", comp:{C:1,O:2} },
+    { key:"h2o", formula:"H₂O", comp:{H:2,O:1} }
+  ],
+  answer:{ c3h8:1, o2:5, co2:3, h2o:4 }
+},
+
+{
+  difficulty:"Easy",
+  reactants:[
+    { key:"li", formula:"Li", comp:{Li:1} },
+    { key:"alcl3", formula:"AlCl₃", comp:{Al:1,Cl:3} }
+  ],
+  products:[
+    { key:"licl", formula:"LiCl", comp:{Li:1,Cl:1} },
+    { key:"al", formula:"Al", comp:{Al:1} }
+  ],
+  answer:{ li:3, alcl3:1, licl:3, al:1 }
+},
+
+{
+  difficulty:"Hard",
+  reactants:[
+    { key:"c2h6", formula:"C₂H₆", comp:{C:2,H:6} },
+    { key:"o2", formula:"O₂", comp:{O:2} }
+  ],
+  products:[
+    { key:"co2", formula:"CO₂", comp:{C:1,O:2} },
+    { key:"h2o", formula:"H₂O", comp:{H:2,O:1} }
+  ],
+  answer:{ c2h6:2, o2:7, co2:4, h2o:6 }
+},
+
+{
+  difficulty:"Hard",
+  reactants:[
+    { key:"nh4oh", formula:"NH₄OH", comp:{N:1,H:5,O:1} },
+    { key:"h3po4", formula:"H₃PO₄", comp:{H:3,P:1,O:4} }
+  ],
+  products:[
+    { key:"nh43po4", formula:"(NH₄)₃PO₄", comp:{N:3,H:12,P:1,O:4} },
+    { key:"h2o", formula:"H₂O", comp:{H:2,O:1} }
+  ],
+  answer:{ nh4oh:3, h3po4:1, nh43po4:1, h2o:3 }
+},
+
+{
+  difficulty:"Easy",
+  reactants:[
+    { key:"rb", formula:"Rb", comp:{Rb:1} },
+    { key:"p", formula:"P", comp:{P:1} }
+  ],
+  products:[
+    { key:"rb3p", formula:"Rb₃P", comp:{Rb:3,P:1} }
+  ],
+  answer:{ rb:3, p:1, rb3p:1 }
+},
+
+{
+  difficulty:"Hard",
+  reactants:[
+    { key:"ch4", formula:"CH₄", comp:{C:1,H:4} },
+    { key:"o2", formula:"O₂", comp:{O:2} }
+  ],
+  products:[
+    { key:"co2", formula:"CO₂", comp:{C:1,O:2} },
+    { key:"h2o", formula:"H₂O", comp:{H:2,O:1} }
+  ],
+  answer:{ ch4:1, o2:2, co2:1, h2o:2 }
+},
+
+{
+  difficulty:"Hard",
+  reactants:[
+    { key:"aloh3", formula:"Al(OH)₃", comp:{Al:1,O:3,H:3} },
+    { key:"h2so4", formula:"H₂SO₄", comp:{H:2,S:1,O:4} }
+  ],
+  products:[
+    { key:"al2so43", formula:"Al₂(SO₄)₃", comp:{Al:2,S:3,O:12} },
+    { key:"h2o", formula:"H₂O", comp:{H:2,O:1} }
+  ],
+  answer:{ aloh3:2, h2so4:3, al2so43:1, h2o:6 }
+},
+
+{
+  difficulty:"Easy",
+  reactants:[
+    { key:"na", formula:"Na", comp:{Na:1} },
+    { key:"cl2", formula:"Cl₂", comp:{Cl:2} }
+  ],
+  products:[
+    { key:"nacl", formula:"NaCl", comp:{Na:1,Cl:1} }
+  ],
+  answer:{ na:2, cl2:1, nacl:2 }
+},
+
+{
+  difficulty:"Medium",
+  reactants:[
+    { key:"rb", formula:"Rb", comp:{Rb:1} },
+    { key:"s8", formula:"S₈", comp:{S:8} }
+  ],
+  products:[
+    { key:"rb2s", formula:"Rb₂S", comp:{Rb:2,S:1} }
+  ],
+  answer:{ rb:16, s8:1, rb2s:8 }
+},
+
+{
+  difficulty:"Hard",
+  reactants:[
+    { key:"h3po4", formula:"H₃PO₄", comp:{H:3,P:1,O:4} },
+    { key:"caoh2", formula:"Ca(OH)₂", comp:{Ca:1,O:2,H:2} }
+  ],
+  products:[
+    { key:"ca3po42", formula:"Ca₃(PO₄)₂", comp:{Ca:3,P:2,O:8} },
+    { key:"h2o", formula:"H₂O", comp:{H:2,O:1} }
+  ],
+  answer:{ h3po4:2, caoh2:3, ca3po42:1, h2o:6 }
+},
+
+{
+  difficulty:"Medium",
+  reactants:[
+    { key:"nh3", formula:"NH₃", comp:{N:1,H:3} },
+    { key:"hcl", formula:"HCl", comp:{H:1,Cl:1} }
+  ],
+  products:[
+    { key:"nh4cl", formula:"NH₄Cl", comp:{N:1,H:4,Cl:1} }
+  ],
+  answer:{ nh3:1, hcl:1, nh4cl:1 }
+},
+
+{
+  difficulty:"Medium",
+  reactants:[
+    { key:"li", formula:"Li", comp:{Li:1} },
+    { key:"h2o", formula:"H₂O", comp:{H:2,O:1} }
+  ],
+  products:[
+    { key:"lioh", formula:"LiOH", comp:{Li:1,O:1,H:1} },
+    { key:"h2", formula:"H₂", comp:{H:2} }
+  ],
+  answer:{ li:2, h2o:2, lioh:2, h2:1 }
+},
+
+{
+  difficulty:"Hard",
+  reactants:[
+    { key:"ca3po42", formula:"Ca₃(PO₄)₂", comp:{Ca:3,P:2,O:8} },
+    { key:"sio2", formula:"SiO₂", comp:{Si:1,O:2} },
+    { key:"c", formula:"C", comp:{C:1} }
+  ],
+  products:[
+    { key:"casio3", formula:"CaSiO₃", comp:{Ca:1,Si:1,O:3} },
+    { key:"co", formula:"CO", comp:{C:1,O:1} },
+    { key:"p", formula:"P", comp:{P:1} }
+  ],
+  answer:{ ca3po42:1, sio2:3, c:5, casio3:3, co:5, p:2 }
+},
+
+{
+  difficulty:"Medium",
+  reactants:[
+    { key:"nh3", formula:"NH₃", comp:{N:1,H:3} },
+    { key:"o2", formula:"O₂", comp:{O:2} }
+  ],
+  products:[
+    { key:"n2", formula:"N₂", comp:{N:2} },
+    { key:"h2o", formula:"H₂O", comp:{H:2,O:1} }
+  ],
+  answer:{ nh3:4, o2:3, n2:2, h2o:6 }
+},
+
+{
+  difficulty:"Hard",
+  reactants:[
+    { key:"fes2", formula:"FeS₂", comp:{Fe:1,S:2} },
+    { key:"o2", formula:"O₂", comp:{O:2} }
+  ],
+  products:[
+    { key:"fe2o3", formula:"Fe₂O₃", comp:{Fe:2,O:3} },
+    { key:"so2", formula:"SO₂", comp:{S:1,O:2} }
+  ],
+  answer:{ fes2:4, o2:11, fe2o3:2, so2:8 }
+},
+
+{
+  difficulty:"Hard",
+  reactants:[
+    { key:"c", formula:"C", comp:{C:1} },
+    { key:"so2", formula:"SO₂", comp:{S:1,O:2} }
+  ],
+  products:[
+    { key:"cs2", formula:"CS₂", comp:{C:1,S:2} },
+    { key:"co", formula:"CO", comp:{C:1,O:1} }
+  ],
+  answer:{ c:5, so2:2, cs2:1, co:4 }
+}
+
+];
+
+
+
+/* ===============================
+   STATE
+================================ */
+
+let currentEq = null;
+let coeffs = {};
+
+/* ===============================
+   LOAD NEW EQUATION
+================================ */
+function updateDifficulty(){
+  const badge = document.getElementById("difficulty-badge");
+  const level = currentEq.difficulty || "Medium";
+
+  badge.innerText = level;
+  badge.className = "";
+  badge.classList.add(level.toLowerCase());
+}
+function newEquation() {
+  currentEq = equations[Math.floor(Math.random() * equations.length)];
+  coeffs = {};
+
+  [...currentEq.reactants, ...currentEq.products]
+    .forEach(s => coeffs[s.key] = 0);
+
+  renderEquation();
+  renderVisualColumns();
+  updateDifficulty(); 
+  update();
+}
+
+
+/* ===============================
+   RENDER EQUATION
+================================ */
+
+function renderEquation() {
+  const eq = document.getElementById("equation");
+  eq.innerHTML = "";
+
+  eq.appendChild(renderSide(currentEq.reactants));
+  eq.appendChild(Object.assign(document.createElement("div"), {
+    innerText:"→",
+    style:"font-size:42px;"
+  }));
+  eq.appendChild(renderSide(currentEq.products));
+}
+
+function renderSide(list) {
+  const side = document.createElement("div");
+  side.className = "side";
+
+  list.forEach((s,i) => {
+    const term = document.createElement("div");
+    term.className = "term";
+
+    const coeff = document.createElement("span");
+    coeff.className = "coeff";
+    coeff.dataset.key = s.key;
+    coeff.innerText = "_";
+    coeff.onclick = e => changeCoeff(e, s.key);
+
+
+    const label = document.createElement("span");
+    label.innerHTML = colorizeFormula(
+    s.formula || keyToFormula(s.key)
+    );
+
+
+
+    term.append(coeff,label);
+    side.appendChild(term);
+
+    if(i < list.length-1){
+      const plus = document.createElement("div");
+      plus.className = "plus";
+      plus.innerText="+";
+      side.appendChild(plus);
+    }
+  });
+
+  return side;
+}
+function keyToFormula(key){
+  return key
+    .replace(/\d+/g, n => "₀₁₂₃₄₅₆₇₈₉"[n])
+    .replace(/([a-z])([A-Z])/g,"$1$2");
+}
+
+/* ===============================
+   COLORIZE FORMULA
+================================ */
+
+function colorizeFormula(formula){
+  return formula.replace(/([A-Z][a-z]?)/g,
+    el => `<span style="color:var(--${el})">${el}</span>`);
+}
+
+/* ===============================
+   COEFFICIENT CONTROL
+================================ */
+
+function changeCoeff(e, key){
+  if (e.shiftKey) {
+    coeffs[key] = Math.max(0, coeffs[key] - 1);
+  } else {
+    coeffs[key] = coeffs[key] + 1;
+  }
+
+  // ✅ Update ALL coefficient displays correctly
+  document.querySelectorAll(".coeff").forEach(c => {
+    const k = c.dataset.key;
+    c.innerText = coeffs[k] === 0 ? "_" : coeffs[k];
+  });
+
+  update();
+}
+
+
+
+/* ===============================
+   VISUALIZATION
+================================ */
+
+function renderVisualColumns(){
+  const v=document.getElementById("visual");
+  v.innerHTML='<div class="divider"></div>';
+
+  const all=[...currentEq.reactants,...currentEq.products];
+  const gap=80/(all.length+1);
+
+  all.forEach((s,i)=>{
+    const col=document.createElement("div");
+    col.className="column";
+    col.id="col-"+s.key;
+    col.style.left=(i<currentEq.reactants.length
+      ? 5+gap*i
+      : 55+gap*(i-currentEq.reactants.length)
+    )+"%";
+    v.appendChild(col);
+  });
+}
+
+function draw(){
+  [...currentEq.reactants,...currentEq.products].forEach(s=>{
+    const col=document.getElementById("col-"+s.key);
+    col.innerHTML="";
+    for(let i=0;i<coeffs[s.key];i++){
+      const m=document.createElement("div");
+      m.className="molecule";
+      for(let el in s.comp){
+        for(let j=0;j<s.comp[el];j++){
+          const a=document.createElement("div");
+          a.className="atom "+el;
+          a.innerText=el;
+          m.appendChild(a);
+        }
+      }
+      col.appendChild(m);
+    }
+  });
+}
+
+/* ===============================
+   ATOM COUNTING
+================================ */
+
+function update(){
+  draw();
+  const balanced = countAtoms();
+  document.getElementById("visual")
+    .classList.toggle("balanced", balanced);
+}
+
+function countAtoms(){
+  const r={},p={};
+
+  currentEq.reactants.forEach(s=>{
+    for(let e in s.comp){
+      r[e]=(r[e]||0)+coeffs[s.key]*s.comp[e];
+    }
+  });
+
+  currentEq.products.forEach(s=>{
+    for(let e in s.comp){
+      p[e]=(p[e]||0)+coeffs[s.key]*s.comp[e];
+    }
+  });
+
+  renderCounter("reactants",r,p);
+  renderCounter("products",p,r);
+
+  const exists=Object.values(coeffs).some(v=>v>0);
+  return exists && Object.keys(r).every(e=>r[e]===p[e]);
+}
+
+function renderCounter(id,a,b){
+  const d=document.getElementById(id);
+  d.innerHTML="";
+  Object.keys({...a,...b}).forEach(e=>{
+    const row=document.createElement("div");
+    row.className="counter-row";
+    row.style.color=`var(--${e})`;
+    if((a[e]||0)!==(b[e]||0)) row.classList.add("unbalanced");
+    row.innerText=`${e}: ${a[e]||0}`;
+    d.appendChild(row);
+  });
+}
+
+/* ===============================
+   CLEAR
+================================ */
+
+function clearAll(){
+  Object.keys(coeffs).forEach(k=>coeffs[k]=0);
+  document.querySelectorAll(".coeff").forEach(c=>c.innerText="_");
+  update();
+}
+
+/* ===============================
+   INIT
+================================ */
+
+newEquation();
+</script>
+
+
+</body>
+</html>
