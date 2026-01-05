@@ -44,25 +44,58 @@ body {
   --Fe: #e06633;
 }
 
-
-
 /* ===== TOOLBAR ===== */
 #toolbar {
-  background: var(--toolbar);
-  padding: 14px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 12px 16px;
+  background: #efd7ff;
+  border-bottom: 3px solid #000;
+  box-sizing: border-box;
 }
 
-#difficulty-badge {
-  margin-left: 18px;
-  padding: 6px 14px;
-  border-radius: 14px;
-  font-size: 16px;
-  font-weight: bold;
-  color: white;
+/* Left / Center / Right sections */
+.toolbar-left,
+.toolbar-center,
+.toolbar-right {
+  display: flex;
+  align-items: center;
 }
+
+/* Center should actually center */
+.toolbar-center {
+  flex: 1;
+  justify-content: center;
+  text-align: center;
+}
+
+/* Prevent buttons from stacking */
+.toolbar-right button {
+  margin-left: 10px;
+}
+
+/* Hub link */
+.hub-link {
+  font-size: 18px;
+  font-weight: bold;
+  text-decoration: none;
+  color: #4f2f92;
+}
+
+.hub-link:hover {
+  text-decoration: underline;
+}
+
+/* Difficulty badge spacing */
+#difficulty-badge {
+  margin-left: 12px;
+}
+
+
+
+
+
 
 .easy   { background: #5fbf7a; }
 .medium { background: #f0a500; }
@@ -72,15 +105,6 @@ body {
   font-size: 20px;
 }
 
-#toolbar button {
-  font-size: 18px;
-  padding: 8px 16px;
-  margin-left: 10px;
-    border-radius: 10px;
-    background-color: #4f2f92;
-    color: #ffffff;
-    border-color: #000000;
-}
 
 /* ===== HUB LINK ===== */
 .hub-link {
@@ -232,22 +256,25 @@ body {
 
 <!-- ===== TOOLBAR ===== -->
 <div id="toolbar">
-  <div style="display:flex; align-items:center;">
+  <div class="toolbar-left">
     <a href="index.html" class="hub-link">← Hub</a>
+  </div>
 
+  <div class="toolbar-center">
     <div id="instructions">
-      <strong>Click</strong> a coefficient to add molecules.  
-      <strong>Shift + Click</strong> to remove.  
+      <strong>Click</strong> a coefficient to add molecules.
+      <strong>Shift + Click</strong> to remove.
       Balance the equation by matching atom counts.
       <span id="difficulty-badge"></span>
     </div>
   </div>
 
-  <div>
+  <div class="toolbar-right">
     <button onclick="clearAll()">Clear</button>
     <button onclick="newEquation()">New Equation</button>
   </div>
 </div>
+
 
 
 <!-- ===== EQUATION ===== -->
