@@ -82,6 +82,18 @@ body {
     border-color: #000000;
 }
 
+/* ===== HUB LINK ===== */
+.hub-link {
+  font-size: 18px;
+  font-weight: bold;
+  text-decoration: none;
+  color: #4f2f92;
+  margin-right: 20px;
+}
+
+.hub-link:hover {
+  text-decoration: underline;
+}
 
 /* ===== EQUATION ===== */
 #equation {
@@ -220,17 +232,23 @@ body {
 
 <!-- ===== TOOLBAR ===== -->
 <div id="toolbar">
-  <div id="instructions">
-    <strong>Click</strong> a coefficient to add molecules.  
-    <strong>Shift + Click</strong> to remove.  
-    Balance the equation by matching atom counts.
-    <span id="difficulty-badge"></span>
+  <div style="display:flex; align-items:center;">
+    <a href="index.html" class="hub-link">← Hub</a>
+
+    <div id="instructions">
+      <strong>Click</strong> a coefficient to add molecules.  
+      <strong>Shift + Click</strong> to remove.  
+      Balance the equation by matching atom counts.
+      <span id="difficulty-badge"></span>
+    </div>
   </div>
+
   <div>
     <button onclick="clearAll()">Clear</button>
     <button onclick="newEquation()">New Equation</button>
   </div>
 </div>
+
 
 <!-- ===== EQUATION ===== -->
 <div id="equation">
