@@ -17,18 +17,52 @@ body {
 
 h1 { text-align: center; }
 
-/* ===== MODE SWITCH ===== */
-#modeBar {
-  text-align: center;
-  margin-bottom: 12px;
+/* ===== TOOLBAR ===== */
+#toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #efd7ff;
+  border-bottom: 3px solid #000;
+  box-sizing: border-box;
 }
 
-#modeBar button {
-  padding: 10px 14px;
-  margin: 0 6px;
-  font-size: 20px;
-  cursor: pointer;
+/* Sections */
+.toolbar-left,
+.toolbar-center,
+.toolbar-right {
+  display: flex;
+  align-items: center;
 }
+
+/* Center title */
+.toolbar-center {
+  flex: 1;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: bold;
+}
+
+/* Right buttons */
+.toolbar-right button {
+  margin-left: 10px;
+}
+
+/* Hub link */
+.hub-link {
+  font-size: 18px;
+  font-weight: bold;
+  text-decoration: none;
+  color: #4f2f92;
+}
+
+.hub-link:hover {
+  text-decoration: underline;
+}
+
+
+
 
 /* ===== LAYOUT ===== */
 #container {
@@ -214,7 +248,22 @@ button:hover {
 
 <body>
 
-<h1>Ionic Bonding Simulator</h1>
+<div id="toolbar">
+  <div class="toolbar-left">
+    <a href="index.html" class="hub-link">← Hub</a>
+  </div>
+
+  <div class="toolbar-center">
+    Ionic Bonding Simulator
+  </div>
+
+  <div class="toolbar-right">
+    <button id="sandboxBtn">Sandbox</button>
+    <button id="challengeBtn">Challenge</button>
+    <button id="clear">Clear</button>
+  </div>
+</div>
+
 
 
 
@@ -296,10 +345,7 @@ button:hover {
       <div class="bond-anions"></div>
     </div>
 
-    <div id="modeBar">
-  <button id="sandboxBtn">Sandbox</button>
-  <button id="challengeBtn">Challenge</button>
-  <div id="challenge-area" style="display:none;">
+<div id="challenge-area" style="display:none;">
   <h2 id="challenge-prompt"></h2>
 
   <input
@@ -311,7 +357,6 @@ button:hover {
   <div id="challenge-feedback"></div>
 </div>
 
-</div>
 
     <div class="controls">
       <button id="clear">Clear</button>
