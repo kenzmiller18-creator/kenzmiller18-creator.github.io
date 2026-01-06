@@ -91,6 +91,44 @@
       color: inherit;
       display: block;
     }
+/* ===== WATER MOLECULE ICON ===== */
+.water-icon {
+  position: relative;
+  width: 140px;
+  height: 90px;
+  margin: 10px auto 0;
+}
+
+.atom {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.atom.oxygen {
+  width: 60px;
+  height: 60px;
+  background: #f6c6ff;
+  border: 4px solid #d7a3f0;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.atom.hydrogen {
+  width: 48px;
+  height: 48px;
+  background: #d6efff;
+  border: 4px solid #9fd6f5;
+  bottom: 0;
+}
+
+.atom.h1 {
+  left: 0;
+}
+
+.atom.h2 {
+  right: 0;
+}
 
     /* ===== FOOTER ===== */
     footer {
@@ -141,7 +179,11 @@
     <a href="Covalent-bonding.html">
       <h2>Covalent Bonding</h2>
       <p>Create covalent molecules and visualize shared electrons.</p>
-      <div class="icon">🧬</div>
+      <div class="water-icon">
+        <div class="atom oxygen"></div>
+        <div class="atom hydrogen h1"></div>
+      <div class="atom hydrogen h2"></div>
+</div>
     </a>
   </div>
 
