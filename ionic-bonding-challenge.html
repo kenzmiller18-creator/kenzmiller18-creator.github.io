@@ -177,6 +177,9 @@ sup { font-size: 65%; }
 .controls {
   margin-top: 12px;
   text-align: center;
+  display: none;
+
+
 }
 
 #challengeBox {
@@ -509,14 +512,17 @@ function updateCharge() {
 sandboxBtn.onclick = () => {
   mode = "sandbox";
   challengeArea.style.display = "none";
+  document.querySelector(".controls").style.display = "none";
   clearAll();
 };
 
 challengeBtn.onclick = () => {
   mode = "challenge";
   challengeArea.style.display = "block";
+  document.querySelector(".controls").style.display = "block";
   loadChallenge();
 };
+
 
 /* ===== CHALLENGE ===== */
 function loadChallenge() {
