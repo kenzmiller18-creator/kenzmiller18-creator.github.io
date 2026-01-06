@@ -15,7 +15,7 @@ body {
 #toolbar {
   display: flex;
   gap: 10px;
-  padding: 12px;
+  padding: 12px 12px 12px 140px;
   background: #e2a8ff;
   border-bottom: 1px solid #ccc;
   align-items: center;
@@ -28,13 +28,21 @@ body {
   transform: translateY(-50%);
   background: transparent;
   color: black;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: bold;
   border: none;
   cursor: pointer;
+  opacity: 0.85;
 }
 
 
+#backToHub:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+#elementSelect {
+  max-width: 260px;
+}
 
 button, select {
   padding: 6px 12px;
