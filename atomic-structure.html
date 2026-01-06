@@ -21,10 +21,14 @@ body {
   align-items: center;
 }
 #backToHub {
-  background: white;
+  background: transparent;
   color: black;
-  border: 2px solid black;
+  font-size: 18px;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
 }
+
 
 button, select {
   padding: 6px 12px;
@@ -229,7 +233,7 @@ th.electrons { color: #d43a3a; }
 <body>
 
 <div id="toolbar">
-  <button id="backToHub" onclick="goToHub()">⬅ Back to Hub</button>
+  <button id="backToHub" onclick="goToHub()">← Hub</button>
 
   <select id="elementSelect">
     <option value="">-- Choose Element --</option>
