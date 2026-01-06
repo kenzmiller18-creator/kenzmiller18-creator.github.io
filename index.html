@@ -6,87 +6,159 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <style>
+    :root {
+      --lavender: #e6c6ff;
+      --purple: #c58df5;
+      --deep-purple: #9a5fd1;
+      --card-bg: #faf5ff;
+      --accent-pink: #e04bd8;
+      --text-dark: #333;
+    }
+
     body {
-      font-family: Georgia, serif;
-      background: #f7f7f7;
       margin: 0;
-      padding: 40px;
+      font-family: Georgia, serif;
+      background: #ffffff;
+      color: var(--text-dark);
     }
 
-    .container {
-      max-width: 800px;
-      margin: auto;
-      background: white;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-
-    h1 {
+    /* ===== HEADER ===== */
+    header {
+      background: var(--lavender);
+      border: 2px solid #999;
       text-align: center;
-      margin-bottom: 10px;
+      padding: 24px 10px 18px;
     }
 
-    p {
+    header h1 {
+      margin: 0;
+      font-size: 2.8rem;
+      letter-spacing: 1px;
+    }
+
+    header p {
+      margin: 6px 0 0;
+      font-size: 1.1rem;
+      font-style: italic;
+    }
+
+    /* ===== MAIN GRID ===== */
+    .hub {
+      max-width: 1100px;
+      margin: 40px auto;
+      padding: 0 20px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+      gap: 28px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 4px solid var(--purple);
+      border-radius: 36px;
+      padding: 32px 30px 26px;
       text-align: center;
-      color: #555;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
 
-    .sim {
-      margin: 20px 0;
-      padding: 20px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.12);
     }
 
-    .sim a {
-      font-size: 1.2em;
+    .card h2 {
+      margin: 0;
+      font-size: 2rem;
+      color: var(--accent-pink);
+    }
+
+    .card p {
+      margin: 14px auto 22px;
+      font-size: 1.15rem;
+      max-width: 420px;
+      line-height: 1.4;
+    }
+
+    .icon {
+      font-size: 4rem;
+      margin-top: 10px;
+      color: var(--deep-purple);
+    }
+
+    /* Make entire card clickable */
+    .card a {
       text-decoration: none;
-      color: #1a73e8;
-      font-weight: bold;
+      color: inherit;
+      display: block;
     }
 
-    .sim a:hover {
-      text-decoration: underline;
-    }
-
+    /* ===== FOOTER ===== */
     footer {
       text-align: center;
-      margin-top: 40px;
-      font-size: 0.9em;
+      margin: 30px 0 18px;
+      font-size: 0.95rem;
       color: #777;
+    }
+
+    /* ===== MOBILE TWEAKS ===== */
+    @media (max-width: 500px) {
+      header h1 {
+        font-size: 2.2rem;
+      }
+      .card {
+        border-radius: 26px;
+      }
     }
   </style>
 </head>
 
 <body>
-  <div class="container">
-    <h1>Chemistry Simulations</h1>
-    <p>Interactive practice tools for high school chemistry</p>
 
-    <div class="sim">
-      <a href="atomic-structure.html">Build an Atom Simulator</a>
+<header>
+  <h1>Chemistry Simulations</h1>
+  <p>Interactive practice tools for high school chemistry</p>
+</header>
+
+<main class="hub">
+
+  <div class="card">
+    <a href="atomic-structure.html">
+      <h2>Build an Atom</h2>
       <p>Build Bohr models and create Lewis Dot Structures.</p>
-    </div>
-
-    <div class="sim">
-      <a href="ionic-bonding-challenge.html">Ionic Bonding Simulator</a>
-      <p>Build ionic compounds and explore charge balance.</p>
-    </div>
-
-    <div class="sim">
-      <a href="Covalent-bonding.html">Covalent Bonding Simulator</a>
-      <p>Create covalent molecules and visualize shared electrons.</p>
-    </div>
-
-    <div class="sim">
-      <a href="balancing-equations.html">Balancing Equations Simulator</a>
-      <p>Practice balancing chemical equations and visualize conservation of mass.</p>
-    </div>
-
-    <footer>
-      Created by Mackenzie Miller • High School Chemistry
-    </footer>
+      <div class="icon">⚛️</div>
+    </a>
   </div>
+
+  <div class="card">
+    <a href="ionic-bonding-challenge.html">
+      <h2>Ionic Bonding</h2>
+      <p>Build ionic compounds and explore charge balance.</p>
+      <div class="icon">🧲</div>
+    </a>
+  </div>
+
+  <div class="card">
+    <a href="Covalent-bonding.html">
+      <h2>Covalent Bonding</h2>
+      <p>Create covalent molecules and visualize shared electrons.</p>
+      <div class="icon">🧬</div>
+    </a>
+  </div>
+
+  <div class="card">
+    <a href="balancing-equations.html">
+      <h2>Balancing Equations</h2>
+      <p>Balance chemical equations and visualize conservation of mass.</p>
+      <div class="icon">⚖️</div>
+    </a>
+  </div>
+
+</main>
+
+<footer>
+  Created by Mackenzie Miller • High School Chemistry
+</footer>
+
 </body>
 </html>
+
