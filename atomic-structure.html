@@ -20,6 +20,11 @@ body {
   border-bottom: 1px solid #ccc;
   align-items: center;
 }
+#backToHub {
+  background: white;
+  color: black;
+  border: 2px solid black;
+}
 
 button, select {
   padding: 6px 12px;
@@ -224,6 +229,8 @@ th.electrons { color: #d43a3a; }
 <body>
 
 <div id="toolbar">
+  <button id="backToHub" onclick="goToHub()">⬅ Back to Hub</button>
+
   <select id="elementSelect">
     <option value="">-- Choose Element --</option>
     <option>Hydrogen</option>
@@ -347,6 +354,9 @@ elementSelect.onchange=e=>{
   table.classList.remove("correctGlow");
   feedback.textContent="";
 };
+function goToHub() {
+  window.location.href = "../index.html";
+}
 
 function addNucleon(type){
   if(!target)return alert("Choose an element first");
