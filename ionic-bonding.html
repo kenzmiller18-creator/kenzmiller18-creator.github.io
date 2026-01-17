@@ -2,92 +2,123 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Ionic Bonding – Slot/Plug Model</title>
+<title>Ionic Bonding Simulator</title>
 
 <style>
-:root {
-  --unit: 40px;
-}
+:root { --unit: 40px; }
 
 body {
   margin: 0;
-  font-family: Georgia, sans-serif;
-  background: #f4c8ff;
+  font-family: Georgia, serif;
+  background: #f7e8ff;
+ 
+}
+
+
+h1 { text-align: center; }
+
+/* ===== TOOLBAR ===== */
+#toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #efd7ff;
+  border-bottom: 3px solid #000;
+  box-sizing: border-box;
+  margin-bottom: 8px;
+}
+#page-content {
   padding: 20px;
 }
 
-h1 {
-  text-align: center;
+/* Sections */
+.toolbar-left,
+.toolbar-center,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  padding: 5px;
 }
+
+/* Center title */
+.toolbar-center {
+  flex: 1;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: bold;
+  color: #370047;
+}
+
+/* Right buttons */
+.toolbar-right button {
+  margin-left: 10px;
+}
+
+/* Hub link */
+.hub-link {
+  font-size: 18px;
+  font-weight: bold;
+  text-decoration: none;
+  color: #4f2f92;
+}
+
+.hub-link:hover {
+  text-decoration: underline;
+}
+
+
+
 
 /* ===== LAYOUT ===== */
-
 #container {
   display: grid;
-  grid-template-columns: 400px 1fr 400px;
+  grid-template-columns: 360px 1fr 360px;
   gap: 30px;
-  align-items: start;
 }
-
-/* ===== ION BANK ===== */
 
 #cation-bank,
 #anion-bank {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  width: 360px;   /* ← THIS is the key */
+}
+.charge-group {
+  display: grid;
+  row-gap: 16px;
+  grid-template-columns: repeat(2, max-content);
+  column-gap: 60px;
 }
 
-.bank-title {
-  font-weight: bold;
-  text-align: center;
-}
 .ion-column {
   display: flex;
   flex-direction: column;
   gap: 14px;
+  width: 320px;
 }
 
 .column-title {
-  font-weight: bold;
   text-align: center;
-  margin-bottom: 4px;
+  font-weight: bold;
 }
 
-.charge-group {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-}
-
+/* ===== IONS ===== */
 .ion {
   position: relative;
-  border-radius: 14px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
-  width: 120px;
+  width: 120px;          /* fixed width = allows side-by-side */
+  max-width: 120px;
   height: calc(var(--charge) * var(--unit));
+  border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 22px;
   font-weight: bold;
   cursor: grab;
-  user-select: none;
 }
 
-.cation {
-  background: #79f1f6;
-}
+.cation { background: #79f1f6; }
+.anion { background: #fe4164; }
 
-.anion {
-  background: #fe4164;
-}
-
-sup {
-  font-size: 65%;
-}
-
-/* ===== CONNECTORS ===== */
+sup { font-size: 65%; }
 
 .connectors {
   position: absolute;
@@ -98,13 +129,8 @@ sup {
   align-items: center;
 }
 
-.cation .connectors {
-  right: -22px;
-}
-
-.anion .connectors {
-  left: -22px;
-}
+.cation .connectors { right: -22px; }
+.anion .connectors { left: -22px; }
 
 .slot, .plug {
   width: 16px;
@@ -112,84 +138,246 @@ sup {
   border-radius: 50%;
 }
 
-.slot {
-  border: 3px dashed #000000;
-}
+.slot { border: 3px dashed #000; }
+.plug { background: #ef5a6f; }
 
-.plug {
-  background: #fe4164;
-}
-
-/* ===== BONDING AREA ===== */
+/* ===== BONDING ===== */
 .bonding-wrapper {
   width: 500px;
-  margin: 0 auto;
+  justify-self: center;
 }
 
 #bonding-area {
-  background: #f4c8ff;
-  border: 3px dashed #f10dcf;
-  border-radius: 14px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+  border: 3px dashed #eca0ff;
+  background: white;
+  border-radius: 18px;
   padding: 20px;
+  min-height: 320px;
   display: grid;
   grid-template-columns: 1fr 61px 1fr;
-  align-items: start;
-  min-height: 300px;
-}
-
-.midline {
-  border-left: 0px dashed #999;
-  height: 100%;
+  margin-bottom: 24px;
 }
 
 #bonding-area.neutral {
-  background: #99f6b2;
+  background: #b6f5c6;
   border-color: #16a34a;
 }
 
 .bond-cations,
 .bond-anions {
-  display: grid;
-  grid-auto-rows: auto;
-  row-gap: 0;
-  align-items: start;
+  display: flex;
+  flex-direction: column;
 }
 
-.bond-cations {
-  justify-items: end;
-}
+.bond-cations { align-items: flex-end; }
+.bond-anions { align-items: flex-start; }
 
-.bond-anions {
-  justify-items: start;
-}
-
-.bond-cations .ion {
-  margin-right: -18px;
-}
-
-.bond-anions .ion {
-  margin-left: -18px;
-}
+.bond-cations .ion { margin-right: -18px; }
+.bond-anions .ion { margin-left: -18px; }
 
 /* ===== CONTROLS ===== */
-
 .controls {
-  margin-top: 16px;
+  margin-top: 12px;
   text-align: center;
+  display: none;
+
+
+}
+
+#challengeBox {
+  display: none;
+  margin-top: 10px;
+}
+
+#challengePrompt {
+  font-weight: bold;
+  margin-bottom: 6px;
+  align-items: center;
+}
+
+#challenge-answer {
+  width: 260px;
+  padding: 10px 14px;
+  font-size: 18px;
+  border-radius: 8px;
+  border: 2px solid #999;
+}
+button {
+  border-radius: 10px;          /* rounded rectangle */
+  border: 2px solid transparent;
+  padding: 10px 18px;
+  font-size: 18px;
+  font-family: Georgia, serif;
+  cursor: pointer;
+}
+
+/* Mode buttons */
+
+#unlockBtn {
+  background: rgb(245, 103, 255);
+  color: white;
+  border-color: rgb(245, 103, 255);
+}
+#sandboxBtn {
+  background: #4c17b0;
+  color: white;
+  border-color: #4c17b0;
+}
+
+#challengeBtn {
+  background: #530c5e;
+  color: white;
+  border-color: #530c5e;
+}
+
+/* Check Answer */
+#check-challenge {
+  background: #c084fc;          /* purple example */
+  color: white;
+}
+
+/* Clear */
+#clear {
+  background: #25202c;          /* red example */
+  color: white;
+}
+button:hover {
+  filter: brightness(1.05);
+}
+#challenge-feedback {
+  font-size: 20px;        /* adjust as needed */
+  font-weight: bold;
+  margin-top: 10px;
+}
+#challenge-feedback:empty {
+  display: none;
 }
 
 #result {
-  margin-top: 8px;
+  font-size: 18px;        /* sandbox + challenge balance message */
   font-weight: bold;
+  margin-top: 8px;
 }
+/* ===== LOCKED / UNKNOWN IONS ===== */
+
+.ion.locked.unknown {
+  height: 60px !important;      /* same size for all */
+  background: #d1d5db !important;
+  color: #111;
+  cursor: not-allowed;
+}
+
+/* Hide slots / plugs */
+.ion.locked.unknown .connectors {
+  display: none;
+}
+
+/* Hide charge superscripts */
+.ion.locked.unknown sup {
+  display: none;
+}
+
+/* Hide visual stacking clues */
+.ion.locked.unknown {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Add mystery marker */
+.ion.locked.unknown::after {
+  content: "?";
+  position: absolute;
+  right: 10px;
+  top: 8px;
+  font-size: 22px;
+  font-weight: bold;
+  opacity: 0.7;
+}
+
+/* ===== UNLOCK AREA ===== */
+#unlock-area {
+  
+ 
+  border-radius: 18px;
+  padding: 10px;
+  max-width: 500px;
+  margin: 0 auto 20px auto;
+  display: grid;
+  row-gap: 12px;
+}
+
+#unlock-area h2 {
+  font-weight: bold;
+  padding: 20px;
+  font-size: 20px;
+  margin: 0;
+  text-align: center;
+  color: #370047;
+}
+
+#unlock-answer {
+  width: 260px;
+  padding: 10px 14px;
+  font-size: 18px;
+  border-radius: 8px;
+  border: 2px solid #999;
+  justify-self: center;
+}
+
+#unlock-check {
+  background: #c084fc;
+  color: white;
+  font-size: 18px;
+  border-radius: 10px;
+  padding: 10px 18px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  justify-self: center;
+}
+
+#unlock-feedback {
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+  color: #16a34a;
+}
+
+#unlock-feedback:empty {
+  display: none;
+}
+
+
 </style>
 </head>
 
 <body>
 
-<h1>Ionic Bonding Simulator</h1>
+<div id="toolbar">
+  <div class="toolbar-left">
+    <a href="index.html" class="hub-link">← Hub</a>
+  </div>
+   <div class="toolbar-center">
+    Ionic Bonding Simulator
+  </div>
+ <div style="font-size: 16px; opacity: 0.8; margin-right:70px;">
+  <i>Drag ions into the workspace to create a neutral compound.</i>
+</div>
 
+
+
+  <div class="toolbar-right">
+    <button id="unlockBtn">Unlock Mode</button>
+
+    <button id="sandboxBtn">Sandbox</button>
+    <button id="challengeBtn">Challenge</button>
+    <button id="clear">Clear</button>
+  </div>
+</div>
+
+
+
+<div id="page-content">
 <div id="container">
   <div id="cation-bank">
     <div class="ion-column">
@@ -197,63 +385,63 @@ sup {
 
       <div class="charge-group">
         <!-- +1 -->
-        <div class="ion cation" draggable="true" data-charge="1" style="--charge:1">
+        <div class="ion cation locked unknown" draggable="false" data-element="Li" data-charge="1" style="--charge:1">
           <div class="connectors"><div class="slot"></div></div>
           Li<sup>+</sup>
         </div>
-        <div class="ion cation" draggable="true" data-charge="1" style="--charge:1">
+        <div class="ion cation locked unknown" draggable="false" data-element="Na" data-charge="1" style="--charge:1">
           <div class="connectors"><div class="slot"></div></div>
           Na<sup>+</sup>
         </div>
-        <div class="ion cation" draggable="true" data-charge="1" style="--charge:1">
+        <div class="ion cation locked unknown" draggable="false" data-element="K" data-charge="1" style="--charge:1">
           <div class="connectors"><div class="slot"></div></div>
           K<sup>+</sup>
         </div>
-        <div class="ion cation" draggable="true" data-charge="1" style="--charge:1">
+        <div class="ion cation locked unknown" draggable="false" data-element="Rb" data-charge="1" style="--charge:1">
           <div class="connectors"><div class="slot"></div></div>
           Rb<sup>+</sup>
         </div>
-        <div class="ion cation" draggable="true" data-charge="1" style="--charge:1">
+        <div class="ion cation locked unknown" draggable="false" data-element="Cs" data-charge="1" style="--charge:1">
           <div class="connectors"><div class="slot"></div></div>
           Cs<sup>+</sup>
         </div>
 
         <!-- +2 -->
-        <div class="ion cation" draggable="true" data-charge="2" style="--charge:2">
+        <div class="ion cation locked unknown" draggable="false" data-element="Be" data-charge="2" style="--charge:2">
           <div class="connectors"><div class="slot"></div><div class="slot"></div></div>
           Be<sup>2+</sup>
         </div>
-        <div class="ion cation" draggable="true" data-charge="2" style="--charge:2">
+        <div class="ion cation locked unknown" draggable="false" data-element="Mg" data-charge="2" style="--charge:2">
           <div class="connectors"><div class="slot"></div><div class="slot"></div></div>
           Mg<sup>2+</sup>
         </div>
-        <div class="ion cation" draggable="true" data-charge="2" style="--charge:2">
+        <div class="ion cation locked unknown" draggable="false" data-element="Ca" data-charge="2" style="--charge:2">
           <div class="connectors"><div class="slot"></div><div class="slot"></div></div>
           Ca<sup>2+</sup>
         </div>
-        <div class="ion cation" draggable="true" data-charge="2" style="--charge:2">
+        <div class="ion cation locked unknown" draggable="false" data-element="Sr" data-charge="2" style="--charge:2">
           <div class="connectors"><div class="slot"></div><div class="slot"></div></div>
           Sr<sup>2+</sup>
         </div>
-        <div class="ion cation" draggable="true" data-charge="2" style="--charge:2">
+        <div class="ion cation locked unknown" draggable="false" data-element="Ba" data-charge="2" style="--charge:2">
           <div class="connectors"><div class="slot"></div><div class="slot"></div></div>
           Ba<sup>2+</sup>
         </div>
-        <div class="ion cation" draggable="true" data-charge="2" style="--charge:2">
+        <div class="ion cation locked unknown" draggable="false" data-element="Ra" data-charge="2" style="--charge:2">
           <div class="connectors"><div class="slot"></div><div class="slot"></div></div>
           Ra<sup>2+</sup>
         </div>
 
         <!-- +3 -->
-        <div class="ion cation" draggable="true" data-charge="3" style="--charge:3">
+        <div class="ion cation locked unknown" draggable="false" data-element="B" data-charge="3" style="--charge:3">
           <div class="connectors"><div class="slot"></div><div class="slot"></div><div class="slot"></div></div>
           B<sup>3+</sup>
         </div>
-        <div class="ion cation" draggable="true" data-charge="3" style="--charge:3">
+        <div class="ion cation locked unknown" draggable="false" data-element="Al" data-charge="3" style="--charge:3">
           <div class="connectors"><div class="slot"></div><div class="slot"></div><div class="slot"></div></div>
           Al<sup>3+</sup>
         </div>
-        <div class="ion cation" draggable="true" data-charge="3" style="--charge:3">
+        <div class="ion cation locked unknown" draggable="false" data-element="Ga" data-charge="3" style="--charge:3">
           <div class="connectors"><div class="slot"></div><div class="slot"></div><div class="slot"></div></div>
           Ga<sup>3+</sup>
         </div>
@@ -261,15 +449,40 @@ sup {
     </div>
   </div>
   <div class="bonding-wrapper">
+<div id="unlock-area" style="display:block; margin-top:20px;">
+  <h2 id="unlock-prompt">Predict the charge of ...</h2>
 
-    <div id="bonding-area">
+  <input
+    id="unlock-answer"
+    placeholder="Enter the charge (e.g., 2+ or -2)"
+  />
+
+  <button id="unlock-check">Check Answer</button>
+  <div id="unlock-feedback"></div>
+</div>
+
+
+ <div id="bonding-area">
       <div class="bond-cations"></div>
       <div class="midline"></div>
       <div class="bond-anions"></div>
     </div>
 
+<div id="challenge-area" style="display:none;">
+  <h2 id="challenge-prompt"></h2>
+
+  <input
+    id="challenge-answer"
+    placeholder="Enter formula or name"
+  />
+
+  <button id="check-challenge">Check Answer</button>
+  <div id="challenge-feedback"></div>
+</div>
+
+
     <div class="controls">
-      <button id="clear">Clear</button>
+      
       <div id="result"></div>
     </div>
 
@@ -287,63 +500,164 @@ sup {
 
       <div class="charge-group">
         <!-- −1 -->
-        <div class="ion anion" draggable="true" data-charge="-1" style="--charge:1">
+        <div class="ion anion locked unknown" draggable="false" data-element= "F" data-charge="-1" style="--charge:1">
           <div class="connectors"><div class="plug"></div></div>
           F<sup>−</sup>
         </div>
-        <div class="ion anion" draggable="true" data-charge="-1" style="--charge:1">
+        <div class="ion anion locked unknown" draggable="false" data-element="Cl" data-charge="-1" style="--charge:1">
           <div class="connectors"><div class="plug"></div></div>
           Cl<sup>−</sup>
         </div>
-        <div class="ion anion" draggable="true" data-charge="-1" style="--charge:1">
+        <div class="ion anion locked unknown" draggable="false" data-element="Br" data-charge="-1" style="--charge:1">
           <div class="connectors"><div class="plug"></div></div>
           Br<sup>−</sup>
         </div>
-        <div class="ion anion" draggable="true" data-charge="-1" style="--charge:1">
+        <div class="ion anion locked unknown" draggable="false" data-element="I" data-charge="-1" style="--charge:1">
           <div class="connectors"><div class="plug"></div></div>
           I<sup>−</sup>
         </div>
 
         <!-- −2 -->
-        <div class="ion anion" draggable="true" data-charge="-2" style="--charge:2">
+        <div class="ion anion locked unknown" draggable="false" data-element="O" data-charge="-2" style="--charge:2">
           <div class="connectors"><div class="plug"></div><div class="plug"></div></div>
           O<sup>2−</sup>
         </div>
-        <div class="ion anion" draggable="true" data-charge="-2" style="--charge:2">
+        <div class="ion anion locked unknown" draggable="false" data-element="S" data-charge="-2" style="--charge:2">
           <div class="connectors"><div class="plug"></div><div class="plug"></div></div>
           S<sup>2−</sup>
         </div>
-        <div class="ion anion" draggable="true" data-charge="-2" style="--charge:2">
+        <div class="ion anion locked unknown" draggable="false" data-element="Se" data-charge="-2" style="--charge:2">
           <div class="connectors"><div class="plug"></div><div class="plug"></div></div>
           Se<sup>2−</sup>
         </div>
 
         <!-- −3 -->
-        <div class="ion anion" draggable="true" data-charge="-3" style="--charge:3">
+        <div class="ion anion locked unknown" draggable="false" data-element="N" data-charge="-3" style="--charge:3">
           <div class="connectors"><div class="plug"></div><div class="plug"></div><div class="plug"></div></div>
           N<sup>3−</sup>
         </div>
-        <div class="ion anion" draggable="true" data-charge="-3" style="--charge:3">
+        <div class="ion anion locked unknown" draggable="false" data-element="P" data-charge="-3" style="--charge:3">
           <div class="connectors"><div class="plug"></div><div class="plug"></div><div class="plug"></div></div>
           P<sup>3−</sup>
         </div>
 
       </div>
     </div>
-  
+  </div>
 </div>
 
-
-
-
-
 <script>
-const bondingArea = document.getElementById("bonding-area");
 const bondCations = document.querySelector(".bond-cations");
 const bondAnions = document.querySelector(".bond-anions");
+const bondingArea = document.getElementById("bonding-area");
+const result = document.getElementById("result");
 
-let positive = 0;
-let negative = 0;
+const sandboxBtn = document.getElementById("sandboxBtn");
+const challengeBtn = document.getElementById("challengeBtn");
+
+const challengeArea = document.getElementById("challenge-area");
+const challengePrompt = document.getElementById("challenge-prompt");
+const challengeAnswer = document.getElementById("challenge-answer");
+const challengeFeedback = document.getElementById("challenge-feedback");
+
+let pos = 0;
+let neg = 0;
+let mode = "unlock";
+
+let unlockQueue = [
+  { element: "Li", charge: ["1+", "+1"] },
+  { element: "Na", charge: ["1+", "+1"] },
+  { element: "K", charge: ["1+", "+1"] },
+  { element: "Rb", charge: ["1+", "+1"] },
+  { element: "Cs", charge: ["1+", "+1"] },
+
+  { element: "Be", charge: ["2+", "+2"] },
+  { element: "Mg", charge: ["2+", "+2"] },
+  { element: "Ca", charge: ["2+", "+2"] },
+  { element: "Sr", charge: ["2+", "+2"] },
+  { element: "Ba", charge: ["2+", "+2"] },
+  { element: "Ra", charge: ["2+", "+2"] },
+
+  { element: "B", charge: ["3+", "+3"] },
+  { element: "Al", charge: ["3+", "+3"] },
+  { element: "Ga", charge: ["3+", "+3"] },
+
+  { element: "F", charge: ["1-", "-1"] },
+  { element: "Cl", charge: ["1-", "-1"] },
+  { element: "Br", charge: ["1-", "-1"] },
+  { element: "I", charge: ["1-", "-1"] },
+
+  { element: "O", charge: ["2-", "-2"] },
+  { element: "S", charge: ["2-", "-2"] },
+  { element: "Se", charge: ["2-", "-2"] },
+
+  { element: "N", charge: ["3-", "-3"] },
+  { element: "P", charge: ["3-", "-3"] }
+];
+
+unlockQueue = shuffleArray(unlockQueue);
+
+
+
+let currentUnlock = null;
+
+const unlockBtn = document.getElementById("unlockBtn");
+const unlockArea = document.getElementById("unlock-area");
+
+unlockBtn.onclick = () => {
+  mode = "unlock";                // set mode
+  unlockArea.style.display = "block";  // show unlock area
+  challengeArea.style.display = "none"; // hide challenge area
+  document.querySelector(".controls").style.display = "none"; // hide challenge controls
+  clearAll(); 
+  lockAllIons();                    
+  loadNextUnlock();              
+};
+
+const challenges = [
+  { prompt: "Build aluminum oxide", answer: "Al2O3" },
+  { prompt: "Build magnesium chloride", answer: "MgCl2" },
+  { prompt: "Build calcium nitride", answer: "Ca3N2" },
+  { prompt: "Build sodium sulfide", answer: "Na2S" },
+  { prompt: "Build barium bromide", answer: "BaBr2" },
+  { prompt: "Build lithium nitride", answer: "Li3N" },
+  { prompt: "Build cesium iodide", answer: "CsI" },
+  { prompt: "Build radium selenide", answer: "RaSe" },
+  { prompt: "Build aluminum sulfide", answer: "Al2S3" },
+  { prompt: "Build sodium chloride", answer: "NaCl" },
+  { prompt: "Build strontium phosphide", answer: "Sr3P2" },
+  { prompt: "Build potassium oxide", answer: "K2O" },
+  { prompt: "Build calcium fluoride", answer: "CaF2" },
+];
+
+let currentChallenge = null;
+
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+}
+
+
+function normalizeCharge(str) {
+  return str
+    .replace(/−/g, "-")
+    .replace(/＋/g, "+")
+    .replace(/\s+/g, "")
+    .toUpperCase();
+}
+
+
+
+/* ===== DRAG ===== */
+document.addEventListener("dragstart", e => {
+  if (e.target.classList.contains("locked")) {
+    e.preventDefault();
+  }
+});
+
 
 document.querySelectorAll(".ion").forEach(ion => {
   ion.addEventListener("dragstart", e => {
@@ -355,45 +669,160 @@ document.querySelectorAll(".ion").forEach(ion => {
 bondingArea.addEventListener("dragover", e => e.preventDefault());
 
 bondingArea.addEventListener("drop", e => {
+  if (e.target.classList.contains("locked")) return;
+
   e.preventDefault();
 
   const html = e.dataTransfer.getData("html");
   const charge = Number(e.dataTransfer.getData("charge"));
-  const units = Math.abs(charge);
 
   if (charge > 0) {
     bondCations.insertAdjacentHTML("beforeend", html);
-    positive += units;
+    pos += charge;
   } else {
     bondAnions.insertAdjacentHTML("beforeend", html);
-    negative += units;
+    neg += Math.abs(charge);
   }
 
-  updateResult();
+  updateCharge();
 });
 
-function updateResult() {
-  const result = document.getElementById("result");
-  if (positive === negative && positive > 0) {
-    result.textContent = "✔ Neutral compound formed";
-    result.style.color = "green";
-    bondingArea.classList.add("neutral");
+function updateCharge() {
+  if (pos === neg && pos > 0) {
+    result.textContent = "✔ Charges balanced";
+
+    if (mode === "sandbox") {
+      bondingArea.classList.add("neutral");
+    }
+
   } else {
     result.textContent = "⚠ Charges not balanced";
-    result.style.color = "red";
     bondingArea.classList.remove("neutral");
   }
 }
+function loadNextUnlock() {
+  currentUnlock = unlockQueue.shift();
 
-document.getElementById("clear").onclick = () => {
+  if (!currentUnlock) {
+    document.getElementById("unlock-box").style.display = "none";
+    return;
+  }
+
+  document.getElementById("unlock-prompt").textContent =
+    `Predict the charge of ${currentUnlock.element}`;
+  document.getElementById("unlock-answer").value = "";
+  document.getElementById("unlock-feedback").textContent = "";
+}
+
+
+/* ===== MODES ===== */
+sandboxBtn.onclick = () => {
+  mode = "sandbox";
+  unlockArea.style.display = "none";    // hide unlock area
+  challengeArea.style.display = "none"; // hide challenge area
+  document.querySelector(".controls").style.display = "none";
+  clearAll();
+  unlockAllIons();
+};
+
+challengeBtn.onclick = () => {
+  mode = "challenge";
+  unlockArea.style.display = "none";    // hide unlock area
+  challengeArea.style.display = "block"; 
+  document.querySelector(".controls").style.display = "block";
+  clearAll();
+  loadChallenge();
+  unlockAllIons();
+};
+
+
+
+/* ===== CHALLENGE ===== */
+function loadChallenge() {
+  clearAll();
+  currentChallenge =
+    challenges[Math.floor(Math.random() * challenges.length)];
+  challengePrompt.textContent = currentChallenge.prompt;
+  challengeFeedback.textContent = "";
+}
+
+document.getElementById("check-challenge").onclick = () => {
+  if (!currentChallenge) return;
+
+  const userAnswer = challengeAnswer.value.replace(/\s+/g, "");
+
+  if (pos !== neg || pos === 0) {
+    challengeFeedback.textContent = "❌ Charges not balanced";
+    bondingArea.classList.remove("neutral");
+    return;
+  }
+
+  if (userAnswer === currentChallenge.answer) {
+    challengeFeedback.textContent = "✔ Correct!";
+    bondingArea.classList.add("neutral");   // ✅ green ONLY here
+  } else {
+    challengeFeedback.textContent = "✘ Try again";
+    bondingArea.classList.remove("neutral");
+  }
+};
+
+document.getElementById("unlock-check").onclick = () => {
+  const userNorm = normalizeCharge(
+    document.getElementById("unlock-answer").value
+  );
+
+  // normalize all accepted formats
+  const correctNorms = currentUnlock.charge.map(normalizeCharge);
+
+  if (correctNorms.includes(userNorm)) {
+    unlockIon(currentUnlock.element);
+    document.getElementById("unlock-feedback").textContent = "✔ Correct!";
+    loadNextUnlock();
+  } else {
+    document.getElementById("unlock-feedback").textContent = "✘ Try again";
+  }
+};
+
+function unlockIon(element) {
+  document
+    .querySelectorAll(`.ion[data-element="${element}"]`)
+    .forEach(ion => {
+      ion.classList.remove("locked", "unknown");
+      ion.setAttribute("draggable", "true");
+    });
+}
+function unlockAllIons() {
+  document.querySelectorAll(".ion").forEach(ion => {
+    ion.classList.remove("locked", "unknown");
+    ion.setAttribute("draggable", "true");
+  });
+}
+function lockAllIons() {
+  document.querySelectorAll(".ion").forEach(ion => {
+    ion.classList.add("locked", "unknown");
+    ion.setAttribute("draggable", "false");
+  });
+}
+
+
+/* ===== CLEAR ===== */
+function clearAll() {
   bondCations.innerHTML = "";
   bondAnions.innerHTML = "";
-  positive = 0;
-  negative = 0;
-  document.getElementById("result").textContent = "";
+  pos = 0;
+  neg = 0;
+  result.textContent = "";
   bondingArea.classList.remove("neutral");
-};
+  challengeAnswer.value = "";
+  challengeFeedback.textContent = "";
+}
+
+document.getElementById("clear").onclick = clearAll;
+
+loadNextUnlock();
+
 </script>
+
 
 </body>
 </html>
