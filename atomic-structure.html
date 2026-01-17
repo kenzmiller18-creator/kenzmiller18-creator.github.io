@@ -10,6 +10,8 @@ body {
   font-family: Georgia, serif;
   background: white;
 }
+.shell { pointer-events: none; }
+.particle { pointer-events: auto; cursor: pointer; }
 
 /* ===== TOOLBAR ===== */
 #toolbar {
@@ -22,225 +24,93 @@ body {
   position: relative;
 }
 #backToHub {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  background: transparent;
-  color: black;
-  font-size: 16px;
-  font-weight: bold;
-  border: none;
-  cursor: pointer;
-  opacity: 0.85;
+  position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+  background: transparent; color: black; font-size: 16px; font-weight: bold; border: none; cursor: pointer; opacity: 0.85;
 }
-
-
-#backToHub:hover {
-  opacity: 1;
-  text-decoration: underline;
-}
-#elementSelect {
-  max-width: 260px;
-}
+#backToHub:hover { opacity: 1; text-decoration: underline; }
+#elementSelect { max-width: 260px; }
 
 button, select {
-  padding: 6px 12px;
-  font-size: 15px;
-  border-radius: 6px;
-  border: none;
-  font-weight: bold;
-  cursor: pointer;
+  padding: 6px 12px; font-size: 15px; border-radius: 6px; border: none; font-weight: bold; cursor: pointer;
 }
 
 .protonBtn { background: #8de790; color: white; }
 .neutronBtn { background: #98beff; color: white; }
 .electronBtn { background: #ff5c5c; color: white; }
+#reset { background: black; color: white; }
+#chk { background: rgb(252,65,255); color: white; }
 
-#reset {
-  margin-left: auto;
-  background: black;
-  color: white;
-}
+/* ===== WORKSPACE LAYOUT ===== */
+#workspace { display: flex; justify-content: center; align-items: flex-start; gap: 50px; padding: 20px; width: 100vw; height: calc(100vh - 60px); }
+#leftSide, #rightSide { display: flex; flex-direction: column; align-items: center; gap: 30px; }
 
-/* ===== WORKSPACE ===== */
-#workspace {
-  position: relative;
-  width: 100vw;
-  height: calc(100vh - 60px);
-}
-
-/* ===== BOHR MODEL ===== */
+/* ===== BOHR PANEL ===== */
+#bohrPanel { width: 500px; height: 500px; position: relative; }
 #nucleus {
-  position: absolute;
-  left: 30%;
-  top: 50%;
-  width: 140px;
-  height: 140px;
-  background: #dabdfe;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
+  position: absolute; left: 50%; top: 50%;
+  width: 140px; height: 140px;
+  background: #dabdfe; border-radius: 50%; transform: translate(-50%, -50%);
   border: 2px solid black;
 }
-
 .shell {
-  position: absolute;
-  border: 2px dashed #999;
-  border-radius: 50%;
-  left: 30%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  position: absolute; border: 2px dashed #999; border-radius: 50%; left: 50%; top: 50%; transform: translate(-50%, -50%);
 }
-
 #shell1 { width: 260px; height: 260px; }
 #shell2 { width: 360px; height: 360px; }
 #shell3 { width: 460px; height: 460px; }
 
 /* ===== PARTICLES ===== */
-.particle {
-  position: absolute;
-  border-radius: 50%;
-  border: 1px solid black;
-}
+.particle { position: absolute; border-radius: 50%; border: 1px solid black; }
+.proton, .neutron { width: 20px; height: 20px; }
+.electron { width: 10px; height: 10px; background: #000000; }
+.proton { background: #8de790; } .neutron { background: #98beff; }
 
-.proton, .neutron {
-  width: 20px;
-  height: 20px;
-}
-
-.electron {
-  width: 10px;
-  height: 10px;
-  background: #ff5c5c;
-}
-
-.proton { background: #8de790; }
-.neutron { background: #98beff; }
-
-/* ===== COUNTER TABLE ===== */
-#counterWrapper {
-  position: absolute;
-  right: 16px;
-  top: 16px;
-}
-
-#counterTable {
-  border: 4px solid black;
-  border-radius: 14px;
-  overflow: hidden;
-  border-collapse: collapse;
-  background: white;
-}
-
-#counterTable th,
-#counterTable td {
-  padding: 10px 18px;
-  text-align: center;
-  font-weight: bold;
-  border-right: 4px solid black;
-}
-
-#counterTable th:last-child,
-#counterTable td:last-child {
-  border-right: none;
-}
-
-#counterTable th {
-  font-size: 22px;
-}
-
-#counterTable td {
-  font-size: 26px;
-}
-
-th.protons { color: #4d8f51; }
-th.neutrons { color: #3f6fdc; }
-th.electrons { color: #d43a3a; }
-
-.correctGlow {
-  box-shadow: 0 0 25px 10px rgba(80, 220, 120, 0.9);
-}
+/* ===== COUNTER ===== */
+#counterWrapper { display: flex; flex-direction: column; align-items: center; }
+#counterTable { border: 4px solid black; border-radius: 14px; overflow: hidden; border-collapse: collapse; background: white; }
+#counterTable th, #counterTable td { padding: 10px 18px; text-align: center; font-weight: bold; border-right: 4px solid black; }
+#counterTable th:last-child, #counterTable td:last-child { border-right: none; }
+#counterTable th { font-size: 22px; }
+#counterTable td { font-size: 26px; }
+th.protons { color: #4d8f51; } th.neutrons { color: #3f6fdc; } th.electrons { color: #d43a3a; }
+.correctGlow { box-shadow: 0 0 25px 10px rgba(80,220,120,0.9); }
 
 /* ===== LEWIS PANEL ===== */
 #lewisPanel {
-  position: absolute;
-  left: 65%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 280px;
-  height: 280px;
-  border: 3px solid black;
-  border-radius: 18px;
+  width: 280px; height: 280px; border: 2px dashed rgb(229,180,255); border-radius: 18px; position: relative;
 }
+#lewisTitle { text-align: center; font-weight: bold; margin-top: 6px; }
+#lewisSymbol { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 48px; font-weight: bold; }
 
-#lewisTitle {
-  text-align: center;
-  font-weight: bold;
-  margin-top: 6px;
-}
+.lewisSpot { position: absolute; cursor: pointer; }
+.lewisSpot.horizontal { width: 56px; height: 22px; }
+.lewisSpot.vertical { width: 22px; height: 56px; }
+.lewisSpot .dot { width: 16px; height: 16px; border-radius: 50%; border: 2px solid #aaa; display: block; margin: 3px auto; background: transparent; }
+.lewisSpot.horizontal .dot { display: inline-block; margin: 0 4px; }
+.lewisSpot.one .dot:first-child { background: black; border-color: black; }
+.lewisSpot.two .dot { background: black; border-color: black; }
 
-#lewisSymbol {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 48px;
-  font-weight: bold;
-}
-
-/* ===== LEWIS ELECTRON SPOTS ===== */
-.lewisSpot {
-  position: absolute;
-  cursor: pointer;
-}
-
-.lewisSpot.horizontal {
-  width: 56px;
-  height: 22px;
-}
-
-.lewisSpot.vertical {
-  width: 22px;
-  height: 56px;
-}
-
-.lewisSpot .dot {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 2px solid #aaa;
-  background: transparent;
-  display: block;
-  margin: 3px auto;
-}
-
-.lewisSpot.horizontal .dot {
-  display: inline-block;
-  margin: 0 4px;
-}
-
-.lewisSpot.one .dot:first-child {
-  background: black;
-  border-color: black;
-}
-
-.lewisSpot.two .dot {
-  background: black;
-  border-color: black;
-}
+.correctGlowLewis { border-color: #50dc78; box-shadow: 0 0 20px 6px rgba(80,220,120,0.7); }
+.incorrectGlowLewis { border-color: #ff3c3c; box-shadow: 0 0 20px 6px rgba(255,60,60,0.6); }
 
 /* Positions */
-.top    { top: 46px; left: 50%; transform: translateX(-50%); }
+.top { top: 46px; left: 50%; transform: translateX(-50%); }
 .bottom { bottom: 46px; left: 50%; transform: translateX(-50%); }
-.left   { left: 44px; top: 50%; transform: translateY(-50%); }
-.right  { right: 44px; top: 50%; transform: translateY(-50%); }
+.left { left: 44px; top: 50%; transform: translateY(-50%); }
+.right { right: 44px; top: 50%; transform: translateY(-50%); }
 
-/* ===== FEEDBACK ===== */
-#feedback {
-  margin-top: 8px;
-  font-weight: bold;
-  text-align: center;
+#feedback { margin-top: 8px; font-weight: bold; text-align: center; color: black; }
+
+.valence {
+  background: #ff4da6;     /* red */
+  box-shadow: 0 0 8px #ff4d4d;
 }
+input[type="checkbox"] {
+  accent-color: #bbff83;
+  transform: scale(1.2);
+}
+
+
 </style>
 </head>
 
@@ -248,183 +118,245 @@ th.electrons { color: #d43a3a; }
 
 <div id="toolbar">
   <button id="backToHub" onclick="goToHub()">← Hub</button>
+  <div style="font-size:20px; font-weight:bold; opacity:0.8; margin-left:-20px;">
+    Mode:
+    <label><input type="checkbox" name="mode" value="bohr" onchange="toggleMode(this)" checked> Bohr</label>
+    <label><input type="checkbox" name="mode" value="lewis" onchange="toggleMode(this)"> Lewis</label>
+  </div>
 
   <select id="elementSelect">
     <option value="">-- Choose Element --</option>
-    <option>Hydrogen</option>
-    <option>Helium</option>
-    <option>Lithium</option>
-    <option>Beryllium</option>
-    <option>Boron</option>
-    <option>Carbon</option>
-    <option>Nitrogen</option>
-    <option>Oxygen</option>
-    <option>Fluorine</option>
-    <option>Neon</option>
-    <option>Sodium</option>
-    <option>Magnesium</option>
-    <option>Aluminum</option>
-    <option>Silicon</option>
-    <option>Phosphorus</option>
-    <option>Sulfur</option>
-    <option>Chlorine</option>
-    <option>Argon</option>
-    
+    <option value="Hydrogen">Hydrogen</option>
+    <option value="Helium">Helium</option>
+    <option value="Lithium">Lithium</option>
+    <option value="Beryllium">Beryllium</option>
+    <option value="Boron">Boron</option>
+    <option value="Carbon">Carbon</option>
+    <option value="Nitrogen">Nitrogen</option>
+    <option value="Oxygen">Oxygen</option>
+    <option value="Fluorine">Fluorine</option>
+    <option value="Neon">Neon</option>
+    <option value="Sodium">Sodium</option>
+    <option value="Magnesium">Magnesium</option>
+    <option value="Aluminum">Aluminum</option>
+    <option value="Silicon">Silicon</option>
+    <option value="Phosphorus">Phosphorus</option>
+    <option value="Sulfur">Sulfur</option>
+    <option value="Chlorine">Chlorine</option>
+    <option value="Argon">Argon</option>
   </select>
 
   <button class="protonBtn" onclick="addNucleon('proton')">+ Proton</button>
   <button class="neutronBtn" onclick="addNucleon('neutron')">+ Neutron</button>
   <button class="electronBtn" onclick="addElectron()">+ Electron</button>
-
-  <button onclick="checkAtom()">Check Atom</button>
-  <button id="reset" onclick="location.reload()">Reset</button>
+  <i>Tip: Shift + Click a particle to delete</i>
+  <button id="chk" onclick="checkAtom()">Check Atom</button>
+  <button id="reset" onclick="resetAtom()">Reset</button>
 </div>
 
 <div id="workspace">
-
-  <div id="nucleus"></div>
-  <div class="shell" id="shell1" data-max="2"></div>
-  <div class="shell" id="shell2" data-max="8"></div>
-  <div class="shell" id="shell3" data-max="8"></div>
-
-  <div id="counterWrapper">
-    <table id="counterTable">
-      <tr>
-        <th class="protons">Protons</th>
-        <th class="neutrons">Neutrons</th>
-        <th class="electrons">Electrons</th>
-      </tr>
-      <tr>
-        <td id="pCount">0</td>
-        <td id="nCount">0</td>
-        <td id="eCount">0</td>
-      </tr>
-    </table>
-    <div id="feedback"></div>
-  </div>
-
-  <div id="lewisPanel">
-    <div id="lewisTitle">Lewis Dot Diagram</div>
-    <div id="lewisSymbol">?</div>
-
-    <div class="lewisSpot horizontal top" data-count="0">
-      <span class="dot"></span><span class="dot"></span>
-    </div>
-    <div class="lewisSpot vertical right" data-count="0">
-      <span class="dot"></span><span class="dot"></span>
-    </div>
-    <div class="lewisSpot horizontal bottom" data-count="0">
-      <span class="dot"></span><span class="dot"></span>
-    </div>
-    <div class="lewisSpot vertical left" data-count="0">
-      <span class="dot"></span><span class="dot"></span>
+  <div id="leftSide">
+    <div id="bohrPanel">
+      <div id="nucleus"></div>
+      <div class="shell" id="shell1" data-max="2"></div>
+      <div class="shell" id="shell2" data-max="8"></div>
+      <div class="shell" id="shell3" data-max="8"></div>
     </div>
   </div>
 
+  <div id="rightSide">
+    <div id="lewisPanel">
+      <div id="lewisTitle">Lewis Dot Diagram</div>
+      <div id="lewisSymbol">?</div>
+      <div class="lewisSpot horizontal top" data-count="0"><span class="dot"></span><span class="dot"></span></div>
+      <div class="lewisSpot vertical right" data-count="0"><span class="dot"></span><span class="dot"></span></div>
+      <div class="lewisSpot horizontal bottom" data-count="0"><span class="dot"></span><span class="dot"></span></div>
+      <div class="lewisSpot vertical left" data-count="0"><span class="dot"></span><span class="dot"></span></div>
+    </div>
+
+    <div id="counterWrapper">
+      <table id="counterTable">
+        <tr>
+          <th class="protons">Protons</th>
+          <th class="neutrons">Neutrons</th>
+          <th class="electrons">Electrons</th>
+        </tr>
+        <tr>
+          <td id="pCount">0</td>
+          <td id="nCount">0</td>
+          <td id="eCount">0</td>
+        </tr>
+      </table>
+      <div id="feedback"></div>
+    </div>
+  </div>
 </div>
 
 <script>
+// ELEMENTS
 const ELEMENTS = {
-  Hydrogen:   { p: 1,  mass: 1,  valence: 1, symbol: "H"  },
-  Helium:     { p: 2,  mass: 4,  valence: 2, symbol: "He" },
-  Lithium:    { p: 3,  mass: 7,  valence: 1, symbol: "Li" },
-  Beryllium:  { p: 4,  mass: 9,  valence: 2, symbol: "Be" },
-  Boron:      { p: 5,  mass: 11, valence: 3, symbol: "B"  },
-  Carbon:     { p: 6,  mass: 12, valence: 4, symbol: "C"  },
-  Nitrogen:   { p: 7,  mass: 14, valence: 5, symbol: "N"  },
-  Oxygen:     { p: 8,  mass: 16, valence: 6, symbol: "O"  },
-  Fluorine:   { p: 9,  mass: 19, valence: 7, symbol: "F"  },
-  Neon:       { p: 10, mass: 20, valence: 8, symbol: "Ne" },
-  Sodium:     { p: 11, mass: 23, valence: 1, symbol: "Na" },
-  Magnesium:  { p: 12, mass: 24, valence: 2, symbol: "Mg" },
-  Aluminum:   { p: 13, mass: 27, valence: 3, symbol: "Al" },
-  Silicon:    { p: 14, mass: 28, valence: 4, symbol: "Si" },
-  Phosphorus: { p: 15, mass: 31, valence: 5, symbol: "P"  },
-  Sulfur:     { p: 16, mass: 32, valence: 6, symbol: "S"  },
-  Chlorine:   { p: 17, mass: 35, valence: 7, symbol: "Cl" },
-  Argon:      { p: 18, mass: 40, valence: 8, symbol: "Ar" }
+  Hydrogen:{p:1,mass:1,valence:1,symbol:"H"},Helium:{p:2,mass:4,valence:2,symbol:"He"},
+  Lithium:{p:3,mass:7,valence:1,symbol:"Li"},Beryllium:{p:4,mass:9,valence:2,symbol:"Be"},
+  Boron:{p:5,mass:11,valence:3,symbol:"B"},Carbon:{p:6,mass:12,valence:4,symbol:"C"},
+  Nitrogen:{p:7,mass:14,valence:5,symbol:"N"},Oxygen:{p:8,mass:16,valence:6,symbol:"O"},
+  Fluorine:{p:9,mass:19,valence:7,symbol:"F"},Neon:{p:10,mass:20,valence:8,symbol:"Ne"},
+  Sodium:{p:11,mass:23,valence:1,symbol:"Na"},Magnesium:{p:12,mass:24,valence:2,symbol:"Mg"},
+  Aluminum:{p:13,mass:27,valence:3,symbol:"Al"},Silicon:{p:14,mass:28,valence:4,symbol:"Si"},
+  Phosphorus:{p:15,mass:31,valence:5,symbol:"P"},Sulfur:{p:16,mass:32,valence:6,symbol:"S"},
+  Chlorine:{p:17,mass:35,valence:7,symbol:"Cl"},Argon:{p:18,mass:40,valence:8,symbol:"Ar"}
 };
 
-
-let protons=0, neutrons=0, electrons=0;
-let target=null;
-
+let protons=0,neutrons=0,electrons=0,target=null;
 const nucleus=document.getElementById("nucleus");
 const shells=[...document.querySelectorAll(".shell")];
 const spots=[...document.querySelectorAll(".lewisSpot")];
 const table=document.getElementById("counterTable");
+const lewisPanel=document.getElementById("lewisPanel");
+const lewisSymbol=document.getElementById("lewisSymbol");
+const feedback=document.getElementById("feedback");
 
-spots.forEach(s=>{
-  s.onclick=()=>{
-    let c=(+s.dataset.count+1)%3;
-    s.dataset.count=c;
-    s.classList.remove("one","two");
-    if(c===1)s.classList.add("one");
-    if(c===2)s.classList.add("two");
-  };
-});
+// Lewis click
+spots.forEach(s=>{s.onclick=()=>{
+  let c=(+s.dataset.count+1)%3;s.dataset.count=c;s.classList.remove("one","two");if(c===1)s.classList.add("one");if(c===2)s.classList.add("two");
+}});
 
-elementSelect.onchange=e=>{
-  target=e.target.value;
-  lewisSymbol.textContent = target ? ELEMENTS[target].symbol : "?";
-
+// Element select
+document.getElementById("elementSelect").onchange=e=>{
+  target=e.target.value; lewisSymbol.textContent = target ? ELEMENTS[target].symbol : "?";
   spots.forEach(s=>{s.dataset.count=0;s.classList.remove("one","two");});
-  table.classList.remove("correctGlow");
-  feedback.textContent="";
+  table.classList.remove("correctGlow"); feedback.textContent="";
 };
-function goToHub() {
-  window.location.href = "../index.html";
+
+function goToHub(){window.location.href="index.html";}
+
+// Toggle Mode
+function toggleMode(checkbox){
+  const bohrPanel=document.getElementById("bohrPanel");
+  const lewisPanel=document.getElementById("lewisPanel");
+  const leftSide=document.getElementById("leftSide");
+  const rightSide=document.getElementById("rightSide");
+  const counterWrapper=document.getElementById("counterWrapper");
+
+  if(checkbox.value==="bohr"){bohrPanel.style.display = checkbox.checked?"block":"none";}
+  if(checkbox.value==="lewis"){lewisPanel.style.display = checkbox.checked?"block":"none";}
+
+  if(bohrPanel.style.display==="block" && lewisPanel.style.display==="block"){
+    leftSide.appendChild(bohrPanel);
+    rightSide.appendChild(lewisPanel);
+    counterWrapper.style.display="block";
+  } else if(bohrPanel.style.display==="block"){
+    leftSide.appendChild(bohrPanel);
+    counterWrapper.style.display="block";
+  } else if(lewisPanel.style.display==="block"){
+    rightSide.appendChild(lewisPanel);
+    counterWrapper.style.display="none";
+  }
+
+  feedback.textContent=""; table.classList.remove("correctGlow"); lewisPanel.classList.remove("correctGlowLewis","incorrectGlowLewis");
 }
 
+// Add Nucleons/Electrons
 function addNucleon(type){
-  if(!target)return alert("Choose an element first");
-  const p=document.createElement("div");
-  p.className=`particle ${type}`;
-  const r=Math.random()*40,a=Math.random()*Math.PI*2;
-  p.style.left="50%";p.style.top="50%";
+  const p=document.createElement("div"); p.className=`particle ${type}`;
+  const r=Math.random()*40, a=Math.random()*Math.PI*2;
+  p.style.left="50%"; p.style.top="50%";
   p.style.transform=`translate(-50%,-50%) translate(${Math.cos(a)*r}px,${Math.sin(a)*r}px)`;
-  nucleus.appendChild(p);
-  type==="proton"?protons++:neutrons++;
+  nucleus.appendChild(p); enableDeleteOnShiftClick(p,type);
+  if(type==="proton")protons++; if(type==="neutron")neutrons++;
   update();
 }
-
 function addElectron(){
-  if(!target)return alert("Choose an element first");
   for(const shell of shells){
-    const max=+shell.dataset.max;
-    if(shell.children.length<max){
-      const i=shell.children.length;
-      const ang=(i/max)*2*Math.PI;
-      const r=shell.offsetWidth/2;
-      const e=document.createElement("div");
-      e.className="particle electron";
-      e.style.left="50%";e.style.top="50%";
+    const max=+shell.dataset.max; if(shell.children.length<max){
+      const i=shell.children.length; const ang=(i/max)*2*Math.PI; const r=shell.offsetWidth/2;
+      const e=document.createElement("div"); e.className="particle electron";
+      e.style.left="50%"; e.style.top="50%";
       e.style.transform=`translate(-50%,-50%) translate(${Math.cos(ang)*r}px,${Math.sin(ang)*r}px)`;
-      shell.appendChild(e);
-      electrons++; update(); return;
+      shell.appendChild(e); enableDeleteOnShiftClick(e,"electron"); electrons++; update(); return;
     }
   }
 }
+function updateValenceElectrons(){
+  // Remove old valence markings
+  document.querySelectorAll(".electron").forEach(e => {
+    e.classList.remove("valence");
+  });
 
-function update(){
-  pCount.textContent=protons;
-  nCount.textContent=neutrons;
-  eCount.textContent=electrons;
-  table.classList.remove("correctGlow");
-}
+  // Find outermost shell with electrons
+  let outerShell = null;
+  shells.forEach(shell => {
+    if(shell.children.length > 0){
+      outerShell = shell;
+    }
+  });
 
-function checkAtom(){
-  const el=ELEMENTS[target];
-  const lewis=spots.reduce((s,p)=>s+ +p.dataset.count,0);
-  if(protons===el.p && neutrons===el.mass-el.p && electrons===el.p && lewis===el.valence){
-    feedback.textContent="✔ Correct!";
-    feedback.style.color="green";
-    table.classList.add("correctGlow");
-  } else {
-    feedback.textContent="Not correct yet";
-    feedback.style.color="red";
+  // Mark electrons in that shell
+  if(outerShell){
+    outerShell.querySelectorAll(".electron").forEach(e => {
+      e.classList.add("valence");
+    });
   }
 }
+
+// Check Atom
+function checkAtom(){
+  if(!target){ target = prompt("Which element did you just build?"); if(!target||!ELEMENTS[target]) return alert("Invalid element."); document.getElementById("elementSelect").value=target; }
+  const el=ELEMENTS[target];
+  // Bohr
+  const bohrPanel=document.getElementById("bohrPanel");
+  const lewisPanel=document.getElementById("lewisPanel");
+  if(bohrPanel.style.display==="block"){
+    const correct = protons===el.p && neutrons===el.mass-el.p && electrons===el.p;
+    if(correct){ feedback.textContent="✔ Correct!"; feedback.style.color="green"; table.classList.add("correctGlow"); }
+    else{ feedback.textContent="Not correct yet"; feedback.style.color="red"; table.classList.remove("correctGlow"); }
+    lewisPanel.classList.remove("correctGlowLewis","incorrectGlowLewis");
+  }
+  if(lewisPanel.style.display==="block"){
+    const lewisCount = spots.reduce((s,p)=>s+ +p.dataset.count,0);
+    if(lewisCount===el.valence){ lewisPanel.classList.add("correctGlowLewis"); lewisPanel.classList.remove("incorrectGlowLewis"); feedback.textContent="✔ Correct!"; feedback.style.color="green"; }
+    else{ lewisPanel.classList.add("incorrectGlowLewis"); lewisPanel.classList.remove("correctGlowLewis"); feedback.textContent="Not correct yet"; feedback.style.color="red"; }
+  }
+}
+
+// Reset Atom
+function resetAtom(){
+  nucleus.innerHTML=""; shells.forEach(s=>s.innerHTML="");
+  protons=neutrons=electrons=0; update();
+  target=null; document.getElementById("elementSelect").value="";
+  feedback.textContent=""; table.classList.remove("correctGlow");
+  spots.forEach(s=>{s.dataset.count=0;s.classList.remove("one","two");});
+  lewisSymbol.textContent="?"; lewisPanel.classList.remove("correctGlowLewis","incorrectGlowLewis");
+  document.querySelectorAll('input[name="mode"]').forEach(cb=>toggleMode(cb));
+}
+
+// Update counters
+function update(){
+  document.getElementById("pCount").textContent = protons;
+  document.getElementById("nCount").textContent = neutrons;
+  document.getElementById("eCount").textContent = electrons;
+
+  table.classList.remove("correctGlow");
+
+  // 🔑 update valence electrons every time
+  updateValenceElectrons();
+}
+
+// Shift-delete
+function enableDeleteOnShiftClick(p,type){ p.addEventListener("click",e=>{ if(!e.shiftKey) return; e.stopPropagation(); p.remove(); if(type==="proton")protons--; if(type==="neutron")neutrons--; if(type==="electron")electrons--; update(); }); }
+window.onload = () => {
+  // Select both checkboxes
+  const bohrCheckbox = document.querySelector('input[value="bohr"]');
+  const lewisCheckbox = document.querySelector('input[value="lewis"]');
+
+  bohrCheckbox.checked = true;
+  lewisCheckbox.checked = true;
+
+  // Trigger toggleMode for both
+  toggleMode(bohrCheckbox);
+  toggleMode(lewisCheckbox);
+  
+};
+
 </script>
 
 </body>
