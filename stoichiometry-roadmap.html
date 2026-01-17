@@ -1,0 +1,2118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Stoichiometry Pathway Map</title>
+
+<style>
+body {
+  margin: 0;
+  background: white;
+  font-family: Georgia, serif;
+}
+
+/* ===== TOOLBAR ===== */
+#toolbar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  padding: 12px 18px;
+  background: #ead7ff;
+  column-gap: 20px;
+}
+
+/* Hub */
+.toolbar-hub {
+  display: flex;
+  align-items: center;
+}
+
+.hub-link {
+  font-family: Georgia, serif;
+  font-size: 15px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #4b3fae;
+}
+
+.hub-link:hover {
+  text-decoration: underline;
+}
+
+
+/* Center */
+.toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  justify-content: center;
+}
+
+/* Right */
+.toolbar-actions {
+  display: flex;
+  gap: 20px;
+}
+
+
+#top-toolbar {
+  background: #dea2ff;
+  border-bottom: 2px solid #333;
+  padding: 10px 16px;
+}
+
+.toolbar-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+.toolbar-prompt {
+  font-size: 1.1rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.toolbar-divider {
+  height: 32px;
+  border-left: 2px dotted rgba(0, 0, 0, 0.4);
+}
+
+.btn {
+  font-family: Georgia, serif;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  background: transparent;
+  
+}
+
+.btn.new-problem {
+  color: #5a3ea1;
+  border-color: #5a3ea1;
+  background: #f1eaff;
+}
+
+.btn.new-problem:hover {
+  background: #e5d9ff;
+}
+.btn.reset {
+  color: #2f5fa7;
+  border-color: #2f5fa7;
+  background: #eaf1ff;
+}
+
+.btn.reset:hover {
+  background: #dbe7ff;
+}
+.btn.check-answer {
+  color: #2d7a4f;
+  border-color: #2d7a4f;
+  background: #e7f6ee;
+  font-weight: bold;
+}
+
+.btn.check-answer:hover {
+  background: #d6efdf;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+
+
+
+.toolbar-equation {
+  font-size: 1.2rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ===== WORKSPACE ===== */
+.workspace {
+  display: flex;
+  align-items: flex-start;
+  padding: 24px 36px;
+  gap: 40px;
+}
+
+/* ===== LEFT / RIGHT PANELS ===== */
+.left-panel {
+  width: 600px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0px;
+}
+
+.right-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ===== INSTRUCTIONS ===== */
+#instructions {
+  font-size: 0.95rem;
+  font-weight: 500;
+  text-align: center;
+  margin-top: -100px;
+  z-index: 1;
+}
+
+
+/* ===== STEP SELECTOR ===== */
+#step-selector {
+  display: none;
+  text-align: center;
+  margin-top: 4px;
+  position: relative;
+  z-index: 10;
+
+}
+
+
+
+#step-question {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: -80px;
+  z-index: 1;
+}
+
+#step-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+}
+
+.step-btn {
+  width: 48px;
+  height: 48px;
+  font-size: 18px;
+  border-radius: 10px;
+  border: 3px solid #b57edc;
+  background: #f8f0ff;
+  cursor: pointer;
+  
+}
+
+/* ===== ROADMAP =====  */
+.roadmap {
+  display: flex;
+  align-items: flex-start;
+  gap: 120px;           /* 👈 controls distance between reactants/products */
+  position: relative;
+  width: 520px;        /* narrower than before */
+  height: 480px;       /* locks layout */
+  margin-bottom: 12px; /* pulls buttons upward */
+}
+#roadmap {
+  position: relative;
+  pointer-events: none;
+}
+#roadmap-nodes {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none; /* nodes handle clicks individually */
+}
+
+
+.node {
+  position: absolute;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: 3px solid #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 13px;
+  font-weight: bold;
+  cursor: pointer;
+  pointer-events: auto;
+  z-index: 3;
+  background: #f5f5f5;
+}
+
+.ratio {
+  position: absolute;
+  top: 160px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 240px;
+  height: 60px;
+  background: #ff74e1;
+  border: 5px solid #ff5bd1;
+  
+  border-radius: 14px;
+  font-size: 18px;
+  font-weight: bold;
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+.ratio.dim {
+  opacity: 0.2;
+}
+.line {
+  position: absolute;
+  background: #d9d9d9;
+  z-index: 1;
+  pointer-events: auto;
+}
+
+.line.vertical { width: 5px; }
+.line.horizontal { height: 5px; }
+
+.start { outline: 5px solid #f4cfff; }
+.end { outline: 5px solid #f4cfff; }
+.dim { opacity: 0.2; }
+
+.line.active-line {
+  box-shadow: 0 0 8px currentColor;
+}
+
+
+.hidden {
+  display: none;
+}
+.line[data-type="g-m"] {
+  background: #000000; /* blue */
+}
+
+.line[data-type="m-m"] {
+  background: #ff5bd1; /* purple */
+}
+
+.line[data-type="m-g"] {
+  background: #2ecc71; /* green */
+}
+
+/* ===== STEP BOXES ===== */
+#step-boxes {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.step-box {
+  
+  border-radius: 22px;
+  padding: 14px;
+  background: #fbf6ff;
+  min-width: 520px;
+}
+
+.step-title {
+  margin-bottom: 10px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* ===== DA LAYOUT ===== */
+.da-line {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+
+
+.num-box {
+  width: 60px;
+  height: 40px;
+  font-size: 16px;
+  text-align: center;
+  border-radius: 10px;
+  border: 1px solid #caa8ff;
+  background: #fdeaff;
+}
+
+.unit-tile {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 16px;
+  font-weight: bold;
+  padding: 4px 8px;
+  border-radius: 8px;
+  
+}
+.unit-cancelled {
+  opacity: 0.35;
+  filter: grayscale(100%);
+}
+
+.times {
+  font-size: 26px;
+  font-weight: bold;
+}
+
+.fraction {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.frac-bar {
+  width: 180px;
+  height: 4px;
+  background: #333;
+  margin: 4px 0;
+}
+
+.calc-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.calc-btn {
+  padding: 6px 12px;
+  font-size: 14px;
+  border-radius: 10px;
+  border: 2px solid #7e57c2;
+  background: #efe5ff;
+  cursor: pointer;
+  z-index: 10;
+}
+/* ===== UX FEEDBACK ===== */
+.fraction.warn {
+  outline: 3px dashed #ff9800;
+  background: rgba(255, 152, 0, 0.08);
+}
+
+.fraction.good {
+  outline: 3px dashed #4caf50;
+  background: rgba(76, 175, 80, 0.08);
+}
+
+.feedback-hint {
+  font-size: 13px;
+  font-style: italic;
+  color: #ff9800;
+  margin-top: 6px;
+}
+
+.feedback-hint.good {
+  color: #4caf50;
+}
+/* ===== FINAL ANSWER FEEDBACK ===== */
+.result-box.correct {
+  border: 3px solid #4caf50;
+  background: #eaffea;
+}
+
+.result-box.incorrect {
+  border: 3px solid #f44336;
+  background: #ffecec;
+}
+.result-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: auto;
+}
+
+.result-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.final-feedback {
+  font-size: 13px;
+  font-weight: 600;
+  margin-top: 4px;
+  text-align: center;
+}
+
+.final-feedback.correct {
+  color: #4caf50;
+}
+
+.final-feedback.incorrect {
+  color: #f44336;
+}
+
+.step-box.railroad {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.step-box.railroad .da-line {
+  min-width: 200px;
+}
+
+.railroad-top,
+.railroad-bottom {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 18px;
+}
+.railroad-line {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+
+.railroad-calc {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 10px;
+}
+.railroad-fraction {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.railroad-fraction .frac-bar {
+  width: 140px;
+}
+
+.railroad-row {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+}
+
+
+
+
+.mode-toggle {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin: 12px 0; 
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.mode-toggle input[type="radio"] {
+  margin-right: 6px;
+  accent-color: #541cb6; 
+  cursor: pointer;
+}
+
+.mode-toggle label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  border: 2px solid #000000;
+  background: #ead7ff;
+  cursor: pointer;
+  
+}
+
+.mode-toggle input[type="radio"]:checked + span,
+.mode-toggle label:hover {
+  background: #eaf1ff;
+}
+
+
+
+
+
+
+/* Track container //////////////*/
+.railroad-track {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  position: relative;  /* for the horizontal bar */
+  gap: 50px;
+}
+
+/* Horizontal bar spans full track */
+.railroad-bar {
+  position: absolute;
+  top: 52%;             /* vertical center */
+  left: 0;
+  transform: translateY(-50%);
+  width: 100%;
+  height: 3px;
+  background: #333;
+  z-index: 0;           /* behind verticals */
+}
+
+/* Each column */
+.railroad-column {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+/* Vertical line for all but first column */
+.railroad-column:not(:first-child):not(:last-child)::before {
+  content: "";
+  position: absolute;
+  right: 0;
+  left: 105%;
+  transform: translateX(-50%);
+  margin-left: 12px;
+  top: 0;
+  height: 100%;
+  width: 3px;
+  background-color: #000000;
+  z-index: 1;           /* in front of horizontal bar */
+}
+.railroad-column.start-column .value-block {
+  /* adds extra space under the start value */
+  margin-bottom: 115px;
+}
+/* Value blocks stack numerator/denominator above/below the horizontal bar */
+.value-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-top: 6px;
+  margin-bottom: 6px;
+}
+
+.railroad-equals {
+  font-size: 28px;
+  font-weight: bold;
+  text-align: center;
+  margin: 0 12px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div id="toolbar">
+
+  <!-- FAR LEFT: HUB -->
+  <div class="toolbar-hub">
+    <a href="index.html" class="hub-link">← Hub</a>
+  </div>
+
+  <!-- CENTER: PROMPT + EQUATION -->
+  <div class="toolbar-left">
+    <div class="toolbar-prompt">
+      Convert 25 g of KOH to grams of H₂O
+    </div>
+    <div class="toolbar-divider"></div>
+    <div class="toolbar-equation">
+      H₃PO₄ + 3KOH → K₃PO₄ + 3H₂O
+    </div>
+  </div>
+
+  <!-- RIGHT: ACTIONS -->
+  <div class="toolbar-actions">
+    <div class="action-group">
+      <button class="btn new-problem">New Problem</button>
+      <button class="btn reset">Reset</button>
+    </div>
+
+    <div class="action-group check-group">
+      <button class="btn check-answer">Check Answer</button>
+    </div>
+  </div>
+
+</div>
+
+
+
+<div class="workspace">
+
+  <!-- LEFT COLUMN -->
+  <div class="left-panel">
+          <div class="mode-toggle">
+    <label>
+      <input type="radio" name="mode" value="steps" checked /> Step-by-Step
+    </label>
+    <label>
+      <input type="radio" name="mode" value="railroad" /> All-in-One
+    </label>
+  </div>
+
+    <div id="roadmap" class="roadmap">
+      <div id="roadmap-nodes"></div>
+
+      <div class="ratio" data-unit-key="ratio">
+        Mole Ratio
+        </div>
+
+      <div class="right-path"></div>
+    </div>
+
+
+
+    <div id="step-selector">
+      <div id="step-question">How many steps are required?</div>
+      <div id="step-buttons">
+        <button class="step-btn">1</button>
+        <button class="step-btn">2</button>
+        <button class="step-btn">3</button>
+      </div>
+    </div>
+
+    <div id="instructions">
+      Click the <strong>starting unit</strong>, then the <strong>ending unit</strong>.
+    </div>
+
+
+  </div>
+
+  <!-- RIGHT COLUMN -->
+  <div class="right-panel">
+    <div id="step-boxes"></div>
+  </div>
+
+</div>
+
+
+ 
+
+
+
+<script>
+/* =========================
+   ROADMAP INTERACTION LOGIC
+   ========================= */
+
+
+const instructions = document.getElementById("instructions");
+const stepSelector = document.getElementById("step-selector");
+const stepButtons = document.querySelectorAll(".step-btn");
+const stepBoxes = document.getElementById("step-boxes");
+const checkBtn = document.querySelector(".check-answer");
+checkBtn.disabled = true;
+
+const ATOMIC_MASS = {
+  H: 1.008,
+  C: 12.01,
+  N: 14.01,
+  O: 16.00,
+  Na: 22.99,
+  Mg: 24.31,
+  Al: 26.98,
+  P: 30.97,
+  S: 32.06,
+  Cl: 35.45,
+  K: 39.10,
+  Ca: 40.08,
+  Fe: 55.85,
+  Br: 79.90,
+  Rb: 85.47,
+  B: 10.81
+};
+
+let mode = "steps"; // default
+
+document.querySelectorAll('input[name="mode"]').forEach(radio => {
+  radio.addEventListener("change", (e) => {
+    mode = e.target.value;
+    rebuildSteps();
+  });
+});
+
+
+function calculateMolarMass(formula) {
+  function parseFormula(str, multiplier = 1) {
+    let mass = 0;
+    let i = 0;
+
+    while (i < str.length) {
+      // Parentheses group
+      if (str[i] === "(") {
+        let depth = 1;
+        let j = i + 1;
+
+        while (depth > 0 && j < str.length) {
+          if (str[j] === "(") depth++;
+          if (str[j] === ")") depth--;
+          j++;
+        }
+
+        const group = str.slice(i + 1, j - 1);
+
+        let num = "";
+        while (j < str.length && /\d/.test(str[j])) {
+          num += str[j];
+          j++;
+        }
+
+        const groupMultiplier = num ? parseInt(num) : 1;
+        mass += parseFormula(group, multiplier * groupMultiplier);
+
+        i = j;
+        continue;
+      }
+
+      // Element symbol
+      let element = str[i];
+      i++;
+
+      if (i < str.length && /[a-z]/.test(str[i])) {
+        element += str[i];
+        i++;
+      }
+
+      let num = "";
+      while (i < str.length && /\d/.test(str[i])) {
+        num += str[i];
+        i++;
+      }
+
+      const count = num ? parseInt(num) : 1;
+
+      if (!ATOMIC_MASS[element]) {
+        console.warn("Unknown element:", element);
+        continue;
+      }
+
+      mass += ATOMIC_MASS[element] * count * multiplier;
+    }
+
+    return mass;
+  }
+
+  return parseFormula(formula);
+}
+
+
+
+
+
+
+  const NODE_SIZE = 70;
+  const UNIT_GAP = 45;
+  const SPECIES_GAP = 100;
+  
+const problems = [
+
+  {
+    prompt: "Convert 25 g of KOH to grams of H₂O",
+    equation: {
+      reactants: [
+        { formula: "H3PO4", coeff: 1 },
+        { formula: "KOH", coeff: 3 }
+      ],
+      products: [
+        { formula: "K3PO4", coeff: 1 },
+        { formula: "H2O", coeff: 3 }
+      ]
+    },
+    start: { unit: "g", species: "KOH" },
+    end: { unit: "g", species: "H2O" },
+    finalAnswer: {
+      value: 8.0, // correct
+      unit: "g",
+      species: "H2O",
+      tolerance: 0.2
+    }
+  },
+
+  {
+    prompt: "Convert 12 g of K to grams of K₂O",
+    equation: {
+      reactants: [
+        { formula: "K", coeff: 6 },
+        { formula: "B2O3", coeff: 1 }
+      ],
+      products: [
+        { formula: "K2O", coeff: 3 },
+        { formula: "B", coeff: 2 }
+      ]
+    },
+    start: { unit: "g", species: "K" },
+    end: { unit: "g", species: "K2O" },
+    finalAnswer: {
+      value: 14.5, // FIXED
+      unit: "g",
+      species: "K2O",
+      tolerance: 0.4
+    }
+  },
+
+  {
+    prompt: "Convert 15 g of HCl to grams of NaCl",
+    equation: {
+      reactants: [
+        { formula: "HCl", coeff: 1 },
+        { formula: "NaOH", coeff: 1 }
+      ],
+      products: [
+        { formula: "NaCl", coeff: 1 },
+        { formula: "H2O", coeff: 1 }
+      ]
+    },
+    start: { unit: "g", species: "HCl" },
+    end: { unit: "g", species: "NaCl" },
+    finalAnswer: {
+      value: 24.0, // FIXED
+      unit: "g",
+      species: "NaCl",
+      tolerance: 0.4
+    }
+  },
+
+  {
+    prompt: "Convert 20 g of Na to grams of Na₂O",
+    equation: {
+      reactants: [
+        { formula: "Na", coeff: 10 },
+        { formula: "NaNO3", coeff: 2 }
+      ],
+      products: [
+        { formula: "Na2O", coeff: 6 },
+        { formula: "N2", coeff: 1 }
+      ]
+    },
+    start: { unit: "g", species: "Na" },
+    end: { unit: "g", species: "Na2O" },
+    finalAnswer: {
+      value: 32.4, // FIXED
+      unit: "g",
+      species: "Na2O",
+      tolerance: 0.5
+    }
+  },
+
+  {
+    prompt: "Convert 18 g of Mg(OH)₂ to grams of H₂O",
+    equation: {
+      reactants: [
+        { formula: "H3PO4", coeff: 2 },
+        { formula: "Mg(OH)2", coeff: 3 }
+      ],
+      products: [
+        { formula: "Mg3(PO4)2", coeff: 1 },
+        { formula: "H2O", coeff: 6 }
+      ]
+    },
+    start: { unit: "g", species: "Mg(OH)2" },
+    end: { unit: "g", species: "H2O" },
+    finalAnswer: {
+      value: 11.1, // correct
+      unit: "g",
+      species: "H2O",
+      tolerance: 0.4
+    }
+  },
+
+  {
+    prompt: "Convert 10 g of NaOH to grams of Na₂CO₃",
+    equation: {
+      reactants: [
+        { formula: "NaOH", coeff: 2 },
+        { formula: "H2CO3", coeff: 1 }
+      ],
+      products: [
+        { formula: "Na2CO3", coeff: 1 },
+        { formula: "H2O", coeff: 2 }
+      ]
+    },
+    start: { unit: "g", species: "NaOH" },
+    end: { unit: "g", species: "Na2CO3" },
+    finalAnswer: {
+      value: 13.25, // correct
+      unit: "g",
+      species: "Na2CO3",
+      tolerance: 0.3
+    }
+  },
+
+  {
+    prompt: "Convert 5 g of Al(OH)₃ to grams of AlBr₃",
+    equation: {
+      reactants: [
+        { formula: "Al(OH)3", coeff: 1 },
+        { formula: "HBr", coeff: 3 }
+      ],
+      products: [
+        { formula: "AlBr3", coeff: 1 },
+        { formula: "H2O", coeff: 3 }
+      ]
+    },
+    start: { unit: "g", species: "Al(OH)3" },
+    end: { unit: "g", species: "AlBr3" },
+    finalAnswer: {
+      value: 17.1, // corrected, within rounding
+      unit: "g",
+      species: "AlBr3",
+      tolerance: 0.4
+    }
+  }
+
+];
+
+let currentProblem = pickRandomProblem();
+
+function pickRandomProblem() {
+  const index = Math.floor(Math.random() * problems.length);
+  return problems[index];
+}
+
+
+
+document
+  .querySelector(".new-problem")
+  .addEventListener("click", () => {
+    loadProblem(pickRandomProblem());
+  });
+
+
+function loadProblem(problem) {
+  currentProblem = problem;
+
+  document.querySelector(".toolbar-prompt").textContent =
+    problem.prompt;
+  document.querySelector(".toolbar-equation").textContent =
+    renderEquation(problem.equation);
+
+  resetAll();
+  buildRoadmap(problem);
+}
+
+
+
+document
+  .querySelector(".reset")
+  .addEventListener("click", () => {
+    loadProblem(currentProblem);
+  });
+
+
+document
+  .querySelector(".check-answer")
+  .addEventListener("click", checkFinalAnswer);
+
+
+
+
+
+function renderEquation(eq) {
+  const side = arr =>
+    arr.map(x => `${x.coeff > 1 ? x.coeff : ""}${x.formula}`).join(" + ");
+
+  return `${side(eq.reactants)} → ${side(eq.products)}`;
+}
+
+
+document.querySelector(".toolbar-prompt").innerHTML =
+  currentProblem.prompt;
+
+document.querySelector(".toolbar-equation").textContent =
+  renderEquation(currentProblem.equation);
+
+
+
+const unitColorMap = {};
+const colorPalette = [
+  "#ffadad",
+  "#ffd6a5",
+  "#fdffb6",
+  "#caffbf",
+  "#9bf6ff",
+  "#a0c4ff",
+  "#bdb2ff",
+  "#ffc6ff",
+];
+let colorIndex = 0;
+
+buildRoadmap(currentProblem);
+
+function rowWidth(count) {
+  const pairWidth = NODE_SIZE * 2 + UNIT_GAP;
+  return count * pairWidth + (count - 1) * SPECIES_GAP;
+}
+
+
+
+function buildRoadmap(problem) {
+  Object.keys(unitColorMap).forEach(k => delete unitColorMap[k]);
+  colorIndex = 0;
+
+  const nodeLayer = document.getElementById("roadmap-nodes");
+  nodeLayer.innerHTML = "";
+
+  const reactants = problem.equation.reactants.map(r => r.formula);
+  const products  = problem.equation.products.map(p => p.formula);
+  
+
+  const topY = 40;
+  const bottomY = 270;
+  const centerX = 260; // roadmap width / 2
+ 
+
+  // ---- Reactants (top row) ----
+  const reactantRowWidth = rowWidth(reactants.length);
+  let x = centerX - reactantRowWidth / 2;
+
+  reactants.forEach((species, i) => {
+  const isLeft = i === 0;
+
+  if (isLeft) {
+    // g → m
+    createNode("g", species, x, topY);
+    createNode("m", species, x + NODE_SIZE + UNIT_GAP, topY);
+  } else {
+    // m → g
+    createNode("m", species, x, topY);
+    createNode("g", species, x + NODE_SIZE + UNIT_GAP, topY);
+  }
+
+  x += NODE_SIZE * 2 + UNIT_GAP + SPECIES_GAP;
+});
+
+  // ---- Products (bottom row) ----
+  const productRowWidth = rowWidth(products.length);
+  x = centerX - productRowWidth / 2;
+
+  products.forEach((species, i) => {
+  const isLeft = i === 0;
+
+  if (isLeft) {
+    // g → m
+    createNode("g", species, x, bottomY);
+    createNode("m", species, x + NODE_SIZE + UNIT_GAP, bottomY);
+  } else {
+    // m → g
+    createNode("m", species, x, bottomY);
+    createNode("g", species, x + NODE_SIZE + UNIT_GAP, bottomY);
+  }
+
+  x += NODE_SIZE * 2 + UNIT_GAP + SPECIES_GAP;
+});
+setTimeout(() => drawRoadmapLines(problem), 0);
+}
+function getUnitOrder(species) {
+  const g = document.getElementById(`g-${species}`);
+  const m = document.getElementById(`m-${species}`);
+
+  if (!g || !m) return null;
+
+  return g.offsetLeft < m.offsetLeft
+    ? ["g", "m"]
+    : ["m", "g"];
+}
+
+function drawRoadmapLines(problem) {
+  const roadmap = document.getElementById("roadmap");
+
+  // Clear old lines
+  roadmap.querySelectorAll(".line").forEach(l => l.remove());
+
+  const species = getAllSpecies(problem);
+
+  species.forEach(sp => {
+    const g = document.getElementById(`g-${sp.toLowerCase()}`);
+    const m = document.getElementById(`m-${sp.toLowerCase()}`);
+
+    if (g && m) drawLine(g, m);
+  });
+
+  // Mole ratio connections
+  
+  const ratio = document.querySelector(".ratio");
+    ratio.dataset.unitKey = "ratio";
+
+
+  problem.equation.reactants.forEach(r => {
+  const m = document.getElementById(`m-${r.formula.toLowerCase()}`);
+  if (m) {
+    drawLine(m, ratio);
+    
+  }
+});
+
+problem.equation.products.forEach(p => {
+  const m = document.getElementById(`m-${p.formula.toLowerCase()}`);
+  if (m) {
+    drawLine(m, ratio);
+    
+  }
+});
+
+}
+
+
+
+function createNode(unit, species, left, top) {
+  const key = `${unit}-${species.toLowerCase()}`;
+  const node = document.createElement("div");
+
+  node.className = "node";
+  node.id = key;
+
+  node.dataset.unitKey = key;         
+  node.style.left = `${left}px`;
+  node.style.top = `${top}px`;
+  node.style.backgroundColor = getUnitColor(key);
+
+  node.innerHTML = `
+    ${unit === "g" ? "Grams" : "Moles"}<br>${species}
+  `;
+
+  document.getElementById("roadmap-nodes").appendChild(node);
+}
+function getCenter(el) {
+  const rect = el.getBoundingClientRect();
+  const parent = document.getElementById("roadmap").getBoundingClientRect();
+
+  return {
+    x: rect.left - parent.left + rect.width / 2,
+    y: rect.top - parent.top + rect.height / 2
+  };
+}
+function drawLine(fromEl, toEl) {
+  const start = getCenter(fromEl);
+  const end = getCenter(toEl);
+
+  const line = document.createElement("div");
+  const type = getLineType(
+  fromEl.dataset.unitKey,
+  toEl.dataset.unitKey
+);
+
+if (type) {
+  line.dataset.type = type;
+}
+
+  line.classList.add("line");
+
+  // ✅ This powers highlightPath()
+  line.dataset.path = `${fromEl.dataset.unitKey} ${toEl.dataset.unitKey}`;
+
+  if (Math.abs(start.y - end.y) < 10) {
+    line.classList.add("horizontal");
+    line.style.left = Math.min(start.x, end.x) + "px";
+    line.style.top = start.y + "px";
+    line.style.width = Math.abs(end.x - start.x) + "px";
+  } else {
+    line.classList.add("vertical");
+    line.style.left = start.x + "px";
+    line.style.top = Math.min(start.y, end.y) + "px";
+    line.style.height = Math.abs(end.y - start.y) + "px";
+  }
+
+  document.getElementById("roadmap").appendChild(line);
+}
+
+
+
+document.querySelector(".toolbar-prompt").innerHTML =
+  currentProblem.prompt;
+document.querySelector(".toolbar-equation").textContent =
+  renderEquation(currentProblem.equation);
+
+
+let startNode = null;
+let endNode = null;
+let requiredSteps = [];
+
+
+
+
+
+
+function getUnitColor(unitKey) {
+  if (!unitColorMap[unitKey]) {
+    unitColorMap[unitKey] = colorPalette[colorIndex % colorPalette.length];
+    colorIndex++;
+  }
+  return unitColorMap[unitKey];
+}
+
+
+stepButtons.forEach(btn => {
+  btn.addEventListener("click", () => {
+    const count = parseInt(btn.textContent);
+    buildSteps(requiredSteps.slice(0, count));
+  });
+});
+function applyUnitTileColors() {
+  document.querySelectorAll(".unit-tile").forEach(tile => {
+    const key = tile.dataset.unitKey;
+    if (!key) return;
+    tile.style.backgroundColor = getUnitColor(key);
+  });
+}
+function checkFinalAnswer() {
+  if (!currentProblem?.finalAnswer) return;
+
+  let resultInput, feedback;
+
+  if (mode === "steps") {
+    const lastStepIndex = requiredSteps.length - 1;
+    if (lastStepIndex < 0) return;
+
+    const lastBox = document.querySelector(`.da-line[data-step-index="${lastStepIndex}"]`);
+    if (!lastBox) return;
+
+    resultInput = lastBox.querySelector(".result-box");
+    feedback = lastBox.querySelector(".final-feedback");
+
+  } else if (mode === "railroad") {
+    const box = document.querySelector(".step-box.railroad");
+    if (!box) return;
+
+    resultInput = box.querySelector(".result-box");
+    
+    // Create feedback div if it doesn’t exist yet
+    feedback = box.querySelector(".final-feedback");
+    if (!feedback) {
+      feedback = document.createElement("div");
+      feedback.className = "final-feedback hidden";
+      box.appendChild(feedback);
+    }
+  }
+
+  if (!resultInput || !feedback) return;
+
+  // Reset previous state
+  resultInput.classList.remove("correct", "incorrect");
+  feedback.classList.add("hidden");
+  feedback.classList.remove("correct", "incorrect");
+
+  const studentValue = parseFloat(resultInput.value);
+  if (isNaN(studentValue)) return;
+
+  const { value, tolerance } = currentProblem.finalAnswer;
+  const isCorrect = Math.abs(studentValue - value) <= tolerance;
+
+  if (isCorrect) {
+    resultInput.classList.add("correct");
+    feedback.textContent = "✓ Correct!";
+    feedback.classList.add("correct");
+  } else {
+    resultInput.classList.add("incorrect");
+    feedback.textContent = "Not correct yet";
+    feedback.classList.add("incorrect");
+  }
+
+  feedback.classList.remove("hidden");
+}
+
+
+
+
+/* ---- Node click handling ---- */
+document.getElementById("roadmap").addEventListener("click", e => {
+  const node = e.target.closest(".node");
+  if (!node) return;
+
+  handleNodeClick(node.dataset.unitKey);
+});
+
+function handleNodeClick(unitKey) {
+  const node = document.getElementById(unitKey);
+
+  // First click → start
+  if (!startNode) {
+    clearVisuals();
+    startNode = node;
+    node.classList.add("start");
+    instructions.innerHTML =
+      "Now click the <strong>ending unit</strong>.";
+    return;
+  }
+
+  // Second click → end
+  if (!endNode && node !== startNode) {
+    endNode = node;
+    node.classList.add("end");
+    instructions.innerHTML =
+      "Select how many steps you want to show.";
+    showPath();
+    stepSelector.style.display = "block";
+    return;
+  }
+
+  // Any further click → restart selection
+resetAll();
+
+
+}
+
+
+/* ---- Path logic ---- */
+function showPath() {
+  requiredSteps = [];
+  const path = [];
+
+  const startKey = startNode.dataset.unitKey;
+  const endKey = endNode.dataset.unitKey;
+
+  const [startUnit, startSpecies] = startKey.split("-");
+  const [endUnit, endSpecies] = endKey.split("-");
+
+  path.push(startKey);
+
+  // --- Start conversion (if needed)
+ if (startUnit === "g") {
+  requiredSteps.push({
+    type: "conversion",
+    from: `g-${startSpecies}`,
+    to: `m-${startSpecies}`
+  });
+  path.push(`m-${startSpecies}`);
+}
+
+if (startUnit === "m" && startUnit !== endUnit) {
+  requiredSteps.push({
+    type: "conversion",
+    from: `m-${startSpecies}`,
+    to: `g-${startSpecies}`
+  });
+  path.push(`g-${startSpecies}`);
+}
+
+
+  // --- Mole ratio (if species differ)
+  if (startSpecies !== endSpecies) {
+    requiredSteps.push({
+      type: "ratio",
+      from: `m-${startSpecies}`,
+      to: `m-${endSpecies}`
+    });
+    path.push("ratio");
+    path.push(`m-${endSpecies}`);
+  }
+
+  // --- End conversion (if needed)
+  if (endUnit === "g") {
+  requiredSteps.push({
+    type: "conversion",
+    from: `m-${endSpecies}`,
+    to: `g-${endSpecies}`
+  });
+  path.push(`g-${endSpecies}`);
+}
+
+
+  highlightPath(path);
+  stepSelector.style.display = "block";
+}
+
+
+function rebuildSteps() {
+  if (!requiredSteps || requiredSteps.length === 0) return;
+  buildSteps(requiredSteps);
+}
+
+function buildSteps(steps) {
+  stepBoxes.innerHTML = "";
+
+  if (mode === "steps") {
+    steps.forEach((step, index) => {
+      const box = document.createElement("div");
+      box.className = "step-box";
+
+      const title =
+        step.type === "ratio"
+          ? "Mole Ratio"
+          : `${step.from} → ${step.to}`;
+
+      box.innerHTML = `
+        <div class="step-title">Step ${index + 1}: ${title}</div>
+        ${buildDALine(step, index)}
+      `;
+
+      stepBoxes.appendChild(box);
+    });
+
+  } else if (mode === "railroad") {
+    buildRailroadSteps(steps);
+  }
+
+  applyUnitTileColors();
+}
+
+function buildRailroadSteps(steps) {
+  stepBoxes.innerHTML = "";
+
+  const box = document.createElement("div");
+  box.className = "step-box railroad";
+  box.innerHTML = `<div class="step-title">Railroad Dimensional Analysis</div>`;
+
+  // ---------- Horizontal container for track + equals + result ----------
+  const railroadRow = document.createElement("div");
+  railroadRow.style.display = "flex";
+  railroadRow.style.alignItems = "center"; // vertically center all
+  railroadRow.style.gap = "24px";
+
+  // ---------- Railroad track ----------
+  const track = document.createElement("div");
+  track.className = "railroad-track";
+  track.style.display = "flex";
+  track.style.alignItems = "center";
+  track.style.position = "relative";
+  track.style.gap = "36px";
+
+  // ---------- Horizontal bar spanning entire track ----------
+  const horizontalBar = document.createElement("div");
+  horizontalBar.className = "railroad-bar";
+  track.appendChild(horizontalBar);
+
+  // ---------- Starting value ----------
+  const startStep = steps[0];
+  const start = parseUnitKey(startStep.from);
+
+  const startCol = document.createElement("div");
+  startCol.className = "railroad-column start-column";
+  startCol.innerHTML = `
+    <div class="value-block">
+      <input class="num-box start-value" />
+      <div class="unit-tile" data-unit-key="${startStep.from}">
+        <span class="unit-label">${unitLabel(start.unit)}</span>
+        <span>${start.species}</span>
+      </div>
+    </div>
+  `;
+  track.appendChild(startCol);
+
+  // ---------- Conversion factor columns ----------
+  steps.forEach((step, i) => {
+    const from = parseUnitKey(step.from);
+    const to = parseUnitKey(step.to);
+
+    const col = document.createElement("div");
+    col.className = "railroad-column";
+
+    col.innerHTML = `
+      <div class="value-block">
+        <input class="num-box factor-num" placeholder="#" />
+        <div class="unit-tile" data-unit-key="${step.to}">
+          <span class="unit-label">${unitLabel(to.unit)}</span>
+          <span>${to.species}</span>
+        </div>
+      </div>
+
+      <div class="value-block">
+        <input class="num-box factor-den" placeholder="#" />
+        <div class="unit-tile" data-unit-key="${step.from}">
+          <span class="unit-label">${unitLabel(from.unit)}</span>
+          <span>${from.species}</span>
+        </div>
+      </div>
+    `;
+
+    track.appendChild(col);
+  });
+
+  railroadRow.appendChild(track);
+
+  // ---------- Equal sign ----------
+  const equalsSign = document.createElement("div");
+  equalsSign.className = "railroad-equals";
+  equalsSign.textContent = "=";
+  railroadRow.appendChild(equalsSign);
+
+  // ---------- Result area ----------
+  const endStep = steps.at(-1);
+  const end = parseUnitKey(endStep.to);
+
+  const resultArea = document.createElement("div");
+  resultArea.className = "railroad-calc";
+  resultArea.style.display = "flex";
+  resultArea.style.flexDirection = "column";  // stack button below
+  resultArea.style.alignItems = "center";
+  resultArea.style.gap = "6px";
+
+  resultArea.innerHTML = `
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <input class="num-box result-box" disabled />
+      <div class="unit-tile" data-unit-key="${endStep.to}">
+        <span class="unit-label">${unitLabel(end.unit)}</span>
+        <span>${end.species}</span>
+      </div>
+    </div>
+    <button class="calc-btn">Calculate</button>
+  `;
+  railroadRow.appendChild(resultArea);
+
+
+  box.appendChild(railroadRow);
+  stepBoxes.appendChild(box);
+
+  applyUnitTileColors();
+}
+
+
+function calculateRailroad() {
+  const box = document.querySelector(".step-box.railroad");
+  if (!box) return;
+
+  const start = parseFloat(box.querySelector(".start-value").value);
+  if (isNaN(start)) return;
+
+  let result = start;
+
+  const nums = box.querySelectorAll(".factor-num");
+  const dens = box.querySelectorAll(".factor-den");
+
+  for (let i = 0; i < nums.length; i++) {
+    const n = parseFloat(nums[i].value);
+    const d = parseFloat(dens[i].value);
+    if (isNaN(n) || isNaN(d) || d === 0) return;
+    result *= n / d;
+  }
+
+  // Fill result
+  const resultBox = box.querySelector(".result-box");
+  resultBox.value = result.toPrecision(4);
+
+  // Enable Check Answer button
+  const checkBtn = document.querySelector(".check-answer");
+  checkBtn.disabled = false;
+
+  // Optional: trigger visual update immediately
+  resultBox.classList.remove("correct", "incorrect");
+}
+
+
+
+document.addEventListener("click", e => {
+  if (mode !== "steps") return;
+
+  const btn = e.target.closest(".calc-btn");
+  if (!btn) return;
+
+  const stepLine = btn.closest(".da-line");
+  if (!stepLine) return;
+
+  const stepIndex = Number(stepLine.dataset.stepIndex);
+  calculateStep(stepIndex);
+});
+
+
+
+function buildDALine(step, index) {
+
+    
+
+  /* ========= grams → moles ========= */
+if (step.type === "conversion") {
+  const from = parseUnitKey(step.from);
+  const to = parseUnitKey(step.to);
+
+  return `
+    <div class="da-line" data-step-index="${index}">
+
+      <div class="value-block">
+        <input class="num-box start-value" placeholder="#" />
+        <div class="unit-tile start-unit" data-unit-key="${step.from}">
+
+          <span class="unit-label">${unitLabel(from.unit)}</span>
+          <span>${from.species}</span>
+        </div>
+      </div>
+
+      <div class="times">×</div>
+
+      <div class="fraction">
+        <div class="value-block">
+        <input class="num-box" placeholder="#" />
+        <div class="unit-tile numerator-unit" data-unit-key="${step.to}">
+            <span class="unit-label">${unitLabel(to.unit)}</span>
+            <span>${to.species}</span>
+        </div>
+        </div>
+
+        <div class="frac-bar"></div>
+
+        <div class="value-block">
+        <input class="num-box" placeholder="#" />
+        <div class="unit-tile denominator-unit" data-unit-key="${step.from}">
+            <span class="unit-label">${unitLabel(from.unit)}</span>
+            <span>${from.species}</span>
+        </div>
+        </div>
+
+      </div>
+      <div class="feedback-hint"></div>
+
+
+      <div class="calc-area">
+  <button class="calc-btn">Calculate</button>
+
+  <div class="result-wrapper">
+    <div class="result-line">
+      <input class="num-box result-box" disabled />
+      <div class="unit-tile" data-unit-key="${step.to}">
+        <span class="unit-label">${unitLabel(to.unit)}</span>
+        <span>${to.species}</span>
+      </div>
+    </div>
+
+    <div class="final-feedback hidden"></div>
+  </div>
+</div>
+
+  </div>
+  `;
+}
+
+
+
+  /* ========= mole ratio ========= */
+if (step.type === "ratio") {
+  const from = parseUnitKey(step.from);
+  const to = parseUnitKey(step.to);
+
+  return `
+    <div class="da-line" data-step-index="${index}">
+
+      <div class="value-block">
+        <input class="num-box start-value" placeholder="#" />
+        <div class="unit-tile start-unit" data-unit-key="${step.from}">
+
+          <span class="unit-label">mol</span>
+          <span>${from.species}</span>
+        </div>
+      </div>
+
+      <div class="times">×</div>
+
+      <div class="fraction">
+        <div class="value-block">
+        <input class="num-box" placeholder="#" />
+        <div class="unit-tile numerator-unit" data-unit-key="${step.to}">
+            <span class="unit-label">${unitLabel(to.unit)}</span>
+            <span>${to.species}</span>
+        </div>
+        </div>
+
+        <div class="frac-bar"></div>
+
+        <div class="value-block">
+        <input class="num-box" placeholder="#" />
+        <div class="unit-tile denominator-unit" data-unit-key="${step.from}">
+            <span class="unit-label">${unitLabel(from.unit)}</span>
+            <span>${from.species}</span>
+        </div>
+        </div>
+
+      </div>
+      <div class="feedback-hint"></div>
+
+
+     <div class="calc-area">
+  <button class="calc-btn">Calculate</button>
+
+  <div class="result-wrapper">
+    <div class="result-line">
+      <input class="num-box result-box" disabled />
+      <div class="unit-tile" data-unit-key="${step.to}">
+        <span class="unit-label">mol</span>
+        <span>${to.species}</span>
+      </div>
+    </div>
+
+    <div class="final-feedback hidden"></div>
+  </div>
+</div>
+
+  </div>
+  `;
+}
+
+
+  return "";
+}
+
+document.addEventListener("click", e => {
+  if (e.target.closest(".step-box.railroad .calc-btn")) {
+    calculateRailroad();
+  }
+});
+
+
+
+
+function getLineType(fromKey, toKey) {
+  if (fromKey === "ratio" || toKey === "ratio") return "m-m";
+
+  const [fromUnit] = fromKey.split("-");
+  const [toUnit] = toKey.split("-");
+
+  if (fromUnit === "g" && toUnit === "m") return "g-m";
+  if (fromUnit === "m" && toUnit === "g") return "m-g";
+  if (fromUnit === "m" && toUnit === "m") return "m-m";
+
+  return null;
+}
+
+/* ---- Visuals ---- */
+function highlightPath(path) {
+  const ratio = document.querySelector(".ratio");
+
+  // Ratio dimming
+  if (!path.includes("ratio")) {
+    ratio.classList.add("dim");
+  } else {
+    ratio.classList.remove("dim");
+  }
+
+  // Nodes
+  document.querySelectorAll(".node").forEach(n => {
+    n.classList.toggle("dim", !path.includes(n.dataset.unitKey));
+  });
+
+  // Lines — 🔑 adjacency check
+  document.querySelectorAll(".line").forEach(l => {
+    const [a, b] = l.dataset.path.split(" ");
+
+    let active = false;
+    for (let i = 0; i < path.length - 1; i++) {
+      if (
+  (path[i] === a && path[i + 1] === b) ||
+  (path[i] === b && path[i + 1] === a)
+) {
+  active = true;
+  break;
+}
+
+    }
+
+    l.classList.toggle("active-line", active);
+    l.classList.toggle("hidden", !active);
+  });
+}
+
+function parseUnitKey(key) {
+  const [unit, species] = key.split("-");
+  return { unit, species };
+}
+
+function unitLabel(unit) {
+  return unit === "g" ? "g" : "mol";
+}
+function carryResultForward(stepIndex, value) {
+  const nextIndex = stepIndex + 1;
+
+  const nextStepBox = document.querySelector(
+    `.da-line[data-step-index="${nextIndex}"]`
+  );
+
+  if (!nextStepBox) return;
+
+  const nextStart = nextStepBox.querySelector(".start-value");
+  if (!nextStart) return;
+
+  // Update value
+  nextStart.value = value.toPrecision(4);
+
+  // Clear any downstream calculations
+  clearDownstream(nextIndex);
+}
+function clearDownstream(fromIndex) {
+  const boxes = document.querySelectorAll(".da-line");
+
+  boxes.forEach(box => {
+  const index = Number(box.dataset.stepIndex);
+
+  // 🔑 only clear cancelled units for downstream steps
+  if (index > fromIndex) {
+    box.querySelectorAll(".unit-tile").forEach(tile => {
+      tile.classList.remove("unit-cancelled");
+    });
+  }
+
+  if (index >= fromIndex) {
+    const resultBox = box.querySelector(".result-box");
+    const feedback = box.querySelector(".final-feedback");
+
+    if (resultBox) {
+      resultBox.value = "";
+      resultBox.classList.remove("correct", "incorrect");
+    }
+
+    if (feedback) {
+      feedback.textContent = "";
+      feedback.classList.add("hidden");
+    }
+  }
+});
+
+}
+
+
+
+function calculateStep(stepIndex) {
+
+  const step = requiredSteps[stepIndex];
+  const stepBox = document.querySelector(
+    `.da-line[data-step-index="${stepIndex}"]`
+  );
+  if (!stepBox) {
+    console.error("Step box not found for index", stepIndex);
+    return;
+  }
+
+  const start = parseFloat(
+    stepBox.querySelector(".start-value")?.value
+  );
+
+  const nums = stepBox.querySelectorAll(".fraction input");
+  let numerator = parseFloat(nums[0]?.value);
+  let denominator = parseFloat(nums[1]?.value);
+
+  const fraction = stepBox.querySelector(".fraction");
+  const feedback = stepBox.querySelector(".feedback-hint");
+
+  fraction.classList.remove("warn", "good");
+  feedback.textContent = "";
+  feedback.classList.remove("good");
+
+  /* ========= AUTO-FILL FIRST (conversion only) ========= */
+  if (step.type === "conversion") {
+    const from = parseUnitKey(step.from);
+    const to = parseUnitKey(step.to);
+
+    if (isNaN(numerator) || isNaN(denominator)) {
+
+      if (from.unit === "g" && to.unit === "m") {
+        numerator = 1;
+        denominator = calculateMolarMass(from.species);
+      }
+
+      if (from.unit === "m" && to.unit === "g") {
+        numerator = calculateMolarMass(from.species);
+        denominator = 1;
+      }
+
+      // 🔑 write auto-filled values back to inputs
+      nums[0].value = numerator;
+      nums[1].value = denominator;
+    }
+  }
+
+  /* ========= VALIDATION ========= */
+
+  if (step.type === "conversion") {
+    const from = parseUnitKey(step.from);
+    const to = parseUnitKey(step.to);
+
+    const canonicalFormula = getCanonicalFormula(from.species);
+    const correctMM = calculateMolarMass(canonicalFormula);
+
+
+    let enteredMM;
+
+    if (from.unit === "g" && to.unit === "m") {
+    enteredMM = denominator;
+    } else if (from.unit === "m" && to.unit === "g") {
+    enteredMM = numerator;
+    } else {
+    enteredMM = NaN;
+    }
+
+
+    if (!isNaN(enteredMM)) {
+      if (Math.abs(enteredMM - correctMM) > 0.1) {
+        fraction.classList.add("warn");
+        feedback.textContent = "Check molar mass";
+      } else {
+        fraction.classList.add("good");
+        feedback.textContent = "Molar mass looks correct";
+        feedback.classList.add("good");
+      }
+    }
+  }
+
+  if (step.type === "ratio") {
+  const fraction = stepBox.querySelector(".fraction");
+  const feedback = stepBox.querySelector(".feedback-hint");
+
+  fraction.classList.remove("warn", "good");
+  feedback.textContent = "";
+  feedback.classList.remove("good");
+
+  const from = parseUnitKey(step.from).species;
+  const to = parseUnitKey(step.to).species;
+
+  const correct = getMoleRatio(from, to);
+
+  if (!correct) return;
+
+  const [numC, denC] = correct;
+
+  if (numerator !== numC || denominator !== denC) {
+    fraction.classList.add("warn");
+    feedback.textContent = "Check mole ratio";
+  } else {
+    fraction.classList.add("good");
+    feedback.textContent = "Mole ratio matches equation";
+    feedback.classList.add("good");
+  }
+}
+
+
+
+
+/* ========= FINAL CALC ========= */
+
+    // Require numerator + denominator always
+    if (
+    isNaN(numerator) ||
+    isNaN(denominator) ||
+    denominator === 0
+    ) {
+    alert("Please fill in the ratio correctly.");
+    return;
+    }
+
+    // Require a starting value ONLY when calculating
+    if (isNaN(start)) {
+    alert("Calculate the previous step first.");
+    return;
+    }
+
+    const result = start * (numerator / denominator);
+    stepBox.querySelector(".result-box").value =
+    result.toPrecision(4);
+    
+    // Visually cancel units that actually cancel out
+    const startUnit = stepBox.querySelector(".start-unit");
+    const denominatorUnit = stepBox.querySelector(".denominator-unit");
+
+    if (startUnit) startUnit.classList.add("unit-cancelled");
+    if (denominatorUnit) denominatorUnit.classList.add("unit-cancelled");
+
+
+
+    step.result = result;
+
+    checkBtn.disabled = false;
+
+    // Auto-carry to next step
+    carryResultForward(stepIndex, result);
+
+}
+function getMoleRatio(fromSpecies, toSpecies) {
+  const all = [
+    ...currentProblem.equation.reactants,
+    ...currentProblem.equation.products
+  ];
+
+  const fromKey = normalizeSpecies(fromSpecies);
+  const toKey = normalizeSpecies(toSpecies);
+
+  const from = all.find(
+    x => normalizeSpecies(x.formula) === fromKey
+  );
+
+  const to = all.find(
+    x => normalizeSpecies(x.formula) === toKey
+  );
+
+  if (!from || !to) {
+    console.warn("Mole ratio lookup failed:", {
+      fromSpecies,
+      toSpecies,
+      all
+    });
+    return null;
+  }
+
+  return [to.coeff, from.coeff];
+}
+
+
+function getCanonicalFormula(speciesKey) {
+  const all = [
+    ...currentProblem.equation.reactants,
+    ...currentProblem.equation.products
+  ];
+
+  const match = all.find(
+    s => s.formula.toLowerCase() === speciesKey.toLowerCase()
+  );
+
+  return match ? match.formula : speciesKey;
+}
+
+function normalizeSpecies(species) {
+  return species
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/[₀₁₂₃₄₅₆₇₈₉]/g, m =>
+   "0123456789"["₀₁₂₃₄₅₆₇₈₉".indexOf(m)]
+);
+
+}
+
+
+
+function clearVisuals() {
+  document.querySelectorAll(".node").forEach(n =>
+    n.classList.remove("start", "end", "dim")
+  );
+
+  document.querySelectorAll(".line").forEach(l => {
+    l.classList.remove("active-line", "hidden");
+  });
+
+  const ratio = document.querySelector(".ratio");
+  if (ratio) ratio.classList.remove("dim");
+
+  //document.querySelectorAll(".line").forEach(l => {
+  //l.classList.remove("active-line");
+  //l.classList.add("hidden");
+//});
+
+}
+
+
+
+
+function getAllSpecies(problem) {
+  return [
+    ...problem.equation.reactants.map(r => r.formula),
+    ...problem.equation.products.map(p => p.formula)
+  ];
+}
+
+function goToHub() {
+  // Later: window.location.href = "../index.html";
+  alert("Back to hub coming soon!");
+}
+
+
+/* ---- Reset ---- */
+function resetAll() {
+  startNode = null;
+  endNode = null;
+  requiredSteps = [];
+  stepSelector.style.display = "none";
+
+
+  clearVisuals();
+  instructions.innerHTML =
+    "Click the <strong>starting unit</strong>, then click the <strong>ending unit</strong>.";
+    document.getElementById("step-boxes").innerHTML = "";
+
+}
+</script>
+
+</body>
+</html>
