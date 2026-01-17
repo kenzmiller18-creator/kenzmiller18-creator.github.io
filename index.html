@@ -51,6 +51,8 @@
       grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
       gap: 28px;
     }
+    
+
 
     .card {
       background: var(--card-bg);
@@ -91,6 +93,111 @@
       color: inherit;
       display: block;
     }
+    /* ===== STOICHIOMETRY ROADMAP ICON ===== */
+    .stoich-card {
+  grid-column: 1 / -1;   
+  max-width: 520px;     
+  justify-self: center;  
+
+}
+
+.roadmap-icon {
+  position: relative;
+  width: 160px;
+  height: 90px;
+  margin: 10px auto 0;
+}
+
+.roadmap-node {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  
+  border: 3px solid var(--deep-purple);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: var(--deep-purple);
+  z-index: 1;
+}
+
+/* Top row (reactant) */
+.node-g-left {
+  top: 0;
+  left: 10px;
+  background: #e6ffc6;
+}
+.node-m-left {
+  top: 0;
+  left: 60px;
+  background: #fec6ff;
+}
+
+/* Bottom row (product) */
+.node-m-right {
+  bottom: 0;
+  right: 60px;
+  background: #fec6ff;
+}
+.node-g-right {
+  bottom: 0;
+  right: 10px;
+  background: #e6ffc6;
+}
+
+/* Mole ratio */
+.node-ratio {
+  top: 28px;
+  left: 64px;
+  width: 34px;
+  height: 34px;
+  background: #fff;
+}
+
+/* Lines */
+.roadmap-line {
+  position: absolute;
+  background: var(--purple);
+  z-index: 0;
+}
+
+/* Horizontal */
+.line-top {
+  height: 4px;
+  width: 18px;
+  top: 14px;
+  left: 42px;
+  z-index: 0;
+}
+
+.line-bottom {
+  height: 4px;
+  width: 18px;
+  bottom: 14px;
+  right: 42px;
+  z-index: 0;
+}
+
+/* Vertical */
+.line-left {
+  width: 4px;
+  height: 28px;
+  top: 32px;
+  left: 76px;
+  z-index: 0;
+}
+
+.line-right {
+  width: 4px;
+  height: 28px;
+  top: 32px;
+  right: 76px;
+  z-index: 0;
+}
+
 /* ===== WATER MOLECULE ICON ===== */
 .water-icon {
   position: relative;
@@ -168,7 +275,7 @@
   </div>
 
   <div class="card">
-    <a href="ionic-bonding-challenge.html">
+    <a href="ionic-bonding.html">
       <h2>Ionic Bonding</h2>
       <p>Build ionic compounds and explore charge balance.</p>
       <div class="icon">🧲</div>
@@ -176,7 +283,7 @@
   </div>
 
   <div class="card">
-    <a href="Covalent-bonding.html">
+    <a href="covalent-bonding.html">
       <h2>Covalent Bonding</h2>
       <p>Create covalent molecules and visualize shared electrons.</p>
       <div class="water-icon">
@@ -194,13 +301,37 @@
       <div class="icon">⚖️</div>
     </a>
   </div>
+    <div class="card stoich-card">
+    <a href="stoichiometry-roadmap.html">
+      <h2>Stoichiometry</h2>
+      <p>Visualize and practice dimensional analysis by building correct unit-conversion pathways.</p>
+      <div class="roadmap-icon">
+        <!-- Reactant -->
+        <div class="roadmap-node node-g-left"></div>
+        <div class="roadmap-node node-m-left"></div>
+
+        <!-- Ratio -->
+        
+
+        <!-- Product -->
+        <div class="roadmap-node node-m-right"></div>
+        <div class="roadmap-node node-g-right"></div>
+
+        <!-- Lines -->
+        <div class="roadmap-line line-top"></div>
+        <div class="roadmap-line line-bottom"></div>
+        <div class="roadmap-line line-left"></div>
+        <div class="roadmap-line line-right"></div>
+      </div>
+
+    </a>
+  </div>
 
 </main>
 
 <footer>
-  Created by Mackenzie Miller • High School Chemistry
+  • Created by Mackenzie Miller •
 </footer>
 
 </body>
 </html>
-
