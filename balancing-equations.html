@@ -962,26 +962,132 @@ function renderVisualColumns(){
     v.appendChild(col);
   });
 }
+function draw() {
+  [...currentEq.reactants, ...currentEq.products].forEach(s => {
+    const col = document.getElementById("col-" + s.key);
+    col.innerHTML = "";
 
-function draw(){
-  [...currentEq.reactants,...currentEq.products].forEach(s=>{
-    const col=document.getElementById("col-"+s.key);
-    col.innerHTML="";
-    for(let i=0;i<coeffs[s.key];i++){
-      const m=document.createElement("div");
-      m.className="molecule";
-      for(let el in s.comp){
-        for(let j=0;j<s.comp[el];j++){
-          const a=document.createElement("div");
-          a.className="atom "+el;
-          a.innerText=el;
-          m.appendChild(a);
-        }
+    for (let i = 0; i < coeffs[s.key]; i++) {
+      const m = document.createElement("div");
+      m.className = "molecule";
+      m.style.position = "absolute";
+
+      const atomSize = 42;
+      let atoms = [];
+      let positions = [];
+
+      switch (s.key.toLowerCase()) {
+
+        // ================= H2O =================
+        case "h2o":
+          atoms = ["H", "H", "O"];
+          positions = [
+            { x: 0, y: 0 },                   // H left
+            { x: atomSize, y: 0 },            // H right
+            { x: atomSize/2, y: atomSize*0.866 } // O bottom
+          ];
+          break;
+
+// ================= NH3 =================
+case "nh3": {
+  atoms = ["N", "H", "H", "H"];
+  const center = atomSize; // central N
+  const radius = atomSize; // distance from N to H
+
+  // N in center
+  positions = [
+    { x: center, y: center }, // N center
+    { x: center, y: center - radius },                        // H top
+    { x: center - radius * Math.sin(Math.PI / 3), y: center + radius * 0.5 }, // H bottom-left
+    { x: center + radius * Math.sin(Math.PI / 3), y: center + radius * 0.5 }  // H bottom-right
+  ];
+  break;
+}
+
+// ================= CH4 =================
+case "ch4": {
+  atoms = ["C", "H", "H", "H", "H"];
+  const center = atomSize; // central C
+  const radius = atomSize; // distance from C to H
+
+  // C in center
+  positions = [
+    { x: center, y: center }, // C center
+    { x: center, y: center - radius },                      // H top
+    { x: center - radius, y: center },                      // H left
+    { x: center + radius, y: center },                      // H right
+    { x: center, y: center + radius }                       // H bottom
+  ];
+  break;
+}
+
+
+        // ================= CO2 =================
+        case "co2":
+          atoms = ["O", "C", "O"];
+          positions = [
+            { x: 0, y: atomSize },       // O left
+            { x: atomSize, y: atomSize },// C center
+            { x: atomSize*2, y: atomSize } // O right
+          ];
+          break;
+
+        // ================= Default =================
+        default:
+          atoms = [];
+          for (let el in s.comp) {
+            for (let j = 0; j < s.comp[el]; j++) atoms.push(el);
+          }
+          const atomsPerRow = Math.ceil(Math.sqrt(atoms.length));
+          const spacing = atomSize;
+          positions = atoms.map((_, index) => ({
+            x: (index % atomsPerRow) * spacing,
+            y: Math.floor(index / atomsPerRow) * spacing
+          }));
+          break;
       }
+
+      // ===== Compute molecule bounding box =====
+      let minX = Math.min(...positions.map(p => p.x));
+      let maxX = Math.max(...positions.map(p => p.x));
+      let minY = Math.min(...positions.map(p => p.y));
+      let maxY = Math.max(...positions.map(p => p.y));
+
+      const moleculeWidth = maxX - minX + atomSize;
+      const moleculeHeight = maxY - minY + atomSize;
+
+      // ===== Shift atoms so top-left = (0,0) =====
+      positions = positions.map(p => ({ x: p.x - minX, y: p.y - minY }));
+
+      // ===== Create atom divs =====
+      atoms.forEach((el, index) => {
+        const a = document.createElement("div");
+        a.className = "atom " + el;
+        a.innerText = el;
+        a.style.position = "absolute";
+        const pos = positions[index];
+        a.style.left = pos.x + "px";
+        a.style.top = pos.y + "px";
+        m.appendChild(a);
+      });
+
+      // ===== Stack molecules vertically without overlap =====
+      m.style.top = i * (moleculeHeight + 8) + "px"; // 8px padding
+      m.style.left = 0;
+
       col.appendChild(m);
     }
   });
 }
+
+
+
+
+
+
+
+
+
 
 /* ===============================
    ATOM COUNTING
