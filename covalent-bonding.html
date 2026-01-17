@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Covalent Bonding Simulator</title>
+
+<style>
+body {
+  margin: 0;
+  background: #ffffff;
+  font-family: Georgia, serif;
+}
+
+/* ---------- UI ---------- */
+
+
+/*Metal TOOLBAR */
+
+
+
+.metal-btn {
+  width: 56px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  border: none;
+  font-weight: bold;
+  font-size: 18px;
+  cursor: pointer;
+  color: white;
+  background: #ddd;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  
+}
+.metal-btn small {
+  font-size: 10px;
+  opacity: 0.7;
+}
+.toolbar-divider {
+  width: 100%;
+  height: 1px;
+  background: rgba(0,0,0,0.15);
+  margin: 8px 0;
+}
+
+.metal-btn:hover {
+  background: #ccc;
+}
+.metal-btn.na { background: #7f5fff; }
+.metal-btn.k  { background: #ff9b4e; }
+.metal-btn.mg { background: #ea70ff; }
+.metal-btn.ca { background: #40e69b; }
+.metal-btn.al { background: #ff7070; }
+
+.atom.metal.Na { background: #7f5fff; }
+.atom.metal.K  { background: #ff9b4e; }
+.atom.metal.Mg { background: #ea70ff; }
+.atom.metal.Ca { background: #40e69b; }
+.atom.metal.Al { background: #ff7070; }
+
+
+/* ---------- TOOLBAR ---------- */
+
+#toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: #e8b4fe;
+  border-bottom: 2px solid #000;
+  box-sizing: border-box;
+}
+
+/* Toolbar sections */
+.toolbar-left,
+.toolbar-center,
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  z-index: 2;
+}
+
+.toolbar-center {
+  flex: 1;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  max-width: 900px;
+}
+
+/* Hub link */
+.hub-link {
+  font-size: 18px;
+  font-weight: bold;
+  text-decoration: none;
+  color: #4f2f92;
+}
+
+.hub-link:hover {
+  text-decoration: underline;
+}
+
+
+
+#resetBtn {
+  background: #000;
+  color: white;
+  border: none;
+  padding: 10px 18px;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+#resetBtn:hover {
+  background: #222;
+}
+
+
+/* ---------- Atom Buttons ---------- */
+
+.atom-btn {
+  min-width: 44px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: none;
+  font-size: 18px;
+  font-weight: bold;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+}
+
+.atom-btn.hydrogen { background: #9ec9f5; }
+.atom-btn.carbon   { background: #9561f4; }
+.atom-btn.nitrogen { background: #5a60b4; }
+.atom-btn.oxygen   { background: #ff6262; }
+.atom-btn.phosphorus { background: #e25fc3; }
+.atom-btn.sulfur     { background: #c79d1f; }
+.atom-btn.selenium   { background: #5dceff; }
+.atom-btn.fluorine   { background: #6fcf97; }
+.atom-btn.chlorine   { background: #166f3b; }
+.atom-btn.bromine    { background: #8b4513; }
+.atom-btn.iodine     { background: #4b0082; }
+
+button {
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: bold;
+  padding: 8px 14px;
+  border-radius: 6px;
+  border: 1px solid #999;
+  background: #ed467b;
+  color: #ffffff;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #e9e9e9;
+}
+
+button:active {
+  transform: translateY(1px);
+}
+.electron-row {
+  display: flex;
+  gap: 6px;
+}
+
+.electron-btn {
+  font-weight: 600;
+  border-radius: 6px;
+  padding: 8px 14px;
+  color: white;
+}
+
+.add-electron {
+  background: #eb2869;
+  
+  
+}
+
+.add-electron:hover {
+  background: #ffa4c9;
+}
+
+.remove-electron {
+  background: #8383ff;
+  
+  
+}
+
+.remove-electron:hover {
+  background: #b8adff;
+}
+
+.remove-mode .remove-electron {
+  box-shadow: 0 0 0 2px rgba(204, 68, 68, 0.6);
+}
+
+
+#electron-controls {
+  display: flex;
+  gap: 10px;
+  margin-right: 28px;
+  padding-right: 18px;
+  border-right: 1px solid rgba(0,0,0,0.15);
+}
+
+
+/* ---------- Workspace ---------- */
+
+#statusMessage {
+  position: absolute;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #eaffea;
+  border: 2px solid #2e8b57;
+  padding: 10px 18px;
+  font-size: 18px;
+  font-weight: bold;
+  border-radius: 10px;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+#statusMessage.show {
+  opacity: 1;
+}
+
+
+#workspace {
+  position: relative;
+  margin-left: 72px; 
+  width: calc(100vw - 72px);
+  height: calc(100vh - 60px);
+  overflow: hidden;
+}
+
+
+/* ---------- Atoms ---------- */
+
+.atom {
+  position: absolute;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 42px;
+  font-weight: bold;
+  color: white;
+  cursor: grab;
+}
+
+.atom.satisfied {
+  box-shadow: 0 0 25px 10px rgba(140, 255, 140, 0.9);
+}
+
+.H  { background: #9ec9f5; }
+.C  { background: #9561f4; }
+.N  { background: #5a60b4; }
+.O  { background: #ff6262; }
+.P  { background: #e25fc3; }
+.S  { background: #c79d1f; }
+.Se { background: #5dceff; }
+.F  { background: #6fcf97; }
+.Cl { background: #166f3b; }
+.Br { background: #8b4513; }
+.I  { background: #4b0082; }
+
+/* ---------- Electron Count ---------- */
+
+.electron-count {
+  position: absolute;
+  bottom: 6px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.atom.satisfied .electron-count {
+  color: #ffffff;
+}
+.atom.overfilled {
+  box-shadow: 0 0 25px 10px rgba(255, 80, 80, 0.9);
+}
+
+/* ---------- Electrons ---------- */
+
+.electron {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  background: black;
+  border-radius: 50%;
+  cursor: pointer;
+  
+}
+
+.electron.selected {
+  box-shadow: 0 0 10px 4px gold;
+}
+.remove-mode .electron {
+  box-shadow: 0 0 10px 4px red;
+  cursor: not-allowed;
+}
+.formal-charge {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 18px;
+  font-weight: bold;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.formal-charge::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 26px;
+  height: 26px;
+  background: rgb(247, 255, 1);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  z-index: -1;
+  opacity: 0.95;
+}
+
+.formal-charge.positive {
+  color: #0033cc;
+}
+
+.formal-charge.negative {
+  color: #cc0000;
+}
+#charge-controls {
+  display: flex;
+  align-items: center;
+  gap: 18px;   /* 👈 increase spacing here */
+}
+
+
+.ion-box {
+  position: absolute;
+  pointer-events: none;
+}
+
+.ion-bracket {
+  position: absolute;
+  width: 12px;
+  height: 100%;
+  border-top: 3px solid #000;
+  border-bottom: 3px solid #000;
+}
+
+.ion-bracket.left {
+  left: 0;
+  border-left: 3px solid #000;
+}
+
+.ion-bracket.right {
+  right: 0;
+  border-right: 3px solid #000;
+}
+
+.ion-charge {
+  position: absolute;
+  top: -26px;
+  right: -30px;
+  font-size: 28px;
+  font-weight: bold;
+  line-height: 1;
+  text-shadow: 
+    -1px -1px 0 #fff,
+     1px -1px 0 #fff,
+    -1px  1px 0 #fff,
+     1px  1px 0 #fff;
+}
+
+
+/* ---------- Bonds ---------- */
+.ionic-link {
+  position: absolute;
+  height: 0;
+  border-top: 3px dotted #2e8b57;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.bond {
+  position: absolute;
+  height: 10px;
+  background: #333;
+  border-radius: 5px;
+  transform-origin: left center;
+  pointer-events: none;
+}
+
+.delete-mode {
+  cursor: not-allowed;
+}
+.delete-mode .atom:hover {
+  outline: 3px solid red;
+  cursor: not-allowed;
+}
+.delete-mode .electron:hover {
+  outline: 2px solid red;
+  cursor: not-allowed;
+}
+.metal-toolbar-label {
+  font-family: Georgia, serif;
+  font-size: 24px;
+  font-weight: bold;
+  text-align: center;
+  color: #41287f;
+
+  opacity: 0.85;
+  padding-top: 6px;
+  border-top: 1px solid rgba(0,0,0,0.25);
+  margin-bottom: 4px;
+}
+
+.metal-btn::after {
+  
+  display: block;
+  font-size: 10px;
+  opacity: 0.6;
+}
+#metal-toolbar {
+  position: absolute;          /* or fixed, if you're using that */
+  left: 0;
+  top: 0;
+  height: 100%;                /* REQUIRED */
+  width: 90px;
+  z-index:1;
+    gap: 12px;
+    border-right: 2px solid #000;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;  /* 👈 pushes label to bottom */
+  align-items: center;
+padding-top: 12px;
+  padding: 12px 10px;
+  background: #f6d9ff;
+  top: 64px;                     
+  height: calc(100% - 64px);    
+}
+.metal-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+.toolbar-subtitle {
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+  color: #5a2a7a;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  margin-left: 4px;
+}
+
+
+
+
+</style>
+</head>
+
+<body>
+<div id="metal-toolbar">
+
+  <!-- Electron controls (top section) -->
+  <div class="toolbar-section">
+    <div class="toolbar-subtitle"> Electrons</div>
+    <div class="electron-row">
+      <button class="electron-btn add-electron" onclick="addExtraElectron()">+ e⁻</button>
+      <button class="electron-btn remove-electron" onclick="removeExtraElectron()">− e⁻</button>
+    </div>
+  </div>
+
+  <div class="toolbar-divider"></div>
+
+  <!-- Metal buttons (centered section) -->
+  <div class="toolbar-section metal-section">
+    <div class="metal-buttons">
+      <button class="metal-btn na" onclick="addMetal('Na', 1)">
+        <div>Na⁺</div>
+        
+      </button>
+
+      <button class="metal-btn k" onclick="addMetal('K', 1)">
+        <div>K⁺</div>
+        
+      </button>
+
+      <button class="metal-btn mg" onclick="addMetal('Mg', 2)">
+        <div>Mg²⁺</div>
+       
+      </button>
+
+      <button class="metal-btn ca" onclick="addMetal('Ca', 2)">
+        <div>Ca²⁺</div>
+       
+      </button>
+
+      <button class="metal-btn al" onclick="addMetal('Al', 3)">
+        <div>Al³⁺</div>
+       
+      </button>
+    </div>
+  </div>
+
+  <!-- Bottom label -->
+  <div class="metal-toolbar-label">Cation Bank</div>
+</div>
+
+
+
+<div id="toolbar">
+
+  <div class="toolbar-left">
+    <a href="index.html" class="hub-link">← Hub</a>
+  </div>
+
+  <div class="toolbar-center">
+    <button class="atom-btn hydrogen" onclick="addAtom('H')">H</button>
+    <button class="atom-btn carbon" onclick="addAtom('C')">C</button>
+    <button class="atom-btn nitrogen" onclick="addAtom('N')">N</button>
+    <button class="atom-btn oxygen" onclick="addAtom('O')">O</button>
+    <button class="atom-btn phosphorus" onclick="addAtom('P')">P</button>
+    <button class="atom-btn sulfur" onclick="addAtom('S')">S</button>
+    <button class="atom-btn selenium" onclick="addAtom('Se')">Se</button>
+    <button class="atom-btn fluorine" onclick="addAtom('F')">F</button>
+    <button class="atom-btn chlorine" onclick="addAtom('Cl')">Cl</button>
+    <button class="atom-btn bromine" onclick="addAtom('Br')">Br</button>
+    <button class="atom-btn iodine" onclick="addAtom('I')">I</button>
+  </div>
+
+  <div class="toolbar-right">
+    <div id="charge-controls">
+      <button id="deleteBtn">Delete</button>
+      <button id="resetBtn">Clear All</button>
+    </div>
+
+    
+  </div>
+
+</div>
+
+
+
+<div id="statusMessage"></div>
+
+
+
+<div id="workspace"></div>
+
+<script>
+const workspace = document.getElementById('workspace');
+const ATOM_RADIUS = 50;
+const STRICT_OCTET = ['H','C','N','O','F','Cl','Br','I'];
+const atoms = [];
+const VALENCE = {
+  H:1, C:4, N:5, O:6,
+  P:5, S:6, Se:6,
+  F:7, Cl:7, Br:7, I:7
+};
+let bondingMode = 'ionic'; // 'covalent' | 'ionic'
+
+let ionBox = null;
+let ionDrag = {
+  active: false,
+  startX: 0,
+  startY: 0
+};
+let ionicLinks = [];
+let deleteMode = false;
+
+deleteBtn.onclick = () => {
+  deleteMode = true;
+};
+
+const TARGET_ELECTRONS = {
+  H:2, C:8, N:8, O:8,
+  P:8, S:8, Se:8,
+  F:8, Cl:8, Br:8, I:8
+};
+
+let bonds = [];
+let selectedElectron = null;
+let extraElectrons = []; // array of { el, atom, angle }
+const removedElectrons = [];
+let pendingElectron = null; // electron waiting to be placed
+
+let removeMode = false;
+workspace.addEventListener('click', () => {
+  clearSelectedElectron();
+});
+
+let cationSpawnCount = 0;
+
+function clearIonicArtifacts() {
+  document.querySelectorAll('.ionic-bond').forEach(b => b.remove());
+  document.querySelectorAll('.neutral-message').forEach(m => m.remove());
+
+  extraElectrons.length = 0;
+  removedElectrons.length = 0;
+
+  updateChargeDisplay();
+}
+
+
+/* ---------- ATOMS ---------- */
+
+function getCenter(atom) {
+  const r = atom.getBoundingClientRect();
+  const w = workspace.getBoundingClientRect();
+  return {
+    x: r.left + r.width / 2 - w.left,
+    y: r.top  + r.height / 2 - w.top
+  };
+}
+
+
+function addAtom(symbol) {
+  const atom = document.createElement('div');
+
+  atom.addEventListener('click', (evt) => {
+  evt.stopPropagation();
+
+  if (deleteMode) {
+    deleteAtom(atom);
+    deleteMode = false;
+    workspace.classList.remove('delete-mode');
+    return;
+  }
+
+  // existing logic continues below…
+});
+
+  atom.className = `atom ${symbol}`;
+  atom.textContent = symbol;
+  atom.dataset.symbol = symbol;
+  atom.dataset.usedElectrons = 0;
+
+  atom.style.left = Math.random() * 600 + 150 + 'px';
+  atom.style.top = Math.random() * 300 + 150 + 'px';
+
+  const count = document.createElement('div');
+  count.className = 'electron-count';
+  count.textContent = VALENCE[symbol];
+  atom.appendChild(count);
+
+  workspace.appendChild(atom);
+  makeDraggable(atom);
+  createElectrons(atom);
+
+  atoms.push(atom);
+
+  atom.addEventListener('click', (evt) => {
+  evt.stopPropagation();
+
+  // If placing an extra electron, do ONLY that
+  if (pendingElectron) {
+    attachExtraElectron(atom);
+    return;
+  }
+  
+
+  // Otherwise, clicking an atom cancels bonding
+  clearSelectedElectron();
+});
+
+
+}
+
+function addMetal(symbol, charge) {
+    if (bondingMode !== 'ionic') return;
+  const atom = document.createElement('div');
+  atom.addEventListener('click', (evt) => {
+  evt.stopPropagation();
+
+  if (deleteMode) {
+    deleteAtom(atom);
+    deleteMode = false;
+    workspace.classList.remove('delete-mode');
+    return;
+  }
+
+  // existing logic continues below…
+});
+
+  atom.className = `atom metal ${symbol}`;
+  atom.textContent = symbol;
+  atom.dataset.symbol = symbol;
+  atom.dataset.usedElectrons = 0;
+  atom.dataset.metal = "true";
+  atom.dataset.charge = charge;
+
+  const pos = getNextCationPosition();
+  atom.style.left = pos.x + 'px';
+  atom.style.top  = pos.y + 'px';
+
+
+  // Formal charge display (always visible)
+  const chargeLabel = document.createElement('div');
+  chargeLabel.className = 'formal-charge positive';
+  chargeLabel.textContent = `+${charge}`;
+  atom.appendChild(chargeLabel);
+
+  workspace.appendChild(atom);
+  makeDraggable(atom);
+  atoms.push(atom);
+
+  updateIonBox();
+}
+function getConnectedAtoms(startAtom) {
+  const visited = new Set();
+  const stack = [startAtom];
+
+  while (stack.length) {
+    const atom = stack.pop();
+    if (visited.has(atom)) continue;
+
+    visited.add(atom);
+
+    bonds.forEach(bond => {
+      if (bond.a === atom && !visited.has(bond.b)) {
+        stack.push(bond.b);
+      }
+      if (bond.b === atom && !visited.has(bond.a)) {
+        stack.push(bond.a);
+      }
+    });
+  }
+
+  return [...visited];
+}
+
+
+function deleteAtom(atom) {
+  const molecule = getConnectedAtoms(atom);
+
+  // Remove bonds connected to this molecule
+  bonds = bonds.filter(group => {
+    if (molecule.includes(group.a) || molecule.includes(group.b)) {
+      group.visuals.forEach(b => b.remove());
+      return false;
+    }
+    return true;
+  });
+
+  // Remove atoms + electrons
+  molecule.forEach(a => {
+    if (a.electrons) {
+      a.electrons.forEach(e => e.el.remove());
+    }
+
+    // Remove extra electrons on this atom
+    for (let i = extraElectrons.length - 1; i >= 0; i--) {
+      if (extraElectrons[i].atom === a) {
+        extraElectrons[i].el.remove();
+        extraElectrons.splice(i, 1);
+      }
+    }
+
+    // Remove removed-electron records
+    for (let i = removedElectrons.length - 1; i >= 0; i--) {
+      if (removedElectrons[i].atom === a) {
+        removedElectrons.splice(i, 1);
+      }
+    }
+
+    // Remove from atoms array
+    const idx = atoms.indexOf(a);
+    if (idx !== -1) atoms.splice(idx, 1);
+
+    a.remove();
+  });
+
+  // Cleanup ionic visuals
+  ionicLinks.forEach(l => l.remove());
+  ionicLinks = [];
+
+  updateBonds();
+  updateAllSatisfaction();
+  updateIonBox();
+
+  deleteMode = false;
+    workspace.classList.remove('delete-mode');
+}
+
+
+
+function attachExtraElectron(atom) {
+    if (atom.dataset.metal) return;
+
+  const angle = Math.random() * Math.PI * 2;
+
+  atom.electrons.push({
+    el: pendingElectron,
+    angle,
+    extra: true
+  });
+
+  positionElectron(atom, pendingElectron, angle);
+
+  extraElectrons.push({ el: pendingElectron, atom, angle });
+  pendingElectron.classList.remove('selected');
+  pendingElectron = null;
+
+  updateChargeDisplay();
+  updateElectronCount(atom);
+
+  updateAllSatisfaction();
+}
+
+/* ---------- ELECTRONS ---------- */
+
+function createElectrons(atom) {
+  const count = VALENCE[atom.dataset.symbol];
+  const angleStep = (Math.PI * 2) / Math.max(count, 4);
+  atom.electrons = [];
+
+  for (let i = 0; i < count; i++) {
+    const e = document.createElement('div');
+    e.className = 'electron';
+    const angle = i * angleStep;
+    positionElectron(atom, e, angle);
+
+    e.addEventListener('click', (evt) => {
+  evt.stopPropagation();
+
+  if (deleteMode) {
+    deleteElectron(e, atom);
+    deleteMode = false;
+    workspace.classList.remove('delete-mode');
+    return;
+  }
+
+  if (removeMode) {
+    removeElectron(e, atom);
+  } else {
+    selectElectron(e, atom);
+  }
+});
+
+
+
+    workspace.appendChild(e);
+    atom.electrons.push({ el: e, angle });
+  }
+}
+function deleteElectron(electron, atom) {
+  // Remove visual
+  electron.remove();
+
+  // Remove from atom.electrons
+  atom.electrons = atom.electrons.filter(e => e.el !== electron);
+
+  // Remove from extra electrons if needed
+  for (let i = extraElectrons.length - 1; i >= 0; i--) {
+    if (extraElectrons[i].el === electron) {
+      extraElectrons.splice(i, 1);
+    }
+  }
+
+  // Count as a removed electron for charge purposes
+  removedElectrons.push({ atom });
+
+  // Update state
+  updateElectronCount(atom);
+  updateFormalCharge(atom);
+  updateSatisfaction(atom);
+  updateIonBox();
+}
+
+function computeNetCharge() {
+  let charge = removedElectrons.length - extraElectrons.length;
+
+  atoms.forEach(atom => {
+    if (atom.dataset.metal) {
+      charge += Number(atom.dataset.charge);
+    }
+  });
+
+  return charge;
+}
+
+
+function positionElectron(atom, electron, angle, radius = 65) {
+  const r = atom.getBoundingClientRect();
+  const w = workspace.getBoundingClientRect();
+  const cx = r.left + r.width/2 - w.left;
+  const cy = r.top + r.height/2 - w.top;
+
+  electron.style.left = cx + Math.cos(angle)*radius - 6 + 'px';
+  electron.style.top  = cy + Math.sin(angle)*radius - 6 + 'px';
+}
+
+function addExtraElectron() {
+    if (bondingMode !== 'ionic') return;
+  if (pendingElectron) return;
+
+  clearSelectedElectron(); // ⬅️ ADD THIS
+
+  const e = document.createElement('div');
+  e.className = 'electron selected';
+  e.style.left = '50%';
+  e.style.top = '50%';
+
+  workspace.appendChild(e);
+  pendingElectron = e;
+
+  updateChargeDisplay();
+}
+
+function removeElectron(electron, atom) {
+  // Remove visual electron
+  electron.remove();
+
+  // Record that THIS atom lost an electron
+  removedElectrons.push({ atom });
+
+  // Exit remove mode
+  removeMode = false;
+  workspace.classList.remove('remove-mode');
+
+  // Update displays
+  updateElectronCount(atom);
+  updateChargeDisplay();
+  updateAllSatisfaction();
+}
+
+
+function removeExtraElectron() {
+    if (bondingMode !== 'ionic') return;
+  clearSelectedElectron(); // ⬅️ ADD THIS
+  removeMode = true;
+  workspace.classList.add('remove-mode');
+}
+
+
+const ION_PADDING = 40;   // ← increase from current value
+const CHARGE_SPACE = 30; // extra space top-right for charge
+
+
+
+function getNextCationPosition() {
+  const centerX = workspace.clientWidth / 2;
+  const centerY = workspace.clientHeight / 2;
+
+  const radius = 90;
+  const angle = cationSpawnCount * (Math.PI / 4);
+
+  cationSpawnCount++;
+
+  return {
+    x: centerX + radius * Math.cos(angle),
+    y: centerY + radius * Math.sin(angle)
+  };
+}
+
+
+function updateIonBox() {
+    if (atoms.length === 0) {
+  ionicLinks.forEach(l => l.remove());
+  ionicLinks = [];
+}
+
+  const charge = computeNetCharge();
+atoms.forEach(atom => {
+  if (atom.dataset.metal) {
+    atom.classList.remove('satisfied');
+  }
+});
+
+if (charge === 0) {
+  // Glow all metal cations to show ionic satisfaction
+  atoms.forEach(atom => {
+    if (atom.dataset.metal) {
+      atom.classList.add('satisfied');
+      createIonicLinks();
+    }
+  });
+
+  if (charge === 0 && ionBox) {
+  ionBox.remove();
+  ionBox = null;
+
+  // 🔑 Only show neutral message if atoms exist
+  if (atoms.length > 0) {
+    showNeutralMessage();
+  }
+
+  return;
+}
+
+  return;
+}
+
+
+
+  const atomEls = [...document.querySelectorAll('.atom')];
+
+  if (atomEls.length === 0) return;
+
+  const w = workspace.getBoundingClientRect();
+
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+  atomEls.forEach(atom => {
+    const r = atom.getBoundingClientRect();
+    minX = Math.min(minX, r.left);
+    minY = Math.min(minY, r.top);
+    maxX = Math.max(maxX, r.right);
+    maxY = Math.max(maxY, r.bottom);
+  });
+
+  if (!ionBox) {
+  ionBox = document.createElement('div');
+  ionBox.className = 'ion-box';
+
+  const left = document.createElement('div');
+  left.className = 'ion-bracket left';
+
+  const right = document.createElement('div');
+  right.className = 'ion-bracket right';
+
+  const label = document.createElement('div');
+  label.className = 'ion-charge';
+
+  ionBox.append(left, right, label);
+  workspace.appendChild(ionBox);
+}
+
+
+  const pad = 28;
+
+ionBox.style.left = (minX - w.left - pad) + 'px';
+ionBox.style.top  = (minY - w.top  - pad) + 'px';
+ionBox.style.width  = (maxX - minX + pad * 2) + 'px';
+ionBox.style.height = (maxY - minY + pad * 2) + 'px';
+
+ionBox.querySelector('.ion-charge').textContent =
+  charge > 0 ? `+${charge}` : `${charge}`;
+
+}
+
+function createIonicLinks() {
+  // Clear old links
+  ionicLinks.forEach(l => l.remove());
+  ionicLinks = [];
+
+  const metals = atoms.filter(a => a.dataset.metal);
+  const anions = atoms.filter(a => !a.dataset.metal);
+
+  metals.forEach(metal => {
+    // Find nearest anion
+    let closest = null;
+    let minDist = Infinity;
+
+    const mPos = getCenter(metal);
+
+    anions.forEach(anion => {
+      const aPos = getCenter(anion);
+      const d = Math.hypot(aPos.x - mPos.x, aPos.y - mPos.y);
+      if (d < minDist) {
+        minDist = d;
+        closest = anion;
+      }
+    });
+
+    if (!closest) return;
+
+    const line = document.createElement('div');
+    line.className = 'ionic-link';
+    workspace.appendChild(line);
+    ionicLinks.push(line);
+
+    positionIonicLink(line, metal, closest);
+  });
+}
+
+function positionIonicLink(line, a, b) {
+  const A = getCenter(a);
+  const B = getCenter(b);
+
+  const angle = Math.atan2(B.y - A.y, B.x - A.x);
+  const dist = Math.hypot(B.x - A.x, B.y - A.y);
+
+  const offset = ATOM_RADIUS;
+
+  line.style.width = (dist - offset * 2) + 'px';
+  line.style.left =
+    A.x + Math.cos(angle) * offset + 'px';
+  line.style.top =
+    A.y + Math.sin(angle) * offset + 'px';
+  line.style.transform = `rotate(${angle}rad)`;
+}
+
+
+workspace.addEventListener('mousedown', e => {
+  if (!ionBox) return;
+  if (!e.shiftKey) return;
+
+  const box = ionBox.getBoundingClientRect();
+
+  if (
+    e.clientX >= box.left &&
+    e.clientX <= box.right &&
+    e.clientY >= box.top &&
+    e.clientY <= box.bottom
+  ) {
+    ionDrag.active = true;
+    ionDrag.startX = e.clientX;
+    ionDrag.startY = e.clientY;
+    e.preventDefault();
+  }
+});
+document.addEventListener('mousemove', e => {
+  if (!ionDrag.active) return;
+
+  const dx = e.clientX - ionDrag.startX;
+  const dy = e.clientY - ionDrag.startY;
+
+  atoms.forEach(atom => {
+    atom.style.left = atom.offsetLeft + dx + 'px';
+    atom.style.top  = atom.offsetTop  + dy + 'px';
+
+    atom.electrons.forEach(x =>
+      positionElectron(atom, x.el, x.angle)
+    );
+  });
+
+  ionDrag.startX = e.clientX;
+  ionDrag.startY = e.clientY;
+
+  updateBonds();
+  updateIonBox();
+});
+document.addEventListener('mouseup', () => {
+  ionDrag.active = false;
+});
+
+function clearSelectedElectron() {
+  if (selectedElectron) {
+    selectedElectron.e.classList.remove('selected');
+    selectedElectron = null;
+  }
+}
+
+
+
+function updateChargeDisplay() {
+  // charge is now visualized in the workspace (ion box)
+  return;
+}
+
+
+function showNeutralMessage() {
+  const msg = document.getElementById('statusMessage');
+  msg.textContent = '✅ Neutral compound achieved!';
+  msg.classList.add('show');
+
+  setTimeout(() => msg.classList.remove('show'), 2500);
+}
+
+
+/* ---------- BONDING ---------- */
+
+function selectElectron(e, atom) {
+  if (removeMode || pendingElectron) return;
+  if (atom.dataset.metal) return;
+
+  if (e.dataset.bonded === "true") return; // ⬅️ ADD THIS
+
+  if (!selectedElectron) {
+    selectedElectron = { e, atom };
+    e.classList.add('selected');
+  } else if (selectedElectron.e !== e) {
+    attemptBond(selectedElectron, { e, atom });
+    selectedElectron.e.classList.remove('selected');
+    selectedElectron = null;
+  }
+}
+
+function getBondAngles(atom) {
+  const center = getCenter(atom);
+  const angles = [];
+
+  bonds.forEach(group => {
+    let other = null;
+
+    if (group.a === atom) other = group.b;
+    if (group.b === atom) other = group.a;
+    if (!other) return;
+
+    const o = getCenter(other);
+    angles.push(Math.atan2(o.y - center.y, o.x - center.x));
+  });
+
+  return angles;
+}
+
+
+function attemptBond(a, b) {
+  if (a.atom === b.atom) return;
+clearSelectedElectron();
+
+  a.e.dataset.bonded = "true";
+b.e.dataset.bonded = "true";
+
+a.e.style.display = 'none';
+b.e.style.display = 'none';
+
+a.e.angle = a.e.angle; // freeze
+b.e.angle = b.e.angle;
+
+
+  a.atom.dataset.usedElectrons++;
+  b.atom.dataset.usedElectrons++;
+
+  updateElectronCount(a.atom);
+  updateElectronCount(b.atom);
+  updateSatisfaction(a.atom);
+  updateSatisfaction(b.atom);
+
+  let group = bonds.find(x =>
+    (x.a === a.atom && x.b === b.atom) ||
+    (x.a === b.atom && x.b === a.atom)
+  );
+
+  if (!group) {
+    group = { a: a.atom, b: b.atom, visuals: [] };
+    bonds.push(group);
+  }
+
+  const bond = document.createElement('div');
+  bond.className = 'bond';
+  workspace.appendChild(bond);
+  group.visuals.push(bond);
+
+  updateBonds();
+  updateAllSatisfaction();
+  
+
+}
+function updateAllSatisfaction() {
+  document.querySelectorAll('.atom').forEach(atom => {
+    updateSatisfaction(atom);
+    updateFormalCharge(atom);
+  });
+
+  updateIonBox();
+}
+
+
+
+/* ---------- ELECTRON COUNT ---------- */
+
+function updateElectronCount(atom) {
+  const valence = VALENCE[atom.dataset.symbol];
+  const used = Number(atom.dataset.usedElectrons);
+
+  const extraOnAtom = extraElectrons.filter(e => e.atom === atom).length;
+  const removedFromAtom = removedElectrons.filter(e => e.atom === atom).length;
+
+  const total = valence + used + extraOnAtom - removedFromAtom;
+  atom.querySelector('.electron-count').textContent = total;
+}
+function updateFormalCharge(atom) {
+    if (atom.dataset.metal) return;
+  const symbol = atom.dataset.symbol;
+  const valence = VALENCE[symbol];
+  const bonds = Number(atom.dataset.usedElectrons);
+
+  const extraOnAtom = extraElectrons.filter(e => e.atom === atom).length;
+  const removedFromAtom = removedElectrons.filter(e => e.atom === atom).length;
+
+  const nonbonding = valence - bonds + extraOnAtom - removedFromAtom;
+  const formalCharge = valence - (nonbonding + bonds);
+
+  let label = atom.querySelector('.formal-charge');
+
+  if (formalCharge === 0) {
+    if (label) label.remove();
+    return;
+  }
+
+  if (!label) {
+  label = document.createElement('div');
+  label.className = 'formal-charge';
+  atom.appendChild(label);
+}
+
+label.classList.remove('positive', 'negative');
+
+if (formalCharge > 0) {
+  label.textContent = `+${formalCharge}`;
+  label.classList.add('positive');
+} else {
+  label.textContent = `${formalCharge}`;
+  label.classList.add('negative');
+}
+
+}
+
+function snapLonePairs(atom) {
+  if (!atom.electrons) return;
+
+  const bondAngles = getBondAngles(atom);
+
+  const free = atom.electrons.filter(e =>
+    e.el.style.display !== 'none' &&
+    e.el.dataset.bonded !== "true"
+  );
+
+  const lonePairs = Math.floor(free.length / 2);
+  if (lonePairs === 0) return;
+
+  const domainCount = bondAngles.length + lonePairs;
+
+  // 🔑 Reference axis = average bond direction
+  let ref = 0;
+  if (bondAngles.length > 0) {
+    let x = 0, y = 0;
+    bondAngles.forEach(a => {
+      x += Math.cos(a);
+      y += Math.sin(a);
+    });
+    ref = Math.atan2(y, x);
+  }
+
+  // Build domain slots
+  const slots = buildDomainSlots(domainCount, ref);
+
+  // Mark which slots are occupied by bonds
+  const occupied = new Array(slots.length).fill(false);
+
+  bondAngles.forEach(bAngle => {
+    let best = 0;
+    let min = Infinity;
+
+    slots.forEach((s, i) => {
+      const d = Math.abs(Math.atan2(Math.sin(bAngle - s), Math.cos(bAngle - s)));
+      if (d < min) {
+        min = d;
+        best = i;
+      }
+    });
+
+    occupied[best] = true;
+  });
+
+  // Assign lone pairs to remaining slots
+  const spread = 0.22;
+  let lpIndex = 0;
+
+  for (let i = 0; i < slots.length; i++) {
+    if (occupied[i]) continue;
+    if (!free[lpIndex + 1]) break;
+
+    const angle = slots[i];
+
+    free[lpIndex].angle     = angle - spread;
+    free[lpIndex + 1].angle = angle + spread;
+
+    positionElectron(atom, free[lpIndex].el,     free[lpIndex].angle,     55);
+    positionElectron(atom, free[lpIndex + 1].el, free[lpIndex + 1].angle, 55);
+
+    lpIndex += 2;
+  }
+}
+
+function buildDomainSlots(count, referenceAngle) {
+  const slots = [];
+  const step = (Math.PI * 2) / count;
+
+  for (let i = 0; i < count; i++) {
+    const a = referenceAngle + i * step;
+    slots.push(Math.atan2(Math.sin(a), Math.cos(a)));
+  }
+
+  return slots;
+}
+
+function countLonePairDomains(atom) {
+  const free = atom.electrons.filter(e =>
+    e.el.style.display !== 'none' &&
+    e.el.dataset.bonded !== "true"
+  );
+  return Math.floor(free.length / 2);
+}
+
+function updateElectronLayout(atom) {
+  if (!atom.electrons) return;
+
+  if (atom.classList.contains('satisfied')) {
+    snapLonePairs(atom);   // includes bond repulsion
+  } else {
+    resetElectronSpacing(atom);
+  }
+}
+
+
+
+function organizeLonePairs(atom) {
+  if (!atom.electrons) return;
+
+  // Get only visible, unbonded electrons
+  const free = atom.electrons.filter(e =>
+    e.el.style.display !== 'none' &&
+    e.el.dataset.bonded !== "true"
+  );
+
+  // Group into pairs
+  for (let i = 0; i < free.length; i += 2) {
+    if (!free[i + 1]) break;
+
+    const e1 = free[i];
+    const e2 = free[i + 1];
+
+    // Average their angles
+    const mid = (e1.angle + e2.angle) / 2;
+
+    // Pull them together visually
+    e1.angle = mid - 0.15;
+    e2.angle = mid + 0.15;
+
+    positionElectron(atom, e1.el, e1.angle, 55);
+    positionElectron(atom, e2.el, e2.angle, 55);
+  }
+}
+
+function resetElectronSpacing(atom) {
+  if (!atom.electrons) return;
+
+  const visible = atom.electrons.filter(e =>
+    e.el.style.display !== 'none'
+  );
+
+  const count = visible.length;
+  if (count === 0) return;
+
+  const step = (Math.PI * 2) / Math.max(count, 4);
+
+  visible.forEach((e, i) => {
+    e.angle = i * step;
+    positionElectron(atom, e.el, e.angle);
+  });
+}
+
+
+/* ---------- SATISFACTION ---------- */
+
+function updateSatisfaction(atom) {
+    if (atom.dataset.metal) {
+  atom.classList.remove('satisfied', 'overfilled');
+  return;
+}
+
+  const symbol = atom.dataset.symbol;
+  const valence = VALENCE[symbol];
+  const used = Number(atom.dataset.usedElectrons);
+
+  // Base electron count
+  let totalElectrons = (valence - used) + (used * 2);
+
+  // Extra electrons on this atom
+  const extraOnAtom = extraElectrons.filter(e => e.atom === atom).length;
+  totalElectrons += extraOnAtom;
+
+  // 🔑 REMOVED electrons from this atom
+  const removedFromAtom = removedElectrons.filter(e => e.atom === atom).length;
+  totalElectrons -= removedFromAtom;
+
+  const target = TARGET_ELECTRONS[symbol];
+
+  atom.classList.remove('satisfied', 'overfilled');
+
+  if (STRICT_OCTET.includes(symbol)) {
+    if (totalElectrons === target) {
+      atom.classList.add('satisfied');
+    } else if (totalElectrons > target) {
+      atom.classList.add('overfilled');
+    }
+  } else {
+    if (totalElectrons >= target) {
+      atom.classList.add('satisfied');
+    }
+  }
+  // ----- Lone pair visuals (STRICTLY post-satisfaction) -----
+if (atom.classList.contains('satisfied')) {
+  snapLonePairs(atom);
+} else {
+  // IMPORTANT: only reset if NOT mid-bonding
+  if (atom.dataset.usedElectrons === "0") {
+    resetElectronSpacing(atom);
+  }
+}
+
+
+
+}
+
+
+
+
+/* ---------- BONDS ---------- */
+
+function updateBonds() {
+  const w = workspace.getBoundingClientRect();
+
+  bonds.forEach(group => {
+    const a = group.a.getBoundingClientRect();
+    const b = group.b.getBoundingClientRect();
+
+    const ax = a.left + a.width/2 - w.left;
+    const ay = a.top + a.height/2 - w.top;
+    const bx = b.left + b.width/2 - w.left;
+    const by = b.top + b.height/2 - w.top;
+
+    const angle = Math.atan2(by-ay, bx-ax);
+    const dist = Math.hypot(bx-ax, by-ay);
+
+    const baseX = ax + Math.cos(angle)*ATOM_RADIUS;
+    const baseY = ay + Math.sin(angle)*ATOM_RADIUS;
+
+    const offset = 18;
+    const normal = angle + Math.PI/2;
+
+    group.visuals.forEach((bond,i) => {
+      const o = (i-(group.visuals.length-1)/2)*offset;
+      bond.style.width = (dist-ATOM_RADIUS*2)+'px';
+      bond.style.left = baseX + Math.cos(normal)*o + 'px';
+      bond.style.top  = baseY + Math.sin(normal)*o - 5 + 'px';
+      bond.style.transform = `rotate(${angle}rad)`;
+    });
+  });
+}
+
+/* ---------- DRAG ---------- */
+
+function makeDraggable(atom) {
+  let dragging = false;
+  let offsetX = 0;
+  let offsetY = 0;
+
+  atom.addEventListener('mousedown', e => {
+    if (deleteMode) return;
+
+    dragging = true;
+    offsetX = e.clientX - atom.offsetLeft;
+    offsetY = e.clientY - atom.offsetTop;
+
+    atom.style.cursor = 'grabbing';
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+
+    atom.style.left = (e.clientX - offsetX) + 'px';
+    atom.style.top  = (e.clientY - offsetY) + 'px';
+
+    updateElectronLayout(atom);
+
+
+    updateBonds();
+    updateIonicLinks();
+    updateIonBox();
+  });
+
+  document.addEventListener('mouseup', () => {
+    dragging = false;
+    atom.style.cursor = 'grab';
+  });
+}
+
+
+function updateIonicLinks() {
+  if (computeNetCharge() !== 0) {
+    ionicLinks.forEach(l => l.remove());
+    ionicLinks = [];
+    return;
+  }
+
+  ionicLinks.forEach((line, i) => {
+    const metal = atoms.filter(a => a.dataset.metal)[i];
+    const anion = atoms.filter(a => !a.dataset.metal)[i];
+    if (metal && anion) {
+      positionIonicLink(line, metal, anion);
+    }
+  });
+}
+
+
+/* ---------- RESET ---------- */
+function clearAll() {
+  bonds.forEach(group =>
+    group.visuals.forEach(b => b.remove())
+  );
+  bonds = [];
+
+  atoms.forEach(atom => atom.remove());
+  atoms.length = 0;
+
+  ionicLinks.forEach(l => l.remove());
+  ionicLinks = [];
+
+  document.querySelectorAll('.electron').forEach(e => e.remove());
+
+  extraElectrons.length = 0;
+  removedElectrons.length = 0;
+  selectedElectron = null;
+  pendingElectron = null;
+
+  updateChargeDisplay();
+  updateIonBox();
+}
+
+
+document.getElementById('deleteBtn').onclick = () => {
+  // If a free electron exists, delete it immediately AND exit delete mode
+  if (pendingElectron) {
+    pendingElectron.remove();
+    pendingElectron = null;
+
+    deleteMode = false;
+    workspace.classList.remove('delete-mode');
+    return;
+  }
+
+  // Otherwise, enter delete mode normally
+  deleteMode = true;
+  workspace.classList.add('delete-mode');
+  clearSelectedElectron();
+};
+
+workspace.addEventListener('click', () => {
+  if (deleteMode) {
+    deleteMode = false;
+    workspace.classList.remove('delete-mode');
+  }
+  clearSelectedElectron();
+});
+
+
+
+document.getElementById('resetBtn').onclick = clearAll;
+
+document.getElementById('covalentModeBtn').onclick = () =>
+  setBondingMode('covalent');
+
+document.getElementById('ionicModeBtn').onclick = () =>
+  setBondingMode('ionic');
+
+</script>
+
+</body>
+</html>
