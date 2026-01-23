@@ -1,0 +1,2299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Element Reactivity Lab</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    /* ===============================
+       GLOBAL
+    ================================ */
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Georgia, "Times New Roman", serif; background: #ffffff; color: #222; }
+    h1, h2, h3 { margin: 0 0 10px; }
+    button { font-family: inherit; font-size: 1rem; padding: 10px 16px; cursor: pointer; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .hidden { display: none; }
+
+    .action-row{
+  display:flex;
+  gap:12px;
+  flex-wrap:wrap;
+  align-items:center;
+}
+
+.action-btn{
+  background:#f0e6ff;
+  border:2px solid #d6c4ff;
+  border-radius:10px;
+  padding:10px 14px;
+  font-family: inherit;
+  font-size: 1rem;
+  cursor:pointer;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+}
+
+.action-btn:hover{
+  filter: brightness(0.98);
+}
+
+.action-btn:active{
+  transform: translateY(1px);
+}
+
+.action-btn.secondary{
+  background:#fff;
+  border-color:#d6c4ff;
+}
+
+
+    /* ===============================
+       HEADER
+    ================================ */
+    #lab-header { background:#f0e6ff; padding:16px 24px; border-bottom:2px solid #d6c4ff; }
+    #lab-header h1 { font-size:1.6rem; margin-bottom:4px; }
+    #lab-header .subtitle { font-size:1rem; color:#444; }
+
+    /* ===============================
+       LAYOUT / PANELS
+    ================================ */
+    #lab-container { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; padding: 16px; }
+    .panel { background:#fff6fe; border:2px solid #f6c6f2; border-radius:8px; padding:16px; }
+    .panel.disabled { opacity: 0.45; pointer-events: none; }
+
+    @media (max-width: 900px) { #lab-container { grid-template-columns: 1fr; } }
+
+    /* ===============================
+       STUDENT + INVESTIGATION UI
+    ================================ */
+    #student-name {
+      margin: 12px 16px 0;
+      padding: 10px 12px;
+      font-size: 1rem;
+      width: min(420px, calc(100% - 32px));
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-family: Georgia, serif;
+    }
+
+    .investigation-banner {
+      background: #f3edff;
+      border-left: 6px solid #8a6cff;
+      padding: 10px 16px;
+      margin: 10px 16px;
+      font-family: Georgia, serif;
+      font-size: 16px;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+    .modal {
+      background: white;
+      padding: 30px;
+      max-width: 700px;
+      width: 90%;
+      border-radius: 14px;
+      text-align: center;
+      font-family: Georgia, serif;
+    }
+    .investigation-options {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-top: 20px;
+    }
+    .investigation-card {
+      border: 2px solid #ddd;
+      border-radius: 12px;
+      padding: 16px;
+      cursor: pointer;
+      background: #fafafa;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .investigation-card:hover { transform: translateY(-4px); border-color: #8a6cff; }
+    .investigation-card .icon { font-size: 32px; margin-bottom: 10px; }
+
+    /* ===============================
+       INVESTIGATION PREDICTION PANEL
+    ================================ */
+    #investigation-prediction-panel {
+      background: #f0e6ff;
+      border: 2px solid #d6c4ff;
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin: 16px;
+    }
+    #investigation-prediction-panel .panel-instructions { font-size: 0.95rem; margin-bottom: 12px; color: #444; }
+    #investigation-prediction {
+      width: 100%;
+      font-family: Georgia, serif;
+      font-size: 1rem;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #bbb;
+      resize: vertical;
+    }
+
+    /* ===============================
+       ELEMENT INFO: PT BOX + LEWIS + PARTICLES
+    ================================ */
+    .element-info-grid {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 16px;
+      align-items: stretch;
+      margin-bottom: 16px;
+    }
+    .left-stack { display: flex; flex-direction: column; gap: 12px; }
+
+    /* PT Box */
+    .pt-box {
+      width: 130px;
+      height: 150px;
+      border: 2px solid #444;
+      border-radius: 8px;
+      padding: 8px;
+      background: #f5ffe9;
+      display: grid;
+      grid-template-rows: auto 1fr auto auto;
+      text-align: center;
+    }
+    .pt-atomic-number { font-size: 0.9rem; text-align: left; }
+    .pt-symbol { font-size: 2.8rem; font-weight: bold; line-height: 1; }
+    .pt-name { font-size: 0.9rem; }
+    .pt-mass { font-size: 0.85rem; color: #444; }
+
+    /* Lewis Structure */
+    .lewis-container { margin-top: 6px; }
+    .lewis-structure { width: 130px; height: 120px; margin: 0; position: relative; }
+    .lewis-symbol {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 1.8rem; font-weight: bold;
+    }
+    .lewis-dot { position: absolute; width: 10px; height: 10px; background: #222; border-radius: 50%; }
+
+    /* Particle / Phase panel */
+    .phase-box.tall {
+      border: 2px dashed #c9a3ca;
+      border-radius: 8px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      color: #282828;
+    }
+    .particle-box {
+      width: 100%;
+      height: 180px;
+      border: 2px solid #242424;
+      border-radius: 6px;
+      background: #ffffff;
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .particle { width: 6px; height: 6px; background: #444; border-radius: 50%; position: absolute; }
+
+    .temp-control label { display: block; margin: 10px 0 6px; font-weight: bold; }
+    #temp-slider { width: 100%; }
+
+    /* Element selector */
+    .element-selector label { display: block; margin-bottom: 6px; font-weight: bold; }
+    .element-selector select { width: 100%; padding: 8px; font-size: 1rem; border-radius: 8px; }
+
+    /* ===============================
+       PLAN & PREDICT
+    ================================ */
+    #plan-predict-panel { font-size: 1.05rem; }
+    #plan-predict-panel h2 { font-size: 1.5rem; }
+    #plan-predict-panel label { font-size: 1.2rem; font-weight: bold; display:block; margin: 0 0 8px; }
+    #plan-predict-panel select { font-size: 1.15rem; padding: 6px 8px; margin: 0 6px; border-radius: 8px; }
+    #plan-predict-panel input[type="number"] { font-size: 1.15rem; width: 80px; padding: 4px 6px; text-align: center; border-radius: 8px; }
+    #plan-predict-panel strong { color: #5a2d82; text-transform: uppercase; letter-spacing: 0.04em; }
+
+    /* ===============================
+   Hypothesis readability (Option 2)
+=============================== */
+.hypothesis .hypothesis-label{
+  margin-bottom: 12px;
+}
+
+.hypothesis .hyp-lines{
+  display: grid;
+  gap: 10px;
+}
+
+.hypothesis .hyp-line{
+  font-size: 1.15rem;
+  line-height: 1.7;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(90, 45, 130, 0.15);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.hypothesis .hyp-line strong{
+  color: #5a2d82;
+  letter-spacing: 0.03em;
+  margin-right: 6px;
+}
+
+/* Make inputs feel like “fillable blanks” */
+.hypothesis .hyp-line select,
+.hypothesis .hyp-line input[type="number"]{
+  font-size: 1.05rem;
+  padding: 7px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(0,0,0,0.28);
+  background: #fff;
+  vertical-align: middle;
+}
+
+.hypothesis .hyp-line select{
+  min-width: 180px;
+}
+
+.hypothesis .hyp-line input[type="number"]{
+  width: 90px;
+  text-align: center;
+}
+
+/* On narrower screens, reduce min widths so it wraps nicely */
+@media (max-width: 900px){
+  .hypothesis .hyp-line select{ min-width: 150px; }
+}
+
+    .test-error {
+      margin-top: 8px;
+      padding: 10px 12px;
+      background: #fff3cd;
+      border-left: 5px solid #e0a800;
+      font-size: 1rem;
+      line-height: 1.4;
+      color: #5f4a00;
+      border-radius: 6px;
+    }
+
+    /* ===============================
+       LAB: WATER + REACTIONS
+    ================================ */
+    .lab-visual { display:flex; justify-content:center; align-items:center; min-height:340px; margin-bottom:12px; gap: 18px; }
+    .beaker { width:160px; height:260px; border:4px solid #555; border-radius:0 0 16px 16px; position:relative; }
+   /* ✅ Water inside the beaker ONLY (prevents table rows with class="water" from getting absolute positioning) */
+    .beaker .water,
+    #beaker .water {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 60%;
+      background: #cfe9ff;
+    }
+
+    #add-to-water { width:100%; background:#e8ffe8; border:2px solid #9ad69a; border-radius:6px; }
+
+    .bubbles { position:absolute; bottom:10px; width:100%; height:100%; pointer-events:none; }
+    .bubble { position:absolute; bottom:0; border-radius:50%; background:#ffffff; opacity:0.8; animation: rise linear; }
+    @keyframes rise {
+      0% { transform: translateY(0) scale(1); opacity: 0.8; }
+      80% { opacity: 0.6; }
+      100% { transform: translateY(-140px) scale(1.2); opacity: 0; }
+    }
+
+    .water.flash { animation: flash-color 0.4s ease-in-out 2; }
+    @keyframes flash-color {
+      0% { background:#cfe9ff; } 25% { background:#ffffff; }
+      50% { background:#cfe9ff; } 75% { background:#ffffff; }
+      100% { background:#cfe9ff; }
+    }
+
+    .water.splash-fast { animation: splash-fast 0.6s ease-in-out 2; }
+    .water.splash-violent { animation: splash-violent 0.8s ease-in-out 3; }
+
+    @keyframes splash-fast {
+      0% { transform: translate(0,0) rotate(0deg); }
+      25% { transform: translate(8px,-6px) rotate(3deg); }
+      50% { transform: translate(-8px,-12px) rotate(-3deg); }
+      75% { transform: translate(8px,-6px) rotate(2deg); }
+      100% { transform: translate(0,0) rotate(0deg); }
+    }
+    @keyframes splash-violent {
+      0% { transform: translate(0,0) rotate(0deg); }
+      20% { transform: translate(15px,-15px) rotate(5deg); }
+      40% { transform: translate(-15px,-30px) rotate(-5deg); }
+      60% { transform: translate(20px,-25px) rotate(8deg); }
+      80% { transform: translate(-20px,-35px) rotate(-8deg); }
+      100% { transform: translate(0,0) rotate(0deg); }
+    }
+
+    .explosion {
+      position:absolute;
+      width:15px; height:15px;
+      background:#ff9239;
+      border-radius:50%;
+      opacity:0.9;
+      animation: explode 0.5s forwards;
+    }
+    @keyframes explode {
+      0% { transform: scale(1); opacity: 0.9; }
+      50% { transform: scale(3) translate(-10px,-20px); opacity: 0.6; }
+      100% { transform: scale(0); opacity: 0; }
+    }
+
+    .lab-element {
+      position:absolute;
+      width:40px; height:40px;
+      border-radius:6px;
+      background:#cbcbcb;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      font-weight:bold;
+      font-size:1rem;
+      color:#333;
+      top:-50px;
+      left:50%;
+      transform: translateX(-50%);
+      transition: top 0.6s ease-in-out;
+    }
+    .lab-element.consumed { animation: consume 0.8s forwards; }
+    @keyframes consume {
+      0% { opacity:1; transform: translateX(-50%) scale(1) translateY(0); }
+      50% { opacity:0.8; transform: translateX(-50%) scale(0.8) translateY(-10px); }
+      100% { opacity:0; transform: translateX(-50%) scale(0) translateY(20px); }
+    }
+
+    .lab-element.fast-bounce { animation: bounce-fast 0.6s ease-in-out 2; }
+    @keyframes bounce-fast {
+      0% { transform: translateX(-50%) translateY(0); }
+      25% { transform: translateX(-50%) translateY(-8px); }
+      50% { transform: translateX(-50%) translateY(-15px); }
+      75% { transform: translateX(-50%) translateY(-8px); }
+      100% { transform: translateX(-50%) translateY(0); }
+    }
+
+    .lab-element.violent { animation: bounce-violent 1s ease-in-out 3; }
+    @keyframes bounce-violent {
+      0% { transform: translateX(-50%) translate(0,0) rotate(0deg); }
+      20% { transform: translateX(-50%) translate(25px,-20px) rotate(20deg); }
+      40% { transform: translateX(-50%) translate(-25px,-35px) rotate(-20deg); }
+      60% { transform: translateX(-50%) translate(20px,-25px) rotate(15deg); }
+      80% { transform: translateX(-50%) translate(-15px,-15px) rotate(-10deg); }
+      100% { transform: translateX(-50%) translate(0,0) rotate(0deg); }
+    }
+
+    /* Reaction bubbles (floating text) */
+    #reaction-bubbles {
+      position: absolute;
+      left: 60%;
+      top: 80px;
+      pointer-events: none;
+    }
+    .reaction-bubble {
+      background: #ffffff;
+      border: 2px solid #999;
+      border-radius: 14px;
+      padding: 8px 12px;
+      font-size: 0.95rem;
+      max-width: 220px;
+      margin-bottom: 8px;
+      box-shadow: 2px 2px 6px rgba(0,0,0,0.15);
+      animation: fadeBubble 4s forwards;
+    }
+    .reaction-bubble.warning { border-color: #c62828; background: #fff5f5; font-weight: bold; }
+    @keyframes fadeBubble {
+      0% { opacity: 0; transform: translateY(10px); }
+      10% { opacity: 1; transform: translateY(0); }
+      80% { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    /* Hydrogen flame (water reaction) */
+    #hydrogen-flame {
+      position: absolute;
+      left: 50%;
+      top: 40px;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 55px;
+      background: radial-gradient(
+        ellipse at bottom,
+        rgba(255, 255, 200, 0.9) 0%,
+        rgba(255, 230, 150, 0.8) 40%,
+        rgba(255, 200, 80, 0.6) 65%,
+        rgba(255, 180, 50, 0.0) 100%
+      );
+      border-radius: 50%;
+      filter: blur(0.5px);
+      animation: flameFlicker 0.25s infinite alternate;
+      pointer-events: none;
+      z-index: 10;
+    }
+    @keyframes flameFlicker {
+      0% { transform: translateX(-50%) scaleY(1); opacity: 0.9; }
+      100% { transform: translateX(-50%) scaleY(1.1); opacity: 1; }
+    }
+
+    /* Reaction log */
+    .reaction-log {
+      position: relative;
+      margin: 0 0 12px;
+      width: 100%;
+      max-height: 140px;
+      overflow-y: auto;
+      font-family: Georgia, serif;
+      font-size: 14px;
+      line-height: 1.4;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 8px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.12);
+    }
+    .reaction-step { margin-bottom: 6px; }
+    .reaction-step.completed { color: grey; }
+    .reaction-step.new { font-weight: bold; color: darkred; transition: color 1s; }
+
+    /* ===============================
+       THERMOMETER
+    ================================ */
+    #thermometer-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-left: 8px;
+      font-family: Georgia, serif;
+    }
+    .thermometer-label { font-size: 0.9rem; text-align: center; margin-bottom: 6px; }
+    .thermometer-label span { font-size: 0.8rem; color: #666; }
+    .thermometer {
+      width: 26px;
+      height: 180px;
+      border: 2px solid #555;
+      border-radius: 12px;
+      background: linear-gradient(to top, #e3f2fd, #ffffff);
+      position: relative;
+      overflow: hidden;
+    }
+    #thermometer-fill {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      height: 0%;
+      background: linear-gradient(to top, #1976d2, #4caf50, #ffeb3b, #e53935);
+      transition: height 1.5s ease-out;
+    }
+
+    /* ===============================
+       FLAME TEST LAB
+    ================================ */
+    #flame-lab { position: relative; height: 220px; width: 240px; }
+    .burner {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      width: 40px;
+      height: 60px;
+      background: #555;
+      transform: translateX(-50%);
+      border-radius: 6px 6px 0 0;
+    }
+    .wire {
+      width: 6px;
+      height: 80px;
+      background: #999;
+      margin: 0 auto;
+      position: relative;
+      top: -40px;
+      transition: top 0.6s ease-in-out;
+    }
+    .wire.dip { top: 20px; }
+
+   #flame-lab .flame {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  width: 60px;
+  height: 100px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+    .flame-inner, .flame-middle, .flame-outer {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      border-radius: 50%;
+      transform: translateX(-50%);
+      opacity: 0.85;
+    }
+    .flame-inner {
+      width: 20px; height: 60px;
+      background: radial-gradient(circle at bottom, #fffacd, #ffea00);
+      animation: flickerInner 0.15s infinite alternate;
+    }
+    .flame-middle {
+      width: 40px; height: 80px;
+      background: radial-gradient(circle at bottom, #ff9f43, #ff6f00);
+      animation: flickerMiddle 0.18s infinite alternate;
+    }
+    .flame-outer {
+      width: 60px; height: 100px;
+      background: radial-gradient(circle at bottom, rgba(255,69,0,0.6), rgba(255,140,0,0));
+      animation: flickerOuter 0.2s infinite alternate;
+    }
+    @keyframes flickerInner {
+      0% { transform: translateX(-50%) scaleY(1); opacity: 0.9; }
+      100% { transform: translateX(-50%) scaleY(1.1); opacity: 1; }
+    }
+    @keyframes flickerMiddle {
+      0% { transform: translateX(-50%) scaleY(1); opacity: 0.7; }
+      100% { transform: translateX(-50%) scaleY(1.08); opacity: 0.9; }
+    }
+    @keyframes flickerOuter {
+      0% { transform: translateX(-52%) scaleY(1); opacity: 0.6; }
+      50% { transform: translateX(-48%) scaleY(1.03); opacity: 0.7; }
+      100% { transform: translateX(-50%) scaleY(1.05); opacity: 0.8; }
+    }
+
+
+
+/* ===============================
+   REACTION REPORT (styled like “first version”)
+================================ */
+
+/* Panel container */
+#reaction-report-panel{
+  margin: 16px;
+  padding: 16px;
+  background: #fff6fe;
+  border: 2px solid #f6c6f2;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+/* Header + button row */
+#reaction-report-panel h2{
+  font-size: 1.6rem;
+  margin-bottom: 12px;
+}
+
+#reaction-report-panel button{
+  background: #ffffff;
+  border: 2px solid #d6c4ff;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 600;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+}
+
+#reaction-report-panel button:hover{
+  transform: translateY(-1px);
+}
+
+/* Table */
+#reaction-report{
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 12px;
+  overflow: hidden;
+  border: 2px solid #e7d7ff;
+  border-radius: 12px;
+  background: #fff;
+  table-layout: fixed;
+}
+
+/* Header row */
+#reaction-report thead th{
+  background: #f0e6ff;
+  border-bottom: 2px solid #e7d7ff;
+  padding: 12px 10px;
+  text-align: left;
+  font-size: 1.05rem;
+}
+
+/* Body cells */
+#reaction-report tbody td{
+  padding: 12px 10px;
+  border-bottom: 1px solid #f1e7ff;
+  vertical-align: top;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+/* Zebra striping */
+#reaction-report tbody tr:nth-child(even){
+  background: #fff9ff;
+}
+
+/* Remove last border */
+#reaction-report tbody tr:last-child td{
+  border-bottom: none;
+}
+
+/* Column sizing (tweak as desired) */
+#reaction-report th:nth-child(1),
+#reaction-report td:nth-child(1){ width: 90px; font-weight: 700; }
+
+#reaction-report th:nth-child(2),
+#reaction-report td:nth-child(2){ width: 110px; }
+
+#reaction-report th:nth-child(3),
+#reaction-report td:nth-child(3){ width: 160px; }
+
+#reaction-report th:nth-child(4),
+#reaction-report td:nth-child(4){ width: 160px; }
+
+#reaction-report th:nth-child(5),
+#reaction-report td:nth-child(5){ width: auto; }
+
+/* Make “Gas / Flame” look like a pill */
+#reaction-report tbody td:nth-child(4){
+  font-weight: 700;
+}
+
+/* Row accents by type (optional but matches your “lab vibe”) */
+#reaction-report tbody tr.water td:nth-child(2){
+  color: #1b5e20;
+}
+
+#reaction-report tbody tr.flame td:nth-child(2){
+  color: #8a2d82;
+}
+
+/* Intensity accents (only applies to Water rows you already class) */
+#reaction-report tbody tr.water.fast{
+  outline: 2px solid rgba(25, 118, 210, 0.25);
+  outline-offset: -2px;
+}
+#reaction-report tbody tr.water.violent{
+  outline: 2px solid rgba(198, 40, 40, 0.25);
+  outline-offset: -2px;
+}
+/* Reaction Report header layout */
+.report-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:12px;
+}
+
+/* Left side: title + new element button */
+.report-header-left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.report-header h2{
+  margin:0;
+}
+
+/* Header layout */
+#lab-header{
+  background:#f0e6ff;
+  padding:16px 24px;
+  border-bottom:2px solid #d6c4ff;
+}
+
+.header-main{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:20px;
+}
+
+/* Left side: title + investigation */
+.header-left h1{
+  margin:0;
+  font-size:1.6rem;
+}
+
+/* Investigation line (already added earlier) */
+.lab-investigation{
+  margin:4px 0 0;
+  font-size:1.05rem;
+  font-style:italic;
+  color:#555;
+}
+
+/* Right side: Observe / Predict / Test / Revise */
+.header-right{
+  font-size:0.95rem;
+  color:#444;
+  white-space:nowrap;
+  opacity:0.9;
+}
+
+/* Responsive: stack on small screens */
+@media (max-width: 700px){
+  .header-main{
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  .header-right{
+    margin-top:8px;
+    font-size:0.9rem;
+  }
+}
+/* Flame color text in reaction report */
+#reaction-report tr.flame td:nth-child(4){
+  font-weight: bold;
+}
+
+/* Individual flame colors */
+#reaction-report tr.flame[data-flame-color="red"] td:nth-child(4){
+  color: #c62828;
+}
+
+#reaction-report tr.flame[data-flame-color="orange"] td:nth-child(4){
+  color: #ef6c00;
+}
+
+#reaction-report tr.flame[data-flame-color="yellow"] td:nth-child(4){
+  color: #f9a825;
+}
+
+#reaction-report tr.flame[data-flame-color="green"] td:nth-child(4){
+  color: #2e7d32;
+}
+
+#reaction-report tr.flame[data-flame-color="blue"] td:nth-child(4){
+  color: #1565c0;
+}
+
+#reaction-report tr.flame[data-flame-color="violet"] td:nth-child(4){
+  color: #6a1b9a;
+}
+#reaction-report tr.flame td:nth-child(4){
+  text-shadow: 0 0 2px rgba(0,0,0,0.15);
+}
+
+/* Reaction Report – Test column styling */
+#reaction-report td.test-cell {
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+
+.header-investigation {
+  font-size: 0.95rem;
+  font-style: italic;
+  color: #444;
+  margin-top: 2px;
+}
+/* Horizontal layout for test selector */
+.test-select-row{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.test-select-row label{
+  font-weight: bold;
+  white-space: nowrap;
+  
+}
+
+.test-select-row select{
+  min-width: 200px;
+}
+
+  </style>
+</head>
+
+<body>
+  <header id="lab-header">
+  <div class="header-left">
+    <h1 id="header-title">Element Reactivity Investigation</h1>
+    <div id="header-investigation" class="header-investigation"></div>
+  </div>
+
+  <p class="header-right">👀 Observe &nbsp; ✍️ Predict &nbsp; 🧪 Test &nbsp; 🔁 Revise</p>
+</header>
+
+
+
+  <section id="investigation-prediction-panel" class="panel">
+    <h3>🧠 Investigation Prediction</h3>
+    <p class="panel-instructions">
+      Based on the investigation question, write an overall prediction you will test across multiple experiments.
+    </p>
+
+    <textarea
+      id="investigation-prediction"
+      placeholder="Example: As elements move down a group, their reactions with _________ will become _________ because..."
+      rows="2"
+    ></textarea>
+
+    <div style="display:flex; gap:12px; margin-top: 12px;">
+   </div>
+  </section>
+
+  <main id="lab-container">
+    <!-- OBSERVE -->
+    <section id="element-info" class="panel">
+      <h2>👀 Element Information</h2>
+
+      <div class="element-info-grid">
+        <div class="left-stack">
+          <div class="pt-box">
+            <div class="pt-atomic-number" id="pt-atomic-number">—</div>
+            <div class="pt-symbol" id="pt-symbol">—</div>
+            <div class="pt-name" id="pt-name">Select an element</div>
+            <div class="pt-mass" id="pt-mass">—</div>
+          </div>
+
+          <div class="lewis-container">
+            <p><strong>Lewis Structure</strong></p>
+            <div class="lewis-structure" id="lewis-structure">
+              <span class="lewis-symbol" id="lewis-symbol">—</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="phase-box tall">
+          <p><strong>Particle Motion</strong></p>
+
+          <div class="particle-box" id="particle-box"></div>
+
+          <div class="phase-readout">
+            Phase: <span id="phase-label">—</span>
+          </div>
+
+          <div class="temp-control">
+            <label>Temperature: <span id="temp-value">25</span> °C</label>
+            <input type="range" id="temp-slider" min="-200" max="2000" value="25" />
+          </div>
+        </div>
+      </div>
+
+      <div class="element-selector">
+        <label for="element-select">Choose an element:</label>
+        <select id="element-select">
+          <option value="">-- Select --</option>
+          <option value="Li">Lithium (Li)</option>
+          <option value="Na">Sodium (Na)</option>
+          <option value="Mg">Magnesium (Mg)</option>
+          <option value="Fe">Iron (Fe)</option>
+          <option value="S">Sulfur (S)</option>
+          <option value="Cl">Chlorine (Cl)</option>
+          <option value="K">Potassium (K)</option>
+          <option value="Ca">Calcium (Ca)</option>
+          <option value="Zn">Zinc (Zn)</option>
+          <option value="Cu">Copper (Cu)</option>
+          <option value="P">Phosphorus (P)</option>
+          <option value="O">Oxygen (O)</option>
+          <option value="B">Boron (B)</option>
+          <option value="Si">Silicon (Si)</option>
+          <option value="Cs">Cesium (Cs)</option>
+          <option value="Rb">Rubidium (Rb)</option>
+        </select>
+      </div>
+   
+
+    </section>
+
+    <!-- PLAN & PREDICT -->
+    <section id="plan-predict-panel" class="panel disabled">
+      <h2>📝 Plan & Predict</h2>
+
+      <div class="test-select-row">
+  <label for="test-select">Choose a test:</label>
+  <select id="test-select">
+    <option value="">— select —</option>
+    <option value="water">Water Reaction</option>
+    <option value="flame">Flame Test</option>
+  </select>
+</div>
+
+
+      <div id="test-error" class="test-error hidden"></div>
+
+      <!-- WATER TEST HYPOTHESIS -->
+      <!-- WATER TEST HYPOTHESIS -->
+<div id="hyp-water" class="hypothesis hidden">
+  <label class="hypothesis-label">Build your hypothesis:</label>
+
+  <div class="hyp-lines">
+    <div class="hyp-line">
+      <strong>IF</strong> I add this element to water,
+    </div>
+
+    <div class="hyp-line">
+      <strong>THEN</strong> it will react
+      <select id="intensity-select">
+        <option value="">— choose —</option>
+        <option value="violently">violently</option>
+        <option value="fast">quickly</option>
+        <option value="slow">slowly</option>
+        <option value="none">not at all</option>
+      </select>.
+    </div>
+
+    <div class="hyp-line">
+      <strong>BECAUSE</strong> it is a
+      <select id="type-select">
+        <option value="">— choose —</option>
+        <option value="metal">metal</option>
+        <option value="non-metal">non-metal</option>
+        <option value="metalloid">metalloid</option>
+      </select>
+      in the
+      <select id="group-select">
+        <option value="">— choose —</option>
+        <option value="alkali metals">alkali metals (Group 1)</option>
+        <option value="alkaline earth metals">alkaline earth metals (Group 2)</option>
+        <option value="halogens">halogens (Group 17)</option>
+        <option value="noble gases">noble gases (Group 18)</option>
+        <option value="other metals">other metals</option>
+        <option value="other non-metals">other non-metals</option>
+      </select>.
+    </div>
+
+    <div class="hyp-line">
+      with
+      <input id="valence-input" type="number" min="1" max="8" placeholder="#" />
+      valence electrons.
+    </div>
+  </div>
+</div>
+
+
+      <!-- FLAME TEST HYPOTHESIS -->
+      <!-- FLAME TEST HYPOTHESIS -->
+<div id="hyp-flame" class="hypothesis hidden">
+  <label class="hypothesis-label">Build your hypothesis:</label>
+
+  <div class="hyp-lines">
+    <div class="hyp-line">
+      <strong>IF</strong> I perform a flame test on this element,
+    </div>
+
+    <div class="hyp-line">
+      <strong>THEN</strong> it will produce a
+      <select id="flame-color-prediction">
+        <option value="">— choose —</option>
+        <option value="red">red</option>
+        <option value="orange">orange</option>
+        <option value="yellow">yellow</option>
+        <option value="green">green</option>
+        <option value="blue">blue</option>
+        <option value="violet">violet</option>
+      </select>
+      flame.
+    </div>
+
+    <div class="hyp-line">
+      <strong>BECAUSE</strong> it is in the
+      <select id="group-flame-select">
+        <option value="">— choose —</option>
+        <option value="alkali metals">alkali metals (Group 1)</option>
+        <option value="alkaline earth metals">alkaline earth metals (Group 2)</option>
+        <option value="transition metals">transition metals</option>
+        <option value="other">other</option>
+      </select>
+      family,
+    </div>
+
+    <div class="hyp-line">
+      and has
+      <input id="flame-valence-input" type="number" min="1" max="8" placeholder="#" />
+      valence electrons.
+    </div>
+  </div>
+</div>
+
+    </section>
+
+    <!-- TEST -->
+    <section id="lab-panel" class="panel disabled">
+      <div id="reaction-log" class="reaction-log"></div>
+
+      <h2>🧪 Run Experiment</h2>
+
+      <div class="lab-visual">
+        <!-- Flame lab -->
+        <div class="flame-lab hidden" id="flame-lab">
+          <div class="burner">
+            <div class="flame" id="flame">
+              <div class="flame-inner"></div>
+              <div class="flame-middle"></div>
+              <div class="flame-outer"></div>
+            </div>
+          </div>
+          <div class="wire" id="flame-sample"></div>
+        </div>
+
+        <!-- Water lab -->
+        <div class="beaker" id="beaker">
+          <div class="water" id="water"></div>
+          <div id="hydrogen-flame" class="hidden"></div>
+          <div class="bubbles" id="bubbles"></div>
+          <div id="reaction-bubbles"></div>
+          <div class="lab-element" id="lab-element"></div>
+        </div>
+
+        <div id="thermometer-container">
+          <div class="thermometer-label">Energy Released<br /><span>(relative)</span></div>
+          <div class="thermometer">
+            <div id="thermometer-fill"></div>
+          </div>
+        </div>
+      </div>
+
+   
+  <button id="add-to-water" disabled>Perform Experiment</button>
+  
+</section>
+  </main>
+
+  <div id="reaction-report-panel">
+<div class="report-header">
+  <div class="report-header-left">
+    <h2>Reaction Report</h2>
+    <button
+      id="new-element-button"
+      class="action-btn secondary"
+      type="button">
+      🔄 Select New Element
+    </button>
+  </div>
+
+  <button
+    class="action-btn"
+    type="button"
+    onclick="openCERForm()">
+    📤 Create Lab Report
+  </button>
+</div>
+
+    <table id="reaction-report">
+      <thead>
+        <tr>
+          <th>Element</th>
+          <th>Test</th>
+          <th>Observation</th>
+          <th>Gas / Flame</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody><!-- Populated dynamically --></tbody>
+    </table>
+  </div>
+
+  <!-- INVESTIGATION MODAL -->
+  <div id="investigation-modal" class="modal-overlay">
+    <div class="modal">
+      <h2>🧪 Choose an Investigation</h2>
+      <p>Select a question to guide your experiments.</p>
+
+      <div class="investigation-options">
+        <button class="investigation-card" data-investigation="1">
+          <div class="icon">🫧🧪</div>
+          <h3>Reactivity with Water</h3>
+          <p>🫧🧪 How does reactivity with water change for elements in Group 1?</p>
+        </button>
+
+        <button class="investigation-card" data-investigation="2">
+          <div class="icon">🔥🎨</div>
+          <h3>Flame Colors</h3>
+          <p>🔥🎨 How do flame colors compare for elements in the same group?</p>
+        </button>
+
+        <button class="investigation-card" data-investigation="3">
+          <div class="icon">⚛️⚡</div>
+          <h3>Electrons & Reactions</h3>
+          <p>⚛️⚡ How is electron behavior related to observed reactions?</p>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* ===============================
+       ELEMENT DATA MODEL
+    ================================ */
+    const elements = {
+      Li: {
+        symbol: "Li", name: "Lithium", atomicNumber: 3, atomicMass: 6.94,
+        classification: "metal", valenceElectrons: 1,
+        meltingPoint: 180, boilingPoint: 1342, roomPhase: "solid",
+        waterReaction: { occurs: true, intensity: "fast", explanation: "Lithium reacts with water because it is an alkali metal with one valence electron that is easily lost." },
+        flameTest: { occurs: true, color: "red" }
+      },
+      Na: {
+        symbol: "Na", name: "Sodium", atomicNumber: 11, atomicMass: 22.99,
+        classification: "metal", valenceElectrons: 1,
+        meltingPoint: 98, boilingPoint: 883, roomPhase: "solid",
+        waterReaction: { occurs: true, intensity: "violent", explanation: "Sodium reacts violently with water because alkali metals have one valence electron that is easily lost, releasing energy." },
+        flameTest: { occurs: true, color: "yellow" }
+      },
+      Mg: {
+        symbol: "Mg", name: "Magnesium", atomicNumber: 12, atomicMass: 24.31,
+        classification: "metal", valenceElectrons: 2,
+        meltingPoint: 650, boilingPoint: 1091, roomPhase: "solid",
+        waterReaction: { occurs: true, intensity: "slow", explanation: "Magnesium reacts slowly with water because it has two valence electrons that are harder to remove." }
+      },
+      Fe: {
+        symbol: "Fe", name: "Iron", atomicNumber: 26, atomicMass: 55.85,
+        classification: "metal", valenceElectrons: 2,
+        meltingPoint: 1538, boilingPoint: 2862, roomPhase: "solid",
+        waterReaction: { occurs: false, intensity: "none", explanation: "Iron does not react with water at room temperature because its valence electrons are not easily lost." }
+      },
+      S: {
+        symbol: "S", name: "Sulfur", atomicNumber: 16, atomicMass: 32.06,
+        classification: "nonmetal", valenceElectrons: 6,
+        meltingPoint: 115, boilingPoint: 445, roomPhase: "solid",
+        waterReaction: { occurs: false, intensity: "none", explanation: "Sulfur does not react with water because it is a nonmetal and does not easily lose or gain electrons." }
+      },
+      Cl: {
+        symbol: "Cl", name: "Chlorine", atomicNumber: 17, atomicMass: 35.45,
+        classification: "nonmetal", valenceElectrons: 7,
+        meltingPoint: -101, boilingPoint: -34, roomPhase: "gas",
+        waterReaction: { occurs: true, intensity: "slow", gas: "gas bubbles", explanation: "Chlorine interacts with water because it is a reactive nonmetal that tends to gain one electron." }
+      },
+      K: {
+        symbol: "K", name: "Potassium", atomicNumber: 19, atomicMass: 39.10,
+        classification: "metal", valenceElectrons: 1,
+        meltingPoint: 63, boilingPoint: 759, roomPhase: "solid",
+        waterReaction: { occurs: true, intensity: "violent", explanation: "Potassium reacts violently with water because it is an alkali metal with one easily lost valence electron." },
+        flameTest: { occurs: true, color: "violet" }
+      },
+      Ca: {
+        symbol: "Ca", name: "Calcium", atomicNumber: 20, atomicMass: 40.08,
+        classification: "metal", valenceElectrons: 2,
+        meltingPoint: 842, boilingPoint: 1484, roomPhase: "solid",
+        waterReaction: { occurs: true, intensity: "slow", explanation: "Calcium reacts slowly with water because its two valence electrons are less reactive than alkali metals." },
+        flameTest: { occurs: true, color: "orange" }
+      },
+      Zn: {
+        symbol: "Zn", name: "Zinc", atomicNumber: 30, atomicMass: 65.38,
+        classification: "metal", valenceElectrons: 2,
+        meltingPoint: 419, boilingPoint: 907, roomPhase: "solid",
+        waterReaction: { occurs: false, intensity: "none", explanation: "Zinc does not react noticeably with water at room temperature." }
+      },
+      Cu: {
+        symbol: "Cu", name: "Copper", atomicNumber: 29, atomicMass: 63.55,
+        classification: "metal", valenceElectrons: 2,
+        meltingPoint: 1085, boilingPoint: 2562, roomPhase: "solid",
+        waterReaction: { occurs: false, intensity: "none", explanation: "Copper does not react with water because its electrons are tightly held." },
+        flameTest: { occurs: true, color: "green" }
+      },
+      P: {
+        symbol: "P", name: "Phosphorus", atomicNumber: 15, atomicMass: 30.97,
+        classification: "nonmetal", valenceElectrons: 5,
+        meltingPoint: 44, boilingPoint: 280, roomPhase: "solid",
+        waterReaction: { occurs: false, intensity: "none", explanation: "Phosphorus is a solid nonmetal and does not react directly with water." }
+      },
+      O: {
+        symbol: "O", name: "Oxygen", atomicNumber: 8, atomicMass: 16.00,
+        classification: "nonmetal", valenceElectrons: 6,
+        meltingPoint: -218, boilingPoint: -183, roomPhase: "gas",
+        waterReaction: { occurs: false, intensity: "none", explanation: "Oxygen is a gas at room temperature and does not react directly with water." }
+      },
+      B: {
+        symbol: "B", name: "Boron", atomicNumber: 5, atomicMass: 10.81,
+        classification: "metalloid", valenceElectrons: 3,
+        meltingPoint: 2076, boilingPoint: 4000, roomPhase: "solid",
+        waterReaction: { occurs: false, intensity: "none", explanation: "Boron is a metalloid and does not react with water at room temperature." }
+      },
+      Si: {
+        symbol: "Si", name: "Silicon", atomicNumber: 14, atomicMass: 28.09,
+        classification: "metalloid", valenceElectrons: 4,
+        meltingPoint: 1414, boilingPoint: 3265, roomPhase: "solid",
+        waterReaction: { occurs: false, intensity: "none", explanation: "Silicon is a solid metalloid and is unreactive with water." }
+      },
+      Rb: {
+        symbol: "Rb", name: "Rubidium", atomicNumber: 37, atomicMass: 85.47,
+        classification: "metal", valenceElectrons: 1,
+        meltingPoint: 39.31, boilingPoint: 688, roomPhase: "solid",
+        waterReaction: { occurs: true, intensity: "violent", explanation: "Rubidium is an alkali metal that reacts explosively with water, producing hydrogen gas and heat." },
+        flameTest: { occurs: true, color: "violet" }
+      },
+      Cs: {
+        symbol: "Cs", name: "Cesium", atomicNumber: 55, atomicMass: 132.91,
+        classification: "metal", valenceElectrons: 1,
+        meltingPoint: 28.44, boilingPoint: 671, roomPhase: "solid",
+        waterReaction: { occurs: true, intensity: "violent", explanation: "Cesium is extremely reactive; it reacts explosively with water, producing hydrogen gas and heat." },
+        flameTest: { occurs: true, color: "violet" }
+      }
+    };
+
+    const waterProps = { meltingPoint: 0, boilingPoint: 100 };
+
+    /* Flame tests are most meaningful for (a subset of) metals; this controls whether the option is enabled. */
+    const flameTestEligible = ["Li", "Na", "K", "Ca", "Cu", "Rb", "Cs"];
+
+    /* ===============================
+       STATE
+    ================================ */
+    let selectedElement = null;
+
+    // ===== Group 1 trend model (pedagogical "energy" scale) =====
+    // 1 = least energetic, 5 = most energetic
+    const g1Energy = { Li: 1, Na: 2, K: 3, Rb: 4, Cs: 5 };
+
+    // Track last Group 1 water test so we can add comparison text
+    let lastG1WaterTest = null; // { symbol: "Na", energy: 2 } or null
+
+    function isGroup1(symbol) {
+      return Object.prototype.hasOwnProperty.call(g1Energy, symbol);
+    }
+
+    function waterLabelFromEnergy(energy) {
+      if (energy <= 1) return "slow";
+      if (energy === 2) return "fast";
+      return "violent"; // K/Rb/Cs all read as "violent" but visuals will differentiate
+    }
+
+    function compareText(prev, curr) {
+      if (!prev) return null;
+      if (curr.energy > prev.energy) return `Compared to ${prev.symbol}, this reaction is more violent.`;
+      if (curr.energy < prev.energy) return `Compared to ${prev.symbol}, this reaction is less violent.`;
+      return `This reaction is similar in intensity to ${prev.symbol}.`;
+    }
+
+
+    let activeInvestigation = null;
+    let investigationLocked = false;
+    let investigationText = ""; // single source of truth for export + header
+
+
+    /* ===============================
+       DOM REFS
+    ================================ */
+    const elementSelect = document.getElementById("element-select");
+
+    const particleBox = document.getElementById("particle-box");
+    const tempSlider = document.getElementById("temp-slider");
+    const tempValue = document.getElementById("temp-value");
+    const phaseLabel = document.getElementById("phase-label");
+
+    const planPredictPanel = document.getElementById("plan-predict-panel");
+    const testSelect = document.getElementById("test-select");
+    const testError = document.getElementById("test-error");
+
+    const hypWater = document.getElementById("hyp-water");
+    const hypFlame = document.getElementById("hyp-flame");
+    const addToWaterButton = document.getElementById("add-to-water");
+
+    // Water hypothesis inputs
+    const intensitySelect = document.getElementById("intensity-select");
+    const typeSelect = document.getElementById("type-select");
+    const groupSelect = document.getElementById("group-select");
+    const valenceInput = document.getElementById("valence-input");
+
+    // Flame hypothesis inputs
+    const flameColorSelect = document.getElementById("flame-color-prediction");
+    const flameGroupSelect = document.getElementById("group-flame-select");
+    const flameValenceInput = document.getElementById("flame-valence-input");
+
+    // Lab visuals
+    const labPanel = document.getElementById("lab-panel");
+    const beaker = document.getElementById("beaker");
+    const water = document.getElementById("water");
+    const labElement = document.getElementById("lab-element");
+    const bubblesContainer = document.getElementById("bubbles");
+    const thermometerContainer = document.getElementById("thermometer-container");
+
+    const flameLab = document.getElementById("flame-lab");
+    const flameWire = document.getElementById("flame-sample");
+    const flameEl = document.getElementById("flame");
+    const flameInner = flameEl.querySelector(".flame-inner");
+    const flameMiddle = flameEl.querySelector(".flame-middle");
+    const flameOuter = flameEl.querySelector(".flame-outer");
+
+    const newElementButton = document.getElementById("new-element-button");
+
+
+    // Used for coloring the Reaction Report flame text
+    const flameTextHex = {
+      Li: "#ff2b2b",   // red
+      Na: "#ffd400",   // yellow
+      Ca: "#ff6a00",   // orange-red
+      Cu: "#00c18c",   // blue-green
+      K:  "#c79bff",   // lilac
+      Rb: "#b24cff",   // red-violet
+      Cs: "#5a4bff"    // blue-violet
+    };
+
+    function getFlameTextColor(symbol) {
+      return flameTextHex[symbol] || "#333";
+    }
+
+    /* ===============================
+       INVESTIGATION MODAL
+    ================================ */
+    document.querySelectorAll(".investigation-card").forEach(card => {
+      card.addEventListener("click", () => {
+        if (investigationLocked) return;
+
+        activeInvestigation = Number(card.dataset.investigation);
+        document.getElementById("investigation-modal").style.display = "none";
+
+        showInvestigationBanner();
+      });
+    });
+
+    function showInvestigationBanner() {
+  const textMap = {
+    1: "How does reactivity with water change for elements in Group 1?",
+    2: "How do flame colors compare for elements in the same group?",
+    3: "How is electron behavior related to observed reactions?"
+  };
+
+  investigationText = textMap[activeInvestigation] || "";
+
+  const headerInvest = document.getElementById("header-investigation");
+  if (headerInvest) headerInvest.textContent = investigationText ? `${investigationText}` : "";
+}
+
+
+
+
+
+
+    function lockInvestigation() {
+  const headerInvest = document.getElementById("header-investigation");
+  if (headerInvest && !headerInvest.textContent.includes("🔒")) {
+    headerInvest.textContent += " 🔒";
+  }
+  investigationLocked = true;
+}
+
+    /* ===============================
+       UTIL: UI RESET HELPERS
+    ================================ */
+    function clearReactionLog() {
+      document.getElementById("reaction-log").innerHTML = "";
+    }
+
+    function logReactionStep(text, isWarning = false) {
+      const container = document.getElementById("reaction-log");
+      // grey out prior "new" steps
+      container.querySelectorAll(".reaction-step:not(.completed)").forEach(s => s.classList.add("completed"));
+
+      const step = document.createElement("div");
+      step.className = "reaction-step new";
+      step.textContent = isWarning ? `⚠️ ${text}` : text;
+      container.appendChild(step);
+      container.scrollTop = container.scrollHeight;
+
+      if (isWarning) showReactionBubble(text, true);
+    }
+
+    function showReactionBubble(text, isWarning = false) {
+     // intentionally disabled
+    }
+
+    function clearReactionBubbles() {
+      document.getElementById("reaction-bubbles").innerHTML = "";
+    }
+
+    function resetThermometer() {
+      document.getElementById("thermometer-fill").style.height = "0%";
+    }
+
+    function resetFlameVisual() {
+      flameWire.classList.remove("dip");
+      // restore default flame (orange-ish)
+      flameInner.style.background = "radial-gradient(circle at bottom, #fffacd, #ffea00)";
+      flameMiddle.style.background = "radial-gradient(circle at bottom, #ff9f43, #ff6f00)";
+      flameOuter.style.background = "radial-gradient(circle at bottom, rgba(255,69,0,0.6), rgba(255,140,0,0))";
+    }
+
+    function resetLabVisuals() {
+      clearReactionLog();
+      clearReactionBubbles();
+      bubblesContainer.innerHTML = "";
+
+      // hide hydrogen flame
+      document.getElementById("hydrogen-flame").classList.add("hidden");
+
+      // reset water animations
+      water.classList.remove("splash-fast", "splash-violent", "flash");
+
+      // reset lab element
+      labElement.style.display = "none";
+      labElement.textContent = "";
+      labElement.className = "lab-element";
+      labElement.style.top = "-50px";
+
+      // reset thermometer
+      resetThermometer();
+
+      // reset flame lab
+      resetFlameVisual();
+    }
+
+    /* ===============================
+       PLAN & PREDICT UI
+    ================================ */
+    function showFlameTestError() {
+      testError.textContent =
+        "Flame tests work best for certain metals (especially Groups 1 and 2) because excited electrons emit visible light.";
+      testError.classList.remove("hidden");
+    }
+    function clearTestError() {
+      testError.classList.add("hidden");
+      testError.textContent = "";
+    }
+
+    function updateFlameTestAvailability(symbol) {
+      const flameOption = testSelect.querySelector('option[value="flame"]');
+      const eligible = flameTestEligible.includes(symbol);
+
+      flameOption.disabled = !eligible;
+
+      if (!eligible && testSelect.value === "flame") {
+        testSelect.value = "";
+        showFlameTestError();
+      } else {
+        clearTestError();
+      }
+    }
+
+    function hypothesisComplete() {
+      if (!selectedElement) return false;
+
+      if (testSelect.value === "water") {
+        return Boolean(intensitySelect.value && typeSelect.value && groupSelect.value && valenceInput.value);
+      }
+      if (testSelect.value === "flame") {
+        return Boolean(flameColorSelect.value && flameGroupSelect.value && flameValenceInput.value);
+      }
+      return false;
+    }
+
+    function updateHypothesisUI() {
+      hypWater.classList.toggle("hidden", testSelect.value !== "water");
+      hypFlame.classList.toggle("hidden", testSelect.value !== "flame");
+
+      // show the correct lab visuals
+      if (testSelect.value === "water") {
+        beaker.classList.remove("hidden");
+        thermometerContainer.classList.remove("hidden");
+        flameLab.classList.add("hidden");
+      } else if (testSelect.value === "flame") {
+        beaker.classList.add("hidden");
+        thermometerContainer.classList.add("hidden");
+        flameLab.classList.remove("hidden");
+      } else {
+        beaker.classList.add("hidden");
+        thermometerContainer.classList.add("hidden");
+        flameLab.classList.add("hidden");
+      }
+
+      const ok = hypothesisComplete();
+      addToWaterButton.disabled = !ok;
+
+      if (ok) labPanel.classList.remove("disabled");
+      else labPanel.classList.add("disabled");
+    }
+
+    /* ===============================
+       ELEMENT SELECTION
+    ================================ */
+    elementSelect.addEventListener("change", () => {
+      const key = elementSelect.value;
+
+      resetLabVisuals();
+      addToWaterButton.disabled = true;
+      labPanel.classList.add("disabled");
+
+      // Reset test/hypothesis UI when switching elements
+      testSelect.value = "";
+      intensitySelect.value = "";
+      typeSelect.value = "";
+      groupSelect.value = "";
+      valenceInput.value = "";
+      flameColorSelect.value = "";
+      flameGroupSelect.value = "";
+      flameValenceInput.value = "";
+
+      if (!elements[key]) {
+        selectedElement = null;
+        planPredictPanel.classList.add("disabled");
+        setPTBox(null);
+        clearLewisStructure();
+        phaseLabel.textContent = "—";
+        particleBox.innerHTML = "";
+        updateHypothesisUI();
+        return;
+      }
+
+      selectedElement = elements[key];
+
+      planPredictPanel.classList.remove("disabled");
+      setPTBox(selectedElement);
+      renderLewisStructure(selectedElement);
+
+      // Reset slider to a sane starting temp for display/particles
+      tempSlider.value = 25;
+      tempValue.textContent = 25;
+      updatePhase();
+
+      updateFlameTestAvailability(key);
+      updateHypothesisUI();
+    });
+
+    function setPTBox(el) {
+      document.getElementById("pt-atomic-number").textContent = el ? el.atomicNumber : "—";
+      document.getElementById("pt-symbol").textContent = el ? el.symbol : "—";
+      document.getElementById("pt-name").textContent = el ? el.name : "Select an element";
+      document.getElementById("pt-mass").textContent = el ? el.atomicMass : "—";
+    }
+
+    /* ===============================
+       LEWIS STRUCTURE
+    ================================ */
+    function clearLewisStructure() {
+      const container = document.getElementById("lewis-structure");
+      container.querySelectorAll(".lewis-dot").forEach(dot => dot.remove());
+      document.getElementById("lewis-symbol").textContent = "—";
+    }
+
+    function renderLewisStructure(element) {
+      const container = document.getElementById("lewis-structure");
+      const symbol = document.getElementById("lewis-symbol");
+
+      container.querySelectorAll(".lewis-dot").forEach(dot => dot.remove());
+      symbol.textContent = element.symbol;
+
+      const positions = [
+        { side: "top",    top: "10%",  left: "50%" },
+        { side: "right",  top: "50%",  left: "85%" },
+        { side: "bottom", top: "85%",  left: "50%" },
+        { side: "left",   top: "50%",  left: "15%" }
+      ];
+
+      let electrons = Math.min(element.valenceElectrons, 8);
+
+      // Pass 1: single dots
+      for (let i = 0; i < positions.length && electrons > 0; i++) {
+        placeDot(container, positions[i], false);
+        electrons--;
+      }
+      // Pass 2: paired dots
+      for (let i = 0; i < positions.length && electrons > 0; i++) {
+        placeDot(container, positions[i], true);
+        electrons--;
+      }
+    }
+
+    function placeDot(container, position, paired) {
+      const dot = document.createElement("div");
+      dot.classList.add("lewis-dot");
+      dot.style.top = position.top;
+      dot.style.left = position.left;
+
+      let offsetX = 0;
+      let offsetY = 0;
+      if (paired) {
+        if (position.side === "top" || position.side === "bottom") offsetX = 12;
+        else offsetY = 12;
+      }
+      dot.style.transform = `translate(-50%, -50%) translate(${offsetX}px, ${offsetY}px)`;
+      container.appendChild(dot);
+    }
+
+    /* ===============================
+       PARTICLES + PHASE
+    ================================ */
+    function getPhase(element, temp) {
+      if (temp < element.meltingPoint) return "solid";
+      if (temp < element.boilingPoint) return "liquid";
+      return "gas";
+    }
+
+    tempSlider.addEventListener("input", () => {
+      if (!selectedElement) return;
+      tempValue.textContent = Number(tempSlider.value);
+      updatePhase();
+    });
+
+    function updatePhase() {
+      if (!selectedElement) return;
+
+      const actualTemp = Number(tempSlider.value);
+      tempValue.textContent = actualTemp;
+
+      const phase = getPhase(selectedElement, actualTemp);
+      phaseLabel.textContent = phase;
+
+      // Clamp only for particle visualization (avoid extreme speeds)
+      const minParticleTemp = selectedElement.meltingPoint - 50;
+      const maxParticleTemp = selectedElement.boilingPoint + 200;
+      const renderTemp = Math.min(Math.max(actualTemp, minParticleTemp), maxParticleTemp);
+
+      renderParticles(phase, renderTemp);
+
+      // Water safety guard (only affects ability to run experiment)
+      if (actualTemp < waterProps.meltingPoint || actualTemp > waterProps.boilingPoint) {
+        addToWaterButton.disabled = true;
+        tempSlider.style.background = "#ffcccc";
+      } else {
+        // Don't force-enable if hypothesis incomplete; updateHypothesisUI handles that.
+        tempSlider.style.background = "#cfe9ff";
+        updateHypothesisUI();
+      }
+    }
+
+    function renderParticles(phase, renderTemp) {
+      particleBox.innerHTML = "";
+      if (phase === "solid") renderSolid(renderTemp);
+      if (phase === "liquid") renderLiquid(renderTemp);
+      if (phase === "gas") renderGas(renderTemp);
+    }
+
+    // SOLID
+    function renderSolid(renderTemp) {
+      const rows = 12;
+      const cols = 12;
+      const spacingX = particleBox.clientWidth / (cols + 1);
+      const spacingY = particleBox.clientHeight / (rows + 1);
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const p = document.createElement("div");
+          p.classList.add("particle");
+          p.style.width = "8px";
+          p.style.height = "8px";
+
+          p.style.left = `${spacingX * (c + 1)}px`;
+          p.style.top = `${spacingY * (r + 1)}px`;
+
+          particleBox.appendChild(p);
+          vibrateSolidParticle(p, renderTemp);
+        }
+      }
+    }
+
+    function vibrateSolidParticle(p) {
+      function step() {
+        if (!selectedElement) return;
+        const temp = Number(tempSlider.value);
+        const melt = selectedElement.meltingPoint;
+
+        let amp = 1;
+        if (temp < melt) amp = 1;
+        else if (temp <= melt + 50) amp = 1 + ((temp - melt) / 50) * 3;
+        else amp = 4;
+
+        const dx = (Math.random() * 2 - 1) * amp;
+        const dy = (Math.random() * 2 - 1) * amp;
+        p.style.transform = `translate(${dx}px, ${dy}px)`;
+
+        requestAnimationFrame(step);
+      }
+      step();
+    }
+
+    // LIQUID
+    function renderLiquid(renderTemp) {
+      const boxWidth = particleBox.clientWidth;
+      const boxHeight = particleBox.clientHeight;
+
+      const spreadFactor = Math.min(Math.max(
+        (renderTemp - selectedElement.meltingPoint) /
+        (selectedElement.boilingPoint - selectedElement.meltingPoint), 0), 1);
+
+      const count = 20 + Math.floor(10 * spreadFactor);
+      const topLimit = boxHeight - 60 - spreadFactor * 20;
+      const bottomLimit = boxHeight - 5;
+
+      for (let i = 0; i < count; i++) {
+        const p = document.createElement("div");
+        p.classList.add("particle");
+        p.style.left = Math.random() * (boxWidth - 6) + "px";
+        p.style.top = (topLimit + Math.random() * (bottomLimit - topLimit)) + "px";
+        particleBox.appendChild(p);
+        moveLiquidParticle(p, topLimit, bottomLimit, spreadFactor);
+      }
+    }
+
+    function moveLiquidParticle(p, topLimit, bottomLimit, spreadFactor) {
+      const baseSpeedX = 1 + 2 * spreadFactor;
+      const baseSpeedY = 0.25 + 0.75 * spreadFactor;
+
+      let vx = (Math.random() * baseSpeedX) * (Math.random() < 0.5 ? -1 : 1);
+      let vy = Math.random() * baseSpeedY - baseSpeedY / 2;
+
+      function step() {
+        const boxWidth = particleBox.clientWidth;
+
+        vx += (Math.random() - 0.5) * 0.2;
+        vy += (Math.random() - 0.5) * 0.05;
+
+        vx = Math.max(Math.min(vx, baseSpeedX), -baseSpeedX);
+        vy = Math.max(Math.min(vy, baseSpeedY), -baseSpeedY);
+
+        let x = p.offsetLeft + vx;
+        let y = p.offsetTop + vy;
+
+        if (x < 0) { x = 0; vx *= -1; }
+        if (x > boxWidth - 6) { x = boxWidth - 6; vx *= -1; }
+        if (y < topLimit) { y = topLimit; vy *= -1; }
+        if (y > bottomLimit) { y = bottomLimit; vy *= -1; }
+
+        p.style.left = x + "px";
+        p.style.top = y + "px";
+
+        requestAnimationFrame(step);
+      }
+      step();
+    }
+
+    // GAS
+    function renderGas(renderTemp) {
+      const boxWidth = particleBox.clientWidth;
+      const boxHeight = particleBox.clientHeight;
+
+      const spreadFactor = Math.min(Math.max((renderTemp - selectedElement.boilingPoint) / 200, 0), 1);
+      const count = 20 + Math.floor(10 * spreadFactor);
+
+      for (let i = 0; i < count; i++) {
+        const p = document.createElement("div");
+        p.classList.add("particle");
+        p.style.left = Math.random() * (boxWidth - 6) + "px";
+        p.style.top = Math.random() * (boxHeight - 6) + "px";
+        particleBox.appendChild(p);
+        moveGasParticle(p, spreadFactor);
+      }
+    }
+
+    function moveGasParticle(p, spreadFactor) {
+      const baseSpeed = 1 + 4 * spreadFactor;
+
+      let vx = (Math.random() * baseSpeed) * (Math.random() < 0.5 ? -1 : 1);
+      let vy = (Math.random() * baseSpeed) * (Math.random() < 0.5 ? -1 : 1);
+
+      function step() {
+        const boxWidth = particleBox.clientWidth;
+        const boxHeight = particleBox.clientHeight;
+
+        vx += (Math.random() - 0.5) * 0.2;
+        vy += (Math.random() - 0.5) * 0.2;
+
+        vx = Math.max(Math.min(vx, baseSpeed), -baseSpeed);
+        vy = Math.max(Math.min(vy, baseSpeed), -baseSpeed);
+
+        let x = p.offsetLeft + vx;
+        let y = p.offsetTop + vy;
+
+        if (x < 0) { x = 0; vx *= -1; }
+        if (x > boxWidth - 6) { x = boxWidth - 6; vx *= -1; }
+        if (y < 0) { y = 0; vy *= -1; }
+        if (y > boxHeight - 6) { y = boxHeight - 6; vy *= -1; }
+
+        p.style.left = x + "px";
+        p.style.top = y + "px";
+
+        requestAnimationFrame(step);
+      }
+      step();
+    }
+
+    /* ===============================
+       TEST SELECTION / INPUT LISTENERS
+    ================================ */
+    testSelect.addEventListener("change", () => {
+      resetLabVisuals();
+      updateHypothesisUI();
+    });
+
+    [
+      intensitySelect, typeSelect, groupSelect, valenceInput,
+      flameColorSelect, flameGroupSelect, flameValenceInput
+    ].forEach(el => {
+      el.addEventListener("input", updateHypothesisUI);
+      el.addEventListener("change", updateHypothesisUI);
+    });
+
+    /* ===============================
+       RUN EXPERIMENT
+    ================================ */
+    addToWaterButton.addEventListener("click", () => {
+      if (!selectedElement) return;
+      if (!hypothesisComplete()) return;
+
+      lockInvestigation();
+      resetLabVisuals();
+
+      if (testSelect.value === "water") runWaterReaction();
+      if (testSelect.value === "flame") runFlameTest();
+    });
+
+    function getWaterReactionEvidence(element) {
+  const wr = element.waterReaction;
+
+  if (!wr || wr.occurs === false) {
+    return { intensity: "no reaction", gas: "none", notes: "no visible change" };
+  }
+
+  // ✅ If the element explicitly defines a gas, use it.
+  if (wr.gas) {
+    return { intensity: wr.intensity, gas: wr.gas, notes: wr.explanation };
+  }
+
+  // Otherwise fall back to your existing hydrogen rule
+  const producesHydrogen = (element.classification === "metal" && element.valenceElectrons === 1);
+
+  return {
+    intensity: wr.intensity,
+    gas: producesHydrogen ? "hydrogen gas" : "none",
+    notes: wr.explanation
+  };
+}
+
+
+    function addReactionReport(element, testType, observation, gasOrFlame, notes) {
+  const panel = document.getElementById("reaction-report-panel");
+  const table = panel.querySelector("table#reaction-report");
+  const tbody = table.querySelector("tbody");
+
+  // Prevent duplicates for same element & test
+  if (tbody.querySelector(`tr[data-element="${element.symbol}"][data-test="${testType}"]`)) return;
+
+  const row = document.createElement("tr");
+  row.dataset.element = element.symbol;
+  row.dataset.test = testType;
+
+  if (testType === "Water") {
+    row.classList.add("water");
+    if (observation === "fast") row.classList.add("fast");
+    if (observation === "violent") row.classList.add("violent");
+  }
+  if (testType === "Flame") {
+  row.classList.add("flame");
+  row.dataset.flameColor = gasOrFlame; // e.g. "red", "yellow", "violet"
+}
+const isWater = testType === "Water";
+  const isFlame = (testType === "Flame");
+const flameColor = isFlame ? getFlameTextColor(element.symbol) : null;
+
+const testLabel = isWater
+  ? "💧 Water"
+  : isFlame
+  ? "🔥 Flame"
+  : testType;
+
+row.innerHTML = `
+  <td>${element.symbol}</td>
+  <td class="test-cell">${testLabel}</td>
+  <td>${observation || "—"}</td>
+  <td ${
+    isFlame
+      ? `style="color:${flameColor}; font-weight:700; text-shadow: 0 0 6px rgba(0,0,0,0.08);"`
+      : ""
+  }>${gasOrFlame || "—"}</td>
+  <td>${notes || "—"}</td>
+`;
+
+
+  tbody.appendChild(row);
+}
+
+
+    // WATER REACTION
+    function runWaterReaction() {
+  beaker.classList.remove("hidden");
+  thermometerContainer.classList.remove("hidden");
+  flameLab.classList.add("hidden");
+
+  labElement.style.display = "flex";
+  labElement.textContent = selectedElement.symbol;
+  labElement.className = "lab-element";
+  labElement.style.top = "-50px";
+
+  // drop into beaker
+  setTimeout(() => { labElement.style.top = "80px"; }, 50);
+
+  setTimeout(() => {
+    // ---- Determine "energy" and displayed label ----
+    // Default to your existing intensities for non-Group-1 elements
+    let energy = 0;
+    let label = selectedElement.waterReaction?.intensity || "none";
+
+    // For Group 1, override with a graded model
+    if (isGroup1(selectedElement.symbol)) {
+      energy = g1Energy[selectedElement.symbol];
+      label = waterLabelFromEnergy(energy);
+    } else {
+      // Map your legacy labels to a simple energy for visuals
+      if (label === "slow") energy = 1;
+      if (label === "fast") energy = 2;
+      if (label === "violent") energy = 3;
+      if (label === "none") energy = 0;
+    }
+
+    // ---- Reaction log (no bubbles; trend-aware) ----
+    if (label === "slow") logReactionStep("Gas bubbles forming");
+    if (label === "fast") logReactionStep("Hydrogen gas forming (flammable)", true);
+    if (label === "violent") logReactionStep("Hydrogen gas forming rapidly (flammable)", true);
+
+    // Comparative statement for Group 1 water tests
+    if (isGroup1(selectedElement.symbol)) {
+      const curr = { symbol: selectedElement.symbol, energy };
+      const text = compareText(lastG1WaterTest, curr);
+      if (text) logReactionStep(text);
+      lastG1WaterTest = curr;
+    }
+
+    updateThermometer(label, energy);
+    animateReaction(label, energy);
+
+    if (label === "fast" || label === "violent") {
+      labElement.classList.add("consumed");
+    }
+
+    // Make ignition more likely as energy increases (trend)
+    if (label === "violent") {
+      const igniteChance = Math.min(0.25 + (energy * 0.15), 0.9); // K<Rb<Cs feels stronger
+      if (Math.random() < igniteChance) {
+        setTimeout(() => {
+          logReactionStep("Hydrogen gas ignites due to released heat", true);
+          showHydrogenFlame();
+        }, 1400);
+      }
+    }
+
+    const evidence = getWaterReactionEvidence(selectedElement);
+    addReactionReport(selectedElement, "Water", label, evidence.gas, evidence.notes);
+
+    addToWaterButton.disabled = true;
+  }, 900);
+}
+
+
+    function updateThermometer(reactionType, energy = 0) {
+  const fill = document.getElementById("thermometer-fill");
+
+  // Base behavior for non-G1 (or if energy not provided)
+  if (!energy) {
+    let height = "0%";
+    if (reactionType === "slow") height = "30%";
+    if (reactionType === "fast") height = "65%";
+    if (reactionType === "violent") height = "95%";
+    fill.style.height = height;
+    return;
+  }
+
+  // Energy-scaled behavior (1..5)
+  // 1→30%, 2→50%, 3→70%, 4→85%, 5→95%
+  const heights = { 1: 30, 2: 50, 3: 70, 4: 85, 5: 95 };
+  fill.style.height = `${heights[Math.max(1, Math.min(5, energy))]}%`;
+}
+
+
+    function showHydrogenFlame() {
+      const flame = document.getElementById("hydrogen-flame");
+      const color = selectedElement?.flameTest?.color || "gold";
+
+      flame.style.background = `radial-gradient(
+        ellipse at bottom,
+        ${color} 0%,
+        rgba(255, 230, 150, 0.8) 40%,
+        rgba(255, 200, 80, 0.6) 65%,
+        rgba(255, 180, 50, 0.0) 100%
+      )`;
+
+      flame.classList.remove("hidden");
+      setTimeout(() => flame.classList.add("hidden"), 3000);
+    }
+
+    function animateReaction(intensity, energy = 0) {
+  // reset
+  bubblesContainer.innerHTML = "";
+  water.classList.remove("splash-fast", "splash-violent", "flash");
+  labElement.classList.remove("fast-bounce", "violent");
+
+  if (intensity === "none") return;
+
+  // Default legacy behavior (if no energy passed)
+  if (!energy) {
+    let bubbleCount = 0;
+    let interval = 500;
+
+    if (intensity === "slow") { bubbleCount = 5; interval = 800; }
+    if (intensity === "fast") {
+      bubbleCount = 20; interval = 150;
+      water.classList.add("splash-fast");
+      labElement.classList.add("fast-bounce");
+      setTimeout(() => labElement.classList.remove("fast-bounce"), 700);
+    }
+    if (intensity === "violent") {
+      bubbleCount = 50; interval = 50;
+      water.classList.add("splash-violent");
+      water.classList.add("flash");
+      setTimeout(() => water.classList.remove("flash"), 900);
+
+      labElement.classList.add("violent");
+      setTimeout(() => labElement.classList.remove("violent"), 1400);
+
+      for (let i = 0; i < 16; i++) setTimeout(triggerExplosion, i * 70);
+    }
+
+    let created = 0;
+    const bubbleInterval = setInterval(() => {
+      const bubble = document.createElement("div");
+      bubble.classList.add("bubble");
+      bubble.style.left = (Math.random() * 80 + 10) + "%";
+
+      let size = 10, duration = 1.2;
+      if (intensity === "slow") { size = Math.random() * 10 + 6; duration = Math.random() * 1 + 1; }
+      if (intensity === "fast") { size = Math.random() * 6 + 12; duration = Math.random() * 0.6 + 0.6; }
+      if (intensity === "violent") { size = Math.random() * 10 + 20; duration = Math.random() * 0.4 + 0.3; }
+
+      bubble.style.width = size + "px";
+      bubble.style.height = size + "px";
+      bubble.style.animationDuration = duration + "s";
+
+      bubblesContainer.appendChild(bubble);
+
+      created++;
+      if (created >= bubbleCount) clearInterval(bubbleInterval);
+    }, interval);
+
+    return;
+  }
+
+  // ===== Energy-scaled visuals (best for Group 1) =====
+  // energy: 1..5
+  const e = Math.max(1, Math.min(5, energy));
+
+  // Bubble behavior: stronger = faster + more + bigger
+  const bubbleCount = 10 + e * 18;              // 28..100
+  const interval = Math.max(30, 260 - e * 45);  // 215..35ms
+  const baseSize = 8 + e * 3;                   // 11..23px
+  const baseDuration = Math.max(0.25, 1.2 - e * 0.15); // 1.05..0.45s
+
+  // Water motion tiers
+  if (e >= 2) water.classList.add("splash-fast");
+  if (e >= 3) {
+    water.classList.remove("splash-fast");
+    water.classList.add("splash-violent");
+  }
+  if (e >= 4) water.classList.add("flash");
+  if (e >= 5) {
+    // Cs: extra “wow” but still deterministic & readable
+    for (let i = 0; i < 10; i++) setTimeout(triggerExplosion, i * 80);
+  }
+  setTimeout(() => water.classList.remove("flash"), 900);
+
+  // Element motion scales too
+  if (e === 2) {
+    labElement.classList.add("fast-bounce");
+    setTimeout(() => labElement.classList.remove("fast-bounce"), 700);
+  } else if (e >= 3) {
+    labElement.classList.add("violent");
+    setTimeout(() => labElement.classList.remove("violent"), 1400);
+  }
+
+  let created = 0;
+  const bubbleInterval = setInterval(() => {
+    const bubble = document.createElement("div");
+    bubble.classList.add("bubble");
+    bubble.style.left = (Math.random() * 80 + 10) + "%";
+
+    const size = Math.max(6, baseSize + (Math.random() * 6 - 3));
+    const duration = Math.max(0.2, baseDuration + (Math.random() * 0.2 - 0.1));
+
+    bubble.style.width = size + "px";
+    bubble.style.height = size + "px";
+    bubble.style.animationDuration = duration + "s";
+
+    bubblesContainer.appendChild(bubble);
+
+    created++;
+    if (created >= bubbleCount) clearInterval(bubbleInterval);
+  }, interval);
+}
+
+
+    function triggerExplosion() {
+      const explosion = document.createElement("div");
+      explosion.classList.add("explosion");
+      explosion.style.left = (Math.random() * 60 + 20) + "%";
+      explosion.style.top = "80%";
+      beaker.appendChild(explosion);
+      setTimeout(() => explosion.remove(), 500);
+    }
+
+    // FLAME TEST
+    function runFlameTest() {
+      flameLab.classList.remove("hidden");
+      beaker.classList.add("hidden");
+      thermometerContainer.classList.add("hidden");
+
+      clearReactionLog();
+
+      resetFlameVisual();
+      flameWire.classList.remove("dip");
+      setTimeout(() => flameWire.classList.add("dip"), 50);
+
+      // Map element -> 3-layer colors
+      const colorMap = {
+        Li: ["#ff2b2b", "#ff5a5a", "#ffd1d1"],     // carmine red
+        Na: ["#ffd400", "#ffe066", "#fff3b0"],     // intense yellow
+        Ca: ["#ff6a00", "#ff9a3c", "#ffd2a6"],     // orange-red / brick
+        Cu: ["#00c18c", "#2bd6a2", "#b8f7e6"],     // blue-green / green
+
+        // Group 1 trend (all "violet-ish" but distinct)
+        K:  ["#c79bff", "#d7c0ff", "#f3eaff"],     // lilac (paler)
+        Rb: ["#b24cff", "#d06bff", "#f0c9ff"],     // red-violet (more magenta)
+        Cs: ["#5a4bff", "#7c6bff", "#d7d2ff"]      // blue-violet (cooler/deeper)
+      };
+
+      const colorNames = {
+        Li: "red",
+        Na: "yellow",
+        Ca: "orange-red",
+        Cu: "blue-green",
+        K:  "lilac",
+        Rb: "red-violet",
+        Cs: "blue-violet"
+      };
+
+      setTimeout(() => {
+        const colors = colorMap[selectedElement.symbol] || ["#4d9cff", "#7abaff", "#aad4ff"];
+        flameInner.style.background = colors[0];
+        flameMiddle.style.background = colors[1];
+        flameOuter.style.background = colors[2];
+
+        logReactionStep("Electrons absorb energy and become excited");
+        setTimeout(() => logReactionStep("As electrons return to lower energy levels, light is emitted"), 500);
+
+        addReactionReport(
+          selectedElement,
+          "Flame",
+          "color change observed",
+          colorNames[selectedElement.symbol] || "blue",
+          "Excited electrons emit colored light."
+        );
+
+        addToWaterButton.disabled = true;
+      }, 650);
+
+      setTimeout(() => flameWire.classList.remove("dip"), 1800);
+    }
+
+    /* ===============================
+       NEW ELEMENT BUTTON (keeps investigation + report)
+    ================================ */
+    newElementButton.addEventListener("click", () => {
+      // Keep investigation + prediction + reaction report.
+      // Reset only the experiment controls for a new element/test.
+      selectedElement = null;
+
+      elementSelect.value = "";
+      planPredictPanel.classList.add("disabled");
+
+      testSelect.value = "";
+      intensitySelect.value = "";
+      typeSelect.value = "";
+      groupSelect.value = "";
+      valenceInput.value = "";
+      flameColorSelect.value = "";
+      flameGroupSelect.value = "";
+      flameValenceInput.value = "";
+
+      setPTBox(null);
+      clearLewisStructure();
+
+      phaseLabel.textContent = "—";
+      particleBox.innerHTML = "";
+      tempSlider.value = 25;
+      tempValue.textContent = 25;
+      tempSlider.style.background = "";
+
+      resetLabVisuals();
+      clearTestError();
+
+      beaker.classList.add("hidden");
+      thermometerContainer.classList.add("hidden");
+      flameLab.classList.add("hidden");
+
+      addToWaterButton.disabled = true;
+      labPanel.classList.add("disabled");
+      updateHypothesisUI();
+    });
+
+    /* ===============================
+       CER EXPORT
+    ================================ */
+    function buildCERExport() {
+      return {
+        name: "",
+        investigation: investigationText || "",
+        prediction: document.getElementById("investigation-prediction")?.value || "",
+        claim: document.getElementById("cer-claim")?.value || "",
+        evidence: exportEvidenceText(),
+        reasoning: document.getElementById("cer-reasoning")?.value || ""
+      };
+    }
+
+    function exportEvidenceText() {
+  return Array.from(document.querySelectorAll("#reaction-report tbody tr"))
+    .map((row, i) => {
+      const cells = row.children;
+      const element = cells[0]?.textContent?.trim() || "—";
+      const test = cells[1]?.textContent?.trim() || "—";
+      const observation = cells[2]?.textContent?.trim() || "—";
+      const gasOrFlame = cells[3]?.textContent?.trim() || "—";
+
+      if (test === "Flame") {
+        return `${i + 1}: When ${element} was tested with a flame test, the flame color was ${gasOrFlame}.`;
+      }
+
+      // Water (default)
+      return `${i + 1}: When ${element} was tested with water, the observation was ${observation} and the gas/flame result was ${gasOrFlame}.`;
+    })
+    .join("\n\n");
+}
+
+
+    function openCERForm() {
+      const cer = buildCERExport();
+
+      const base =
+        "https://docs.google.com/forms/d/e/1FAIpQLSdr7gGwobEKGnOE_EUphdCp_9PUdCdnU1O_JwIBO2axn77yBg/viewform?usp=pp_url";
+
+      const params = new URLSearchParams({
+        //"entry.586314464": cer.name,
+        "entry.1158394411": cer.investigation,
+        "entry.849614708": cer.prediction,
+        "entry.364238967": cer.claim,
+        "entry.474935642": cer.evidence,
+        "entry.107218536": cer.reasoning
+      });
+
+      window.open(`${base}&${params.toString()}`, "_blank");
+    }
+
+    /* ===============================
+       INIT
+    ================================ */
+    (function init() {
+      // Start with labs hidden until a test is selected and hypothesis is complete
+      beaker.classList.add("hidden");
+      thermometerContainer.classList.add("hidden");
+      flameLab.classList.add("hidden");
+      updateHypothesisUI();
+      resetLabVisuals();
+    })();
+  </script>
+</body>
+</html>
