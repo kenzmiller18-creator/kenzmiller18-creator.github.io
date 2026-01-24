@@ -331,6 +331,36 @@ body.mode-adjusted .scanInput{ border-color: rgba(239,68,68,.75); }
   </style>
 </head>
 <body>
+    <script>
+  // ===== Teacher Gate (scan.html) =====
+  const TEACHER_GATE_KEY = "teacher_gate_unlocked_v1";
+  const TEACHER_PASSCODE = "MinutesMatter"; // must match index
+
+  function isTeacherUnlocked(){
+    try { return localStorage.getItem(TEACHER_GATE_KEY) === "1"; }
+    catch { return false; }
+  }
+
+  function setTeacherUnlocked(){
+    try { localStorage.setItem(TEACHER_GATE_KEY, "1"); } catch {}
+  }
+
+  // If not unlocked, prompt here too
+  (function enforceTeacherGate(){
+    if (isTeacherUnlocked()) return;
+
+    const pass = prompt("Teacher access only. Enter passcode:");
+    if (pass && pass === TEACHER_PASSCODE){
+      setTeacherUnlocked();
+      return;
+    }
+
+    // kick back to homepage if cancelled/wrong
+    alert("Access denied.");
+    window.location.href = "index.html";
+  })();
+</script>
+
 <header class="toolbar">
   <div class="toolbarInner">
     <div>
