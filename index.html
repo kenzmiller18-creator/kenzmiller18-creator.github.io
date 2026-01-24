@@ -303,7 +303,7 @@
     <a href="ionic-bonding.html">
       <h2>Ionic Bonding</h2>
       <p>Build ionic compounds and explore charge balance.</p>
-      <div class="icon"> 🧲 </div>
+      <div class="icon">🧲</div>
     </a>
   </div>
 
@@ -365,11 +365,11 @@
 
 <div class="teacher-only">
   <div class="card">
-    <a href="scan.html">
-      <h2>Attendance Scanner</h2>
-      <p>Click to access the attendance scanner. Teacher passcode required.</p>
-      <div class="icon">🏫🛎️</div>
-    </a>
+    <a id="teacherScanLink" href="scan.html">
+  <h2>Attendance Scanner</h2>
+  <p>Click to access the attendance scanner.</p>
+  <div class="icon">🏫🛎️</div>
+</a>
   </div>
 </div>
 
@@ -379,40 +379,45 @@
  • Created by Mackenzie Miller • 
 </footer>
 <script>
-  // ===== Teacher gate (lightweight, not true security) =====
-  const TEACHER_CODE = "MinutesMatter"; // <- change this
-  const LS_KEY = "teacher_unlocked_until";
+  // ===== Teacher Gate (index) =====
+  const TEACHER_GATE_KEY = "teacher_gate_unlocked_v1";
+  const TEACHER_PASSCODE = "MinutesMatter"; // <-- change this
 
-  function isUnlocked(){
-    const until = Number(localStorage.getItem(LS_KEY) || "0");
-    return Date.now() < until;
+  function isTeacherUnlocked(){
+    try { return localStorage.getItem(TEACHER_GATE_KEY) === "1"; }
+    catch { return false; }
   }
 
-  function unlockForHours(hours){
-    const ms = hours * 60 * 60 * 1000;
-    localStorage.setItem(LS_KEY, String(Date.now() + ms));
+  function setTeacherUnlocked(){
+    try { localStorage.setItem(TEACHER_GATE_KEY, "1"); } catch {}
   }
 
-  document.getElementById("teacherAccessLink").addEventListener("click", (e) => {
-    e.preventDefault();
-
-    if (isUnlocked()){
-      window.location.href = "scan.html";
-      return;
+  function promptTeacherPass(){
+    const pass = prompt("Teacher access only. Enter passcode:");
+    if (!pass) return false;
+    if (pass === TEACHER_PASSCODE){
+      setTeacherUnlocked();
+      return true;
     }
+    alert("Incorrect passcode.");
+    return false;
+  }
 
-    const entered = prompt("Teacher code required:");
-    if (!entered) return;
+  document.addEventListener("DOMContentLoaded", () => {
+    const link = document.getElementById("teacherScanLink");
+    if (!link) return;
 
-    if (entered.trim() === TEACHER_CODE){
-      // unlock for 12 hours (school day)
-      unlockForHours(12);
-      window.location.href = "scan.html";
-    } else {
-      alert("Incorrect code.");
-    }
+    link.addEventListener("click", (e) => {
+      // Always intercept and gate
+      if (isTeacherUnlocked()) return; // allow
+      e.preventDefault();
+      if (promptTeacherPass()){
+        window.location.href = link.getAttribute("href");
+      }
+    });
   });
 </script>
+
 
 </body>
 </html>
