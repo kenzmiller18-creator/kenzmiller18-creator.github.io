@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Weekly Minutes Tool</title>
+  <style>
+    :root{
+      --bg:#fbf3fb;
+      --card:#ffffff;
+      --ink:#2b1b2e;
+      --muted:#3e2c8f;
+      --line:#edd9ef;
+      --accent:#eea3ff;
+      --accent2:#ffa4f7;
+      --shadow: 0 10px 30px rgba(43,27,46,.10);
+      --r:18px;
+
+      --warnRow: rgba(239, 68, 68, .08);
+      --warnBorder: rgba(239, 68, 68, .35);
+      --warnInk: #991b1b;
+    }
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family: Georgia, "Times New Roman", Times, serif;
+      color:var(--ink);
+      background:
+        radial-gradient(1200px 700px at 15% -10%, rgba(235, 153, 255, 0.16), transparent 55%),
+        radial-gradient(900px 600px at 100% 0%, rgba(238, 152, 255, 0.14), transparent 60%),
+        radial-gradient(900px 650px at 50% 110%, rgba(238, 152, 255, 0.14), transparent 60%),
+        var(--bg);
+    }
+    header{
+      padding:18px 18px 10px;
+      border-bottom:1px solid var(--line);
+      background: rgba(251,243,251,.75);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+    h1{ margin:0; font-size:18px; }
+    .sub{ font-size:12px; color:var(--muted); margin-top:4px; }
+    .wrap{ max-width: 1100px; margin: 0 auto; padding: 16px 18px 40px; }
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius: var(--r);
+      box-shadow: var(--shadow);
+      padding:14px;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:14px;
+    }
+    @media (max-width: 980px){ .grid{ grid-template-columns:1fr; } }
+    label{
+      display:block;
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:6px;
+    }
+    input, select, button{
+      font: inherit;
+    }
+    input, select{
+      width:100%;
+      padding:10px 12px;
+      border:1px solid var(--line);
+      border-radius: 14px;
+      background:#fff;
+      outline:none;
+    }
+    input:focus, select:focus{
+      border-color: rgb(255, 180, 243);
+      box-shadow: 0 0 0 4px rgba(233, 123, 255, 0.14);
+    }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; }
+    .col{ flex:1 1 0; min-width: 0; }
+    .btn{
+      padding:10px 12px;
+      border-radius: 14px;
+      border:1px solid rgba(53, 34, 112, 0.1);
+      background:#fff;
+      cursor:pointer;
+    }
+    .btn.primary{
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      color:#fff;
+      border-color: transparent;
+    }
+    .btn.danger{
+      background: #fff;
+      border-color: rgba(239,68,68,.35);
+      color:#991b1b;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border-radius: 999px;
+      border:1px solid var(--line);
+      font-size:12px;
+      color:var(--muted);
+      background:#fff;
+    }
+    .dot{ width:8px; height:8px; border-radius:999px; background: var(--muted); }
+    .dot.ok{ background: #22c55e; }
+    .dot.warn{ background: #f59e0b; }
+    .dot.bad{ background: #ef4444; }
+
+    table{ width:100%; border-collapse: collapse; }
+    th, td{ border-bottom:1px solid var(--line); padding:9px 6px; text-align:left; }
+    th{ font-size:12px; color:var(--muted); font-weight:600; }
+    td{ font-size:14px; }
+
+    .hidden{ display:none !important; }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; }
+    .tiny{ font-size:12px; color:var(--muted); }
+    .log{
+      border:1px solid var(--line);
+      border-radius: 14px;
+      padding:10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+      background:#fff;
+      max-height: 180px;
+      overflow:auto;
+    }
+
+    /* Missing-email highlight */
+    tr.missing{
+      background: var(--warnRow);
+    }
+    .badge{
+      display:inline-block;
+      margin-left:8px;
+      padding:2px 8px;
+      border-radius:999px;
+      font-size:11px;
+      border:1px solid var(--warnBorder);
+      color: var(--warnInk);
+      background:#fff;
+      vertical-align:middle;
+      white-space:nowrap;
+    }
+
+    /* Chart preview grid */
+    .chartsGrid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap:12px;
+      margin-top:12px;
+    }
+    .chartCard{
+      border:1px solid var(--line);
+      border-radius: 16px;
+      padding:12px;
+      background:#fff;
+    }
+    .chartTitle{
+      font-weight:700;
+      letter-spacing:.2px;
+      margin-bottom:8px;
+      font-size:13px;
+    }
+    .pieWrap{
+      display:flex;
+      gap:12px;
+      align-items:center;
+    }
+    .pie{
+      width:88px;
+      height:88px;
+      border-radius:999px;
+      background: conic-gradient(#6aa84f 0 var(--g), #f6b26b var(--g) var(--o), #e06666 var(--o) 360deg);
+      border:1px solid rgba(0,0,0,.06);
+      box-shadow: 0 6px 18px rgba(0,0,0,.08);
+      flex: 0 0 auto;
+    }
+    .legend{
+      font-size:12px;
+      color:var(--muted);
+      line-height:1.35;
+    }
+    .legend b{ color:var(--ink); }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Weekly Minutes Tool</h1>
+  <div class="sub">Compute totals from <span class="mono">Tracker</span>, preview charts here, then send emails automatically.</div>
+</header>
+
+<div class="wrap">
+
+  <!-- Password Gate -->
+  <div class="card" id="gateCard">
+    <div class="row">
+      <div class="col" style="min-width:280px;">
+        <label>Teacher password</label>
+        <input id="pw" type="password" placeholder="Enter password…" />
+      </div>
+      <div class="col" style="min-width:220px;">
+        <button class="btn primary" id="unlockBtn">Unlock</button>
+        <div class="tiny" style="margin-top:8px;">This unlock is stored on this device.</div>
+      </div>
+      <div class="col" style="min-width:220px; display:flex; align-items:flex-end; justify-content:flex-end;">
+        <span class="pill"><span class="dot warn" id="gateDot"></span><span id="gateText">Locked</span></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main UI -->
+  <div class="grid hidden" id="mainGrid" style="margin-top:14px;">
+    <div class="card">
+      <div class="row">
+        <div class="col" style="min-width:220px;">
+          <label>Teacher (matches Tracker “Teacher”)</label>
+          <input id="teacher" placeholder="e.g., Thomas" />
+        </div>
+        <div class="col" style="min-width:220px;">
+          <label>Period filter</label>
+          <input id="period" placeholder="e.g., 2 or P2" />
+        </div>
+        <div class="col" style="min-width:220px;">
+          <label>Max points (required)</label>
+          <input id="maxPoints" type="number" min="1" value="300" />
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:10px;">
+        <div class="col" style="min-width:220px;">
+          <label>Start date</label>
+          <input id="start" type="date" />
+        </div>
+        <div class="col" style="min-width:220px;">
+          <label>End date</label>
+          <input id="end" type="date" />
+        </div>
+        <div class="col" style="min-width:220px;">
+          <label>Specific student (optional)</label>
+          <input id="student" placeholder="Exact student name" />
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:12px; justify-content:space-between; align-items:center;">
+        <div class="row">
+          <button class="btn primary" id="computeBtn">Compute + Preview</button>
+          <button class="btn danger" id="sendBtn">Send Weekly Emails</button>
+        </div>
+        <div class="row">
+          <span class="pill"><span class="dot warn" id="statusDot"></span><span id="statusText">Ready</span></span>
+        </div>
+      </div>
+
+      <div class="tiny" style="margin-top:10px;">
+        “Send Weekly Emails” will email each student’s chart to the addresses in <span class="mono">Contact Info</span> (Parent + Student).
+      </div>
+
+      <div style="margin-top:12px;">
+        <details>
+          <summary class="tiny">Show technical log</summary>
+          <div class="log" id="log" style="margin-top:10px;"></div>
+        </details>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row" style="justify-content:space-between; align-items:center;">
+        <b>Results</b>
+        <span class="tiny" id="meta">—</span>
+      </div>
+
+      <div style="overflow:auto; margin-top:10px;">
+        <table>
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th class="mono" style="text-align:right;">Total</th>
+              <th class="mono" style="text-align:right;">Non-instr.</th>
+              <th class="mono" style="text-align:right;">Instr.</th>
+              <th class="mono" style="text-align:right;">Remaining</th>
+            </tr>
+          </thead>
+          <tbody id="rows">
+            <tr><td class="tiny" colspan="5">No data yet.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="divider" style="height:1px; background: var(--line); margin: 12px 0;"></div>
+
+      <b style="font-size:13px;">Chart Preview</b>
+      <div class="chartsGrid" id="chartsGrid">
+        <div class="tiny">Run “Compute + Preview” to see charts.</div>
+      </div>
+
+      <div class="row" style="margin-top:12px;">
+        <button class="btn" id="lockBtn">Lock</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz0THvuLKajoz_x0LrNsBLWEe_v3RZVYYighOqyJqPdX2ytZUnsZBqwGH-HRab9StcsZg/exec";
+  const LS = { unlocked: "weekly_unlocked_v1", pass: "weekly_pass_v1" };
+
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+  // Keep track of missing-email names so we can highlight in the table
+  let __missingSet = new Set();
+
+  function normalizeNameKey(s){
+    return String(s || "").trim().replace(/\s+/g, " ").toLowerCase();
+  }
+
+  function setStatus(text, state){
+    $("statusText").textContent = text;
+    $("statusDot").className = "dot " + (state || "warn");
+  }
+  function logLine(s){
+    const el = $("log");
+    const t = new Date().toLocaleTimeString();
+    el.innerHTML = `${esc(`[${t}] ${s}`)}<br>` + el.innerHTML;
+  }
+
+  // JSONP call (avoids CORS)
+  function callApi(action, params){
+    return new Promise((resolve, reject) => {
+      const cb = "cb_" + Math.random().toString(16).slice(2);
+      const timeout = setTimeout(() => {
+        cleanup();
+        reject(new Error("Request timed out"));
+      }, 45000);
+
+      function cleanup(){
+        clearTimeout(timeout);
+        delete window[cb];
+        script.remove();
+      }
+
+      window[cb] = (data) => {
+        cleanup();
+        resolve(data);
+      };
+
+      const qs = new URLSearchParams({
+        action,
+        callback: cb,
+        ...params
+      });
+
+      const script = document.createElement("script");
+      script.src = SCRIPT_URL + "?" + qs.toString();
+      script.onerror = () => {
+        cleanup();
+        reject(new Error("Network error"));
+      };
+      document.body.appendChild(script);
+    });
+  }
+
+  function getPass(){
+    return ($("pw").value.trim() || localStorage.getItem(LS.pass) || "").trim();
+  }
+
+  function getFilters(){
+    return {
+      teacher: $("teacher").value.trim(),
+      period: $("period").value.trim(),
+      start: $("start").value,
+      end: $("end").value,
+      maxPoints: $("maxPoints").value,
+      student: $("student").value.trim(),
+      pass: getPass()
+    };
+  }
+
+  function renderRows(rows){
+    const body = $("rows");
+    if (!rows || !rows.length){
+      body.innerHTML = `<tr><td class="tiny" colspan="5">No results.</td></tr>`;
+      $("meta").textContent = "0 students";
+      return;
+    }
+
+    $("meta").textContent = `${rows.length} students`;
+
+    body.innerHTML = rows.map(r => {
+      const rem = (r.remaining == null) ? "—" : String(r.remaining);
+      const isMissing = __missingSet.has(normalizeNameKey(r.name));
+      return `
+        <tr class="${isMissing ? "missing" : ""}">
+          <td>
+            ${esc(r.name)}
+            ${isMissing ? `<span class="badge">Missing email</span>` : ``}
+          </td>
+          <td class="mono" style="text-align:right;">${esc(r.totalPoints)}</td>
+          <td class="mono" style="text-align:right;">${esc(r.nonInstructional)}</td>
+          <td class="mono" style="text-align:right;">${esc(r.instructional)}</td>
+          <td class="mono" style="text-align:right;">${esc(rem)}</td>
+        </tr>
+      `;
+    }).join("");
+  }
+
+  function pctToDeg(p){ return Math.max(0, Math.min(360, p * 360)); }
+
+  function renderCharts(rows, maxPoints){
+    const grid = $("chartsGrid");
+    if (!rows || !rows.length){
+      grid.innerHTML = `<div class="tiny">No charts to show.</div>`;
+      return;
+    }
+
+    grid.innerHTML = rows.map(r => {
+      const total = Number(r.totalPoints) || 0;
+      const non = Math.max(0, Number(r.nonInstructional) || 0);
+      const instr = Math.max(0, Number(r.instructional) || 0);
+      const rem = (maxPoints != null) ? Math.max(0, Number(maxPoints) - total) : Math.max(0, Number(r.remaining) || 0);
+
+      const sum = Math.max(1, instr + non + rem);
+      const g = (instr / sum);
+      const o = ((instr + non) / sum);
+
+      const gDeg = pctToDeg(g);
+      const oDeg = pctToDeg(o);
+
+      return `
+        <div class="chartCard">
+          <div class="chartTitle">${esc(r.name)} <span class="tiny">(${Math.round(total)}/${esc(maxPoints ?? "—")})</span></div>
+          <div class="pieWrap">
+            <div class="pie" style="--g:${gDeg}deg; --o:${oDeg}deg;"></div>
+            <div class="legend">
+              <div><b>Green</b>: Instructional gained</div>
+              <div><b>Orange</b>: Non-instructional</div>
+              <div><b>Red</b>: Remaining / lost</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  async function ping(){
+    const pass = $("pw").value.trim();
+    const resp = await callApi("ping", { pass });
+    return resp && resp.ok;
+  }
+
+  function lock(){
+    localStorage.removeItem(LS.unlocked);
+    localStorage.removeItem(LS.pass);
+    $("mainGrid").classList.add("hidden");
+    $("gateCard").classList.remove("hidden");
+    $("gateText").textContent = "Locked";
+    $("gateDot").className = "dot warn";
+  }
+
+  async function unlock(){
+    try{
+      $("gateText").textContent = "Checking…";
+      $("gateDot").className = "dot warn";
+
+      const ok = await ping();
+      if (!ok) throw new Error("Bad password");
+
+      localStorage.setItem(LS.pass, $("pw").value.trim());
+      localStorage.setItem(LS.unlocked, "1");
+
+      $("gateCard").classList.add("hidden");
+      $("mainGrid").classList.remove("hidden");
+      $("gateText").textContent = "Unlocked";
+      $("gateDot").className = "dot ok";
+      setStatus("Ready", "ok");
+    }catch(e){
+      $("gateText").textContent = "Locked (wrong password)";
+      $("gateDot").className = "dot bad";
+    }
+  }
+
+  let __lastRows = null;
+  let __lastMax = null;
+
+  async function compute(){
+    try{
+      setStatus("Computing…", "warn");
+      const f = getFilters();
+      logLine(`compute: teacher="${f.teacher}", period="${f.period}", ${f.start}→${f.end}`);
+
+      const resp = await callApi("compute", f);
+      if (!resp.ok) throw new Error(resp.error || "Compute failed");
+
+      // Clear missing markers on fresh compute
+      __missingSet = new Set();
+
+      __lastRows = resp.rows || [];
+      __lastMax = resp.meta ? resp.meta.maxPoints : null;
+
+      renderRows(__lastRows);
+      renderCharts(__lastRows, __lastMax);
+
+      setStatus("Computed ✓", "ok");
+    }catch(e){
+      setStatus("Error", "bad");
+      logLine("ERROR: " + e.message);
+      alert(e.message);
+    }
+  }
+
+  async function sendEmails(){
+    try{
+      if (!confirm("Send weekly emails now? This will email every student in the computed list.")) return;
+
+      setStatus("Sending emails…", "warn");
+      const f = getFilters();
+      logLine("sendEmails…");
+
+      const resp = await callApi("sendEmails", f);
+      if (!resp.ok) throw new Error(resp.error || "Send failed");
+
+      // ✅ Capture missing student names and highlight them
+      const missingArr = Array.isArray(resp.missingStudents) ? resp.missingStudents : [];
+      __missingSet = new Set(missingArr.map(normalizeNameKey));
+
+      // Re-render to apply highlights (use last computed rows if present)
+      if (__lastRows) renderRows(__lastRows);
+
+      setStatus(`Emails sent ✓ (${resp.sent} sent, ${resp.missing} missing)`, "ok");
+      logLine(`Emails sent: ${resp.sent} | missing: ${resp.missing}`);
+
+      const msg =
+        missingArr.length
+          ? `Done!\nSent: ${resp.sent}\nMissing emails: ${resp.missing}\n\nMissing:\n- ${missingArr.join("\n- ")}`
+          : `Done!\nSent: ${resp.sent}\nMissing emails: ${resp.missing}`;
+
+      alert(msg);
+    }catch(e){
+      setStatus("Error", "bad");
+      logLine("ERROR: " + e.message);
+      alert(e.message);
+    }
+  }
+
+  $("unlockBtn").addEventListener("click", unlock);
+  $("lockBtn").addEventListener("click", lock);
+
+  $("computeBtn").addEventListener("click", compute);
+  $("sendBtn").addEventListener("click", sendEmails);
+
+  (function init(){
+    if (localStorage.getItem(LS.unlocked) === "1" && localStorage.getItem(LS.pass)){
+      $("gateCard").classList.add("hidden");
+      $("mainGrid").classList.remove("hidden");
+      setStatus("Ready", "ok");
+    } else {
+      lock();
+    }
+
+    // default date range = last 7 days
+    const now = new Date();
+    const end = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const start = new Date(end.getTime() - 6*24*60*60*1000);
+    $("end").value = end.toISOString().slice(0,10);
+    $("start").value = start.toISOString().slice(0,10);
+  })();
+</script>
+</body>
+</html>
