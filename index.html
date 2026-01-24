@@ -254,6 +254,31 @@
         border-radius: 26px;
       }
     }
+    /* ===== Teacher Section Divider ===== */
+.teacher-divider {
+  grid-column: 1 / -1;
+  margin: 12px 0 4px;
+  padding-top: 18px;
+  border-top: 3px dotted var(--purple);
+  text-align: center;
+  position: relative;
+}
+
+.teacher-divider span {
+  display: inline-block;
+  background: #fff;
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: var(--deep-purple);
+  border: 2px solid var(--purple);
+}
+.teacher-only {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: center;
+}
   </style>
 </head>
 
@@ -334,12 +359,60 @@
       <div class="icon">🧪🫧🔥</div>
     </a>
   </div>
+<div class="teacher-divider">
+  <span>Teacher Tools</span>
+</div>
+
+<div class="teacher-only">
+  <div class="card">
+    <a href="scan.html">
+      <h2>Attendance Scanner</h2>
+      <p>Click to access the attendance scanner. Teacher passcode required.</p>
+      <div class="icon">🏫🛎️</div>
+    </a>
+  </div>
+</div>
 
 </main>
 
 <footer>
  • Created by Mackenzie Miller • 
 </footer>
+<script>
+  // ===== Teacher gate (lightweight, not true security) =====
+  const TEACHER_CODE = "MinutesMatter"; // <- change this
+  const LS_KEY = "teacher_unlocked_until";
+
+  function isUnlocked(){
+    const until = Number(localStorage.getItem(LS_KEY) || "0");
+    return Date.now() < until;
+  }
+
+  function unlockForHours(hours){
+    const ms = hours * 60 * 60 * 1000;
+    localStorage.setItem(LS_KEY, String(Date.now() + ms));
+  }
+
+  document.getElementById("teacherAccessLink").addEventListener("click", (e) => {
+    e.preventDefault();
+
+    if (isUnlocked()){
+      window.location.href = "scan.html";
+      return;
+    }
+
+    const entered = prompt("Teacher code required:");
+    if (!entered) return;
+
+    if (entered.trim() === TEACHER_CODE){
+      // unlock for 12 hours (school day)
+      unlockForHours(12);
+      window.location.href = "scan.html";
+    } else {
+      alert("Incorrect code.");
+    }
+  });
+</script>
 
 </body>
 </html>
