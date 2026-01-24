@@ -51,8 +51,6 @@
       grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
       gap: 28px;
     }
-    
-
 
     .card {
       background: var(--card-bg);
@@ -93,149 +91,102 @@
       color: inherit;
       display: block;
     }
+
     /* ===== STOICHIOMETRY ROADMAP ICON ===== */
     .stoich-card {
-  grid-column: 1 / -1;   
-  max-width: 520px;     
-  justify-self: center;  
+      grid-column: 1 / -1;
+      max-width: 520px;
+      justify-self: center;
+    }
 
-}
+    .roadmap-icon {
+      position: relative;
+      width: 160px;
+      height: 90px;
+      margin: 10px auto 0;
+    }
 
-.roadmap-icon {
-  position: relative;
-  width: 160px;
-  height: 90px;
-  margin: 10px auto 0;
-}
+    .roadmap-node {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 3px solid var(--deep-purple);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: bold;
+      color: var(--deep-purple);
+      z-index: 1;
+    }
 
-.roadmap-node {
-  position: absolute;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  
-  border: 3px solid var(--deep-purple);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.75rem;
-  font-weight: bold;
-  color: var(--deep-purple);
-  z-index: 1;
-}
+    .node-g-left { top: 0; left: 10px; background: #e6ffc6; }
+    .node-m-left { top: 0; left: 60px; background: #fec6ff; }
+    .node-m-right { bottom: 0; right: 60px; background: #fec6ff; }
+    .node-g-right { bottom: 0; right: 10px; background: #e6ffc6; }
 
-/* Top row (reactant) */
-.node-g-left {
-  top: 0;
-  left: 10px;
-  background: #e6ffc6;
-}
-.node-m-left {
-  top: 0;
-  left: 60px;
-  background: #fec6ff;
-}
+    .roadmap-line { position: absolute; background: var(--purple); z-index: 0; }
+    .line-top { height: 4px; width: 18px; top: 14px; left: 42px; }
+    .line-bottom { height: 4px; width: 18px; bottom: 14px; right: 42px; }
+    .line-left { width: 4px; height: 28px; top: 32px; left: 76px; }
+    .line-right { width: 4px; height: 28px; top: 32px; right: 76px; }
 
-/* Bottom row (product) */
-.node-m-right {
-  bottom: 0;
-  right: 60px;
-  background: #fec6ff;
-}
-.node-g-right {
-  bottom: 0;
-  right: 10px;
-  background: #e6ffc6;
-}
+    /* ===== WATER MOLECULE ICON ===== */
+    .water-icon {
+      position: relative;
+      width: 140px;
+      height: 90px;
+      margin: 10px auto 0;
+    }
 
-/* Mole ratio */
-.node-ratio {
-  top: 28px;
-  left: 64px;
-  width: 34px;
-  height: 34px;
-  background: #fff;
-}
+    .atom { position: absolute; border-radius: 50%; }
+    .atom.oxygen {
+      width: 60px;
+      height: 60px;
+      background: #f6c6ff;
+      border: 4px solid #d7a3f0;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .atom.hydrogen {
+      width: 48px;
+      height: 48px;
+      background: #d6efff;
+      border: 4px solid #9fd6f5;
+      bottom: 0;
+    }
+    .atom.h1 { left: 0; }
+    .atom.h2 { right: 0; }
 
-/* Lines */
-.roadmap-line {
-  position: absolute;
-  background: var(--purple);
-  z-index: 0;
-}
+    /* ===== Teacher Section Divider ===== */
+    .teacher-divider {
+      grid-column: 1 / -1;
+      margin: 12px 0 4px;
+      padding-top: 18px;
+      border-top: 3px dotted var(--purple);
+      text-align: center;
+      position: relative;
+    }
 
-/* Horizontal */
-.line-top {
-  height: 4px;
-  width: 18px;
-  top: 14px;
-  left: 42px;
-  z-index: 0;
-}
+    .teacher-divider span {
+      display: inline-block;
+      background: #fff;
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      font-style: italic;
+      color: var(--deep-purple);
+      border: 2px solid var(--purple);
+    }
 
-.line-bottom {
-  height: 4px;
-  width: 18px;
-  bottom: 14px;
-  right: 42px;
-  z-index: 0;
-}
-
-/* Vertical */
-.line-left {
-  width: 4px;
-  height: 28px;
-  top: 32px;
-  left: 76px;
-  z-index: 0;
-}
-
-.line-right {
-  width: 4px;
-  height: 28px;
-  top: 32px;
-  right: 76px;
-  z-index: 0;
-}
-
-/* ===== WATER MOLECULE ICON ===== */
-.water-icon {
-  position: relative;
-  width: 140px;
-  height: 90px;
-  margin: 10px auto 0;
-}
-
-.atom {
-  position: absolute;
-  border-radius: 50%;
-}
-
-.atom.oxygen {
-  width: 60px;
-  height: 60px;
-  background: #f6c6ff;
-  border: 4px solid #d7a3f0;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.atom.hydrogen {
-  width: 48px;
-  height: 48px;
-  background: #d6efff;
-  border: 4px solid #9fd6f5;
-  bottom: 0;
-}
-
-.atom.h1 {
-  left: 0;
-}
-
-.atom.h2 {
-  right: 0;
-}
+    /* ✅ Teacher cards: same style, but centered nicely in grid */
+    .teacher-card {
+      justify-self: center;   /* centers within the grid cell */
+      width: 80%;
+           
+    }
 
     /* ===== FOOTER ===== */
     footer {
@@ -247,38 +198,9 @@
 
     /* ===== MOBILE TWEAKS ===== */
     @media (max-width: 500px) {
-      header h1 {
-        font-size: 2.2rem;
-      }
-      .card {
-        border-radius: 26px;
-      }
+      header h1 { font-size: 2.2rem; }
+      .card { border-radius: 26px; }
     }
-    /* ===== Teacher Section Divider ===== */
-.teacher-divider {
-  grid-column: 1 / -1;
-  margin: 12px 0 4px;
-  padding-top: 18px;
-  border-top: 3px dotted var(--purple);
-  text-align: center;
-  position: relative;
-}
-
-.teacher-divider span {
-  display: inline-block;
-  background: #fff;
-  padding: 6px 16px;
-  border-radius: 999px;
-  font-size: 0.9rem;
-  font-style: italic;
-  color: var(--deep-purple);
-  border: 2px solid var(--purple);
-}
-.teacher-only {
-  grid-column: 1 / -1;
-  display: flex;
-  justify-content: center;
-}
   </style>
 </head>
 
@@ -314,8 +236,8 @@
       <div class="water-icon">
         <div class="atom oxygen"></div>
         <div class="atom hydrogen h1"></div>
-      <div class="atom hydrogen h2"></div>
-</div>
+        <div class="atom hydrogen h2"></div>
+      </div>
     </a>
   </div>
 
@@ -326,58 +248,59 @@
       <div class="icon">⚖️</div>
     </a>
   </div>
-    <div class="card">
+
+  <div class="card">
     <a href="stoichiometry-roadmap.html">
       <h2>Stoichiometry</h2>
       <p>Visualize and practice dimensional analysis by building correct unit-conversion pathways.</p>
       <div class="roadmap-icon">
-        <!-- Reactant -->
         <div class="roadmap-node node-g-left"></div>
         <div class="roadmap-node node-m-left"></div>
-
-        <!-- Ratio -->
-        
-
-        <!-- Product -->
         <div class="roadmap-node node-m-right"></div>
         <div class="roadmap-node node-g-right"></div>
-
-        <!-- Lines -->
         <div class="roadmap-line line-top"></div>
         <div class="roadmap-line line-bottom"></div>
         <div class="roadmap-line line-left"></div>
         <div class="roadmap-line line-right"></div>
       </div>
-
     </a>
   </div>
 
-    <div class="card">
+  <div class="card">
     <a href="reaction.html">
       <h2>Virtual Reactivity Lab</h2>
       <p>Explore periodic trends and predict reactivity by performing water and flame tests.</p>
       <div class="icon">🧪🫧🔥</div>
     </a>
   </div>
-<div class="teacher-divider">
-  <span>Teacher Tools</span>
-</div>
 
-<div class="teacher-only">
-  <div class="card">
-    <a id="teacherScanLink" href="scan.html">
-  <h2>Attendance Scanner</h2>
-  <p>Click to access the attendance scanner.</p>
-  <div class="icon">🏫🛎️</div>
-</a>
+  <div class="teacher-divider">
+    <span>Teacher Tools</span>
   </div>
-</div>
+
+  <!-- ✅ Teacher cards now live in the SAME grid -->
+  <div class="card teacher-card">
+    <a id="teacherScanLink" href="scan.html">
+      <h2>Attendance Scanner</h2>
+      <p>Click to access the attendance scanner.</p>
+      <div class="icon">🏫🛎️</div>
+    </a>
+  </div>
+
+  <div class="card teacher-card">
+    <a id="teacherWeeklyLink" href="weekly.html">
+      <h2>Attendance Filter</h2>
+      <p>Click to access the attendance filter.</p>
+      <div class="icon">📊📝</div>
+    </a>
+  </div>
 
 </main>
 
 <footer>
  • Created by Mackenzie Miller • 
 </footer>
+
 <script>
   // ===== Teacher Gate (index) =====
   const TEACHER_GATE_KEY = "teacher_gate_unlocked_v1";
@@ -404,20 +327,21 @@
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-    const link = document.getElementById("teacherScanLink");
-    if (!link) return;
+    const scan = document.getElementById("teacherScanLink");
+    const weekly = document.getElementById("teacherWeeklyLink");
 
-    link.addEventListener("click", (e) => {
-      // Always intercept and gate
-      if (isTeacherUnlocked()) return; // allow
-      e.preventDefault();
-      if (promptTeacherPass()){
-        window.location.href = link.getAttribute("href");
-      }
+    [scan, weekly].forEach(link => {
+      if (!link) return;
+      link.addEventListener("click", (e) => {
+        if (isTeacherUnlocked()) return;
+        e.preventDefault();
+        if (promptTeacherPass()){
+          window.location.href = link.getAttribute("href");
+        }
+      });
     });
   });
 </script>
-
 
 </body>
 </html>
