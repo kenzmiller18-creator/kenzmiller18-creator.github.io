@@ -1,0 +1,1646 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Attendance Scanner</title>
+  <style>
+    :root{
+  --bg:#fbf3fb;
+  --card:#ffffff;
+  --ink:#2b1b2e;
+  --muted:#3e2c8f;
+  --line:#edd9ef;
+
+  --accent:#eea3ff;      /* purple */
+  --accent2:#ffa4f7;     /* pink */
+  --warn:#f59e0b;
+  --bad:#ef4444;
+
+  --shadow: 0 10px 30px rgba(43,27,46,.10);
+  --r:18px;
+}
+*, *::before, *::after { box-sizing: border-box; }
+body{
+  margin:0;
+  font-family: Georgia, "Times New Roman", Times, serif;
+  color:var(--ink);
+  background:
+    radial-gradient(1200px 700px at 15% -10%, rgba(235, 153, 255, 0.16), transparent 55%),
+    radial-gradient(900px 600px at 100% 0%, rgba(238, 152, 255, 0.14), transparent 60%),
+    radial-gradient(900px 650px at 50% 110%, rgba(238, 152, 255, 0.14), transparent 60%),
+    var(--bg);
+}
+
+    header{
+      padding:18px 18px 10px;
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:12px;
+    }
+    h1{
+      margin:0;
+      font-size:18px;
+      letter-spacing:.2px;
+    }
+    .sub{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:4px;
+    }
+    .wrap{
+      padding: 0 18px 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap:14px;
+    }
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius: var(--r);
+      box-shadow: var(--shadow);
+      padding:14px;
+    }
+    /* ===== Mode theming (glaring) ===== */
+:root{
+  --modeBarBg: transparent;
+  --modeBarBorder: var(--line);
+  --modeBarText: var(--ink);
+}
+
+/* top warning banner */
+.modeBanner{
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 2px solid var(--modeBarBorder);
+  background: var(--modeBarBg);
+  color: var(--modeBarText);
+  font-weight: 700;
+  letter-spacing: .3px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.modeBanner small{
+  font-weight: 600;
+  letter-spacing: 0;
+  opacity:.85;
+}
+.modeBanner .modePill{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:6px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.7);
+  border:1px solid rgba(0,0,0,.08);
+  font-size:12px;
+}
+.modeBanner .modeDot{
+  width:10px; height:10px; border-radius:999px;
+  background: currentColor;
+  opacity:.9;
+}
+
+/* WHOLE PAGE tint per mode */
+body.mode-normal { filter:none; }
+body.mode-leaveReturn{
+  background:
+    radial-gradient(1200px 700px at 15% -10%, rgba(245,158,11,.22), transparent 55%),
+    radial-gradient(900px 600px at 100% 0%, rgba(245,158,11,.16), transparent 60%),
+    var(--bg);
+}
+body.mode-adjusted{
+  background:
+    radial-gradient(1200px 700px at 15% -10%, rgba(239,68,68,.22), transparent 55%),
+    radial-gradient(900px 600px at 100% 0%, rgba(239,68,68,.16), transparent 60%),
+    var(--bg);
+}
+
+/* Banner colors */
+body.mode-normal{
+  --modeBarBg: rgba(226, 147, 242, 0.1);
+  --modeBarBorder: rgba(206, 148, 217, 0.35);
+  --modeBarText: var(--ink);
+}
+body.mode-leaveReturn{
+  --modeBarBg: rgba(245,158,11,.18);
+  --modeBarBorder: rgba(245,158,11,.65);
+  --modeBarText: #7a4b00;
+}
+body.mode-adjusted{
+  --modeBarBg: rgba(239,68,68,.16);
+  --modeBarBorder: rgba(239,68,68,.75);
+  --modeBarText: #7f1d1d;
+}
+
+/* Make scan box border match mode */
+body.mode-leaveReturn .scanInput{ border-color: rgba(245,158,11,.75); }
+body.mode-adjusted .scanInput{ border-color: rgba(239,68,68,.75); }
+
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; min-width: 0;}
+    .col{ flex:1 1 0; min-width: 0; }
+    label{
+      display:block;
+      font-size:12px;
+      color:var(--muted);
+      margin-bottom:6px;
+    }
+    input, select, textarea, button{
+      font: inherit;
+    }
+    input, select, textarea{
+      width:100%;
+      padding:10px 12px;
+      border:1px solid var(--line);
+      border-radius: 14px;
+      background:#fff;
+      outline:none;
+    }
+    input:focus, select:focus, textarea:focus{
+  border-color: rgb(255, 180, 243);
+  box-shadow: 0 0 0 4px rgba(233, 123, 255, 0.14);
+}
+    .btn{
+      padding:10px 12px;
+      border-radius: 14px;
+      border:1px solid rgba(53, 34, 112, 0.1);
+      background:#fff;
+      cursor:pointer;
+    }
+    .btn.primary{
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  color:#fff;
+  border-color: transparent;
+}
+    .btn.ghost{
+      background: transparent;
+      border-color: var(--line);
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border-radius: 999px;
+      border:1px solid var(--line);
+      font-size:12px;
+      color:var(--muted);
+      background:#fff;
+    }
+    .dot{
+      width:8px; height:8px; border-radius:999px; background:var(--muted);
+    }
+    .dot.ok{ background: var(--accent2); }
+    .dot.warn{ background: var(--warn); }
+    .dot.bad{ background: var(--bad); }
+
+    .scanBox{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:10px;
+    }
+    .scanInput{
+  font-size: 18px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+  padding: 16px 14px;
+  border-radius: 18px;
+  border:2px solid rgba(250, 159, 255, 0.4);
+  background: #fff9ff;
+  box-sizing: border-box;
+}
+.scanInput:focus{
+  border-color: rgb(255, 165, 229);
+  box-shadow: 0 0 0 6px rgba(226,85,147,.14);
+}
+    .bigStatus{
+  border:1px solid var(--line);
+  background: linear-gradient(180deg, rgba(180,85,198,.10), rgba(226,85,147,.06));
+}
+    .bigStatus .left{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .bigStatus .title{
+      font-weight:700;
+      letter-spacing:.3px;
+    }
+    .bigStatus .meta{
+      font-size:12px;
+      color:var(--muted);
+    }
+    .bigStatus .right{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      font-size:12px;
+      color:var(--muted);
+    }
+    .help{
+      border:1px dashed rgba(245,158,11,.55);
+      background: rgba(245,158,11,.08);
+      padding:10px 12px;
+      border-radius: 16px;
+      display:none;
+    }
+    .help.show{ display:block; }
+    .help strong{ color: #92400e; }
+    .help ul{ margin:8px 0 0 18px; color:#92400e; font-size:13px; }
+    .muted{ color:var(--muted); }
+    .tiny{ font-size:12px; color:var(--muted); }
+
+    .sectionTitle{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .sectionTitle h2{
+      margin:0;
+      font-size:14px;
+    }
+
+    table{ width:100%; border-collapse: collapse; }
+    th, td{ border-bottom:1px solid var(--line); padding:9px 6px; text-align:left; }
+    th{ font-size:12px; color:var(--muted); font-weight:600; }
+    td{ font-size:14px; }
+    .tag{
+      display:inline-block;
+      padding:2px 10px;
+      border:1px solid var(--line);
+      border-radius: 999px;
+      font-size:12px;
+      color:var(--muted);
+      background:#fff;
+    }
+    .tag.tardy{ border-color: rgba(239,68,68,.35); background: rgba(239,68,68,.06); color:#991b1b; }
+    .tag.ontime{ border-color: rgba(34,197,94,.35); background: rgba(34,197,94,.06); color:#166534; }
+
+    details summary{
+      cursor:pointer;
+      user-select:none;
+      color:var(--muted);
+      font-weight:600;
+    }
+    details[open] summary{ color: var(--ink); }
+    .divider{ height:1px; background: var(--line); margin: 12px 0; }
+
+    .log{
+      max-height: 180px;
+      overflow:auto;
+      border:1px solid var(--line);
+      border-radius: 14px;
+      padding:10px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+      background:#fff;
+    }
+
+    .hidden{ display:none !important; }
+.toolbar{
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  backdrop-filter: blur(10px);
+  background: rgba(251,243,251,.75);
+  border-bottom: 1px solid var(--line);
+}
+.toolbarInner{
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 10px 18px;
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:12px;
+}
+.toolbar h1{ margin:0; font-size:18px; letter-spacing:.2px; }
+
+  </style>
+</head>
+<body>
+<header class="toolbar">
+  <div class="toolbarInner">
+    <div>
+      <h1>Attendance Scanner</h1>
+      <div class="sub">Click the scan box, scan QR codes. No tabs. Roster updates live.</div>
+    </div>
+
+    <div class="row" style="justify-content:flex-end;">
+      <span class="pill" id="pillStatus"><span class="dot warn" id="statusDot"></span><span id="statusText">Ready</span></span>
+      <span class="pill"><span class="dot ok"></span><span class="mono" id="detectedPeriodPill">Period: —</span></span>
+    </div>
+  </div>
+</header>
+
+
+<div class="wrap">
+  <div class="grid">
+
+    <!-- LEFT: SCAN + ACTIONS -->
+    <div class="card">
+      <div class="row">
+  <div class="col">
+    <label>Teacher name</label>
+<select id="teacherName">
+  <option value="">Select your name…</option>
+</select>
+
+<input id="teacherNameOther" class="hidden" placeholder="Type your name" />
+
+  </div>
+
+  <div class="col" style="min-width:220px;">
+    <label>Mode</label>
+    <select id="mode">
+      <option value="tardy">Normal attendance</option>
+      <option value="leaveReturn">Leave / Return / Pass</option>
+      <option value="adjusted">Adjusted</option>
+    </select>
+  </div>
+
+  <div class="col">
+    <label>Override period (optional)</label>
+    <input id="overridePeriod" placeholder="e.g., 1 or P1 or II" />
+  </div>
+</div>
+<div class="modeBanner" id="modeBanner">
+  <div>
+    <span class="modePill"><span class="modeDot" id="modeDot"></span><span id="modeBannerTitle">NORMAL ATTENDANCE</span></span>
+    <small id="modeBannerHint">Standard scanning</small>
+  </div>
+  <button class="btn ghost" id="modeResetBtn" type="button">Return to Normal</button>
+</div>
+
+
+      <div class="divider"></div>
+
+      <div class="scanBox">
+        <div class="bigStatus" id="bigStatus">
+          <div class="left">
+            <div class="title" id="bigTitle">READY TO SCAN</div>
+            <div class="meta" id="bigMeta">Click the scan box below. Then scan a student QR.</div>
+          </div>
+          <div class="right">
+            <span class="tag" id="lastScanTag">Last: —</span>
+          </div>
+        </div>
+
+        <input id="scanInput" class="scanInput" placeholder="CLICK HERE, THEN SCAN…" autocomplete="off" autocapitalize="off" spellcheck="false" />
+        <input id="idleSubmitMs" type="number" value="0" class="hidden" />
+
+        <div class="help" id="helpBox">
+          <strong>Not scanning?</strong>
+          <ul>
+            <li>Make sure the scanner is plugged in (USB fully seated).</li>
+            <li>Click the scan box so the cursor is blinking.</li>
+            <li>Try scanning any QR — does text appear in the box?</li>
+            <li>If the scanner is wireless: check battery / receiver dongle.</li>
+          </ul>
+          <div class="tiny" style="margin-top:8px;">
+            Still stuck? Click <b>Focus Scan Box</b> and try again.
+          </div>
+        </div>
+
+        <div class="row" style="justify-content:space-between; align-items:center;">
+  <button class="btn primary" id="focusBtn">Focus Scan Box</button>
+</div>
+
+
+
+        <div class="tiny muted" id="counts">0 attempted</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Teacher-friendly action sections -->
+      <!-- Teacher-friendly action sections (contextual) -->
+<div class="row">
+  <div class="col hidden" id="leaveReturnPanel">
+    <div class="sectionTitle">
+      <h2>Leave / Return / Pass</h2>
+      <span class="tag">Only when selected</span>
+    </div>
+
+    <div class="row">
+      <div class="col" style="min-width:200px;">
+        <label>Type</label>
+        <select id="lrSuffix">
+          <option value="LEAVE">LEAVE</option>
+          <option value="RETURN">RETURN</option>
+          <option value="PASS">PASS</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="tiny muted" style="margin-top:6px;">
+      Switch Mode back to “Normal attendance” when done.
+    </div>
+  </div>
+
+  <div class="col hidden" id="adjustedPanel">
+    <div class="sectionTitle">
+      <h2>Adjusted</h2>
+      <span class="tag">Only when selected</span>
+    </div>
+
+    <label>Suffix</label>
+<select id="adjustedSuffix">
+  <option value="">Select a reason…</option>
+
+  <!-- Instructional Time GAINED -->
+  <option value="Tardy_with_a_Pass">Tardy_with_a_Pass</option>
+  <option value="Tutoring">Tutoring</option>
+  <option value="Teacher_Error">Teacher_Error</option>
+  <option value="Extra_Credit">Extra_Credit</option>
+  <option value="Sub_Work">Sub_Work</option>
+
+  <!-- Instructional Time LOST -->
+  <option value="Unprepared">Unprepared</option>
+  <option value="Off_Task">Off_Task</option>
+  <option value="Cut_Class">Cut_Class</option>
+  <option value="Absent_All_Week">Absent_All_Week</option>
+  <option value="Walked_Out">Walked_Out</option>
+
+  <!-- Non-Instructional Time -->
+  <option value="Excused_Absence">Excused_Absence</option>
+  <option value="School_Function">School_Function</option>
+  <option value="With_Staff">With_Staff</option>
+  <option value="Early_Dismissal">Early_Dismissal</option>
+  <option value="Called_Out">Called_Out</option>
+</select>
+
+    <div class="tiny muted" style="margin-top:6px;">
+      Switch Mode back to “Normal attendance” when done.
+    </div>
+  </div>
+</div>
+
+
+      <!-- Log (hidden by default; admin can turn on) -->
+      <div class="divider"></div>
+      <details id="teacherLogDetails">
+  <summary>Show technical log</summary>
+  <div class="row" style="margin-top:10px; justify-content:flex-end;">
+    <button class="btn ghost" id="clearLogBtn" style="padding:8px 10px;">Clear log</button>
+  </div>
+  <div class="log" id="log" style="margin-top:10px;"></div>
+</details>
+
+    </div>
+
+    <!-- RIGHT: ROSTER -->
+    <div class="card">
+      <div class="sectionTitle">
+  <h2>Running roster</h2>
+  <div class="row" style="justify-content:flex-end; align-items:center;">
+    <button class="btn" id="clearRosterBtn" style="padding:8px 10px;">Clear roster</button>
+    <span class="pill"><span class="dot ok"></span><span class="mono" id="rosterSummary">0 scanned</span></span>
+  </div>
+</div>
+
+      <div class="tiny muted" style="margin-bottom:10px;">
+        Grouped by period. Tardy is based on period start + threshold.
+      </div>
+      <div id="roster"></div>
+    </div>
+
+  </div>
+
+  <!-- ADMIN PANEL (HIDDEN) -->
+  <div class="card" style="margin-top:14px;">
+    <details id="adminDetails">
+      <summary>Admin (hidden)</summary>
+      <div class="tiny muted" style="margin:8px 0 10px;">
+        Press <b>Ctrl + Shift + A</b> to unlock/lock admin tools. (Teachers won’t know it unless you tell them.)
+      </div>
+
+      <div id="adminLocked">
+        <div class="row">
+          <div class="col">
+            <label>Admin passcode</label>
+            <input id="adminPasscode" type="password" placeholder="Set once / enter to unlock" />
+          </div>
+          <div class="col" style="min-width:200px;">
+            <button class="btn primary" id="adminUnlockBtn">Unlock Admin</button>
+            <button class="btn" id="adminSetBtn" style="margin-top:10px;">Set / Change Passcode</button>
+          </div>
+        </div>
+        <div class="tiny muted" style="margin-top:8px;">
+          Passcode is stored in localStorage on this computer (not shared online).
+        </div>
+      </div>
+
+      <div id="adminTools" style="display:none;">
+        <div class="row">
+          <div class="col">
+            <span class="pill"><span class="dot ok"></span><span id="adminState">Admin unlocked</span></span>
+          </div>
+          <div class="col" style="min-width:220px;">
+            <button class="btn" id="adminLockBtn">Lock Admin</button>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- QUICK SCHEDULE BUILDER -->
+        <h2 style="margin:0 0 10px; font-size:14px;">Schedule Builder (teacher-friendly)</h2>
+        <div class="row">
+          <div class="col" style="min-width:220px;">
+            <label>Tardy threshold (minutes)</label>
+            <input id="tardyThreshold" type="number" min="0" value="5" />
+          </div>
+          <div class="col" style="min-width:220px;">
+            <label>Early-scan window (minutes before start)</label>
+            <input id="preScanMinutes" type="number" min="0" value="10" />
+          </div>
+          <div class="col" style="min-width:220px;">
+            <label>Persist roster today</label>
+            <select id="persistRoster">
+              <option value="on">On</option>
+              <option value="off">Off</option>
+            </select>
+          </div>
+        </div>
+        <div class="divider"></div>
+
+        <h2 style="margin:0 0 10px; font-size:14px;">Teacher List</h2>
+        <div class="tiny muted" style="margin-bottom:10px;">
+        One teacher per line. This list controls the Teacher name dropdown.
+        </div>
+
+        <label>Teachers (one per line)</label>
+        <textarea id="teacherList" style="min-height:200px;"></textarea>
+
+        <div class="row" style="margin-top:10px;">
+        <button class="btn primary" id="saveTeacherListBtn">Save Teacher List</button>
+        <button class="btn" id="resetTeacherListBtn">Reset to Default</button>
+        <span class="tiny muted" id="teacherListMsg" style="align-self:center;"></span>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="row" style="align-items:center; justify-content:space-between;">
+          <div class="tiny muted">Enter each period label and start/end times. Use labels like <span class="mono">1</span>, <span class="mono">P1</span>, <span class="mono">II</span>, etc.</div>
+          <div class="row">
+            <button class="btn" id="addRowBtn">Add Period</button>
+            <button class="btn primary" id="saveScheduleBtn">Save Schedule</button>
+          </div>
+        </div>
+
+        <div style="overflow:auto; margin-top:10px;">
+          <table id="scheduleTable">
+            <thead>
+              <tr>
+                <th style="width:30%;">Period label</th>
+                <th style="width:30%;">Start time</th>
+                <th style="width:30%;">End time</th>
+                <th style="width:10%;"></th>
+              </tr>
+            </thead>
+            <tbody id="scheduleTbody"></tbody>
+          </table>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- FULL CONFIG (advanced) -->
+        <details>
+          <summary>Advanced config (JSON)</summary>
+          <div class="tiny muted" style="margin:8px 0 10px;">
+            Use only if you need special schedules/dates.
+          </div>
+          <div class="row">
+            <div class="col">
+              <label>Config JSON</label>
+              <textarea id="configJson" class="mono" style="min-height:260px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;"></textarea>
+            </div>
+          </div>
+          <div class="row" style="margin-top:10px;">
+            <button class="btn primary" id="saveCfgBtn">Save Config</button>
+            <button class="btn" id="resetCfgBtn">Reset Example</button>
+            <span class="tiny muted" id="cfgMsg" style="align-self:center;"></span>
+          </div>
+        </details>
+
+        <div class="divider"></div>
+
+        <details>
+          <summary>Form entry IDs (only if your form changes)</summary>
+          <div class="row" style="margin-top:10px;">
+            <div class="col">
+              <label>Teacher entry id</label>
+              <input id="entryTeacher" />
+            </div>
+            <div class="col">
+              <label>Period entry id</label>
+              <input id="entryPeriod" />
+            </div>
+            <div class="col">
+              <label>Timestamp entry id</label>
+              <input id="entryTimestamp" />
+            </div>
+            <div class="col">
+              <label>Student name entry id</label>
+              <input id="entryStudent" />
+            </div>
+          </div>
+          <div class="row" style="margin-top:10px;">
+            <button class="btn primary" id="saveEntryIdsBtn">Save Entry IDs</button>
+            <span class="tiny muted" id="entryMsg" style="align-self:center;"></span>
+          </div>
+        </details>
+
+      </div>
+    </details>
+  </div>
+</div>
+
+<script>
+/* ========= Defaults / Storage Keys ========= */
+const LS = {
+  cfg: "att_cfg_v3",
+  roster: "att_roster_v3",
+  rosterDate: "att_roster_date_v3",
+  teacher: "att_teacher_v3",
+  mode: "att_mode_v3",
+  lrs: "att_lrs_v3",
+  adj: "att_adj_v3",
+  override: "att_override_v3",
+  persist: "att_persist_v3",
+  tardy: "att_tardy_v3",
+  prescan: "att_prescan_v3",
+  adminHash: "att_admin_hash_v3",
+  entryIds: "att_entry_ids_v3",
+  showLog: "att_show_log_v3",
+  teachers: "att_teachers_v3"
+};
+
+const DEFAULT_ENTRY_IDS = {
+  TEACHER: "1449261275",
+  PERIOD: "1345714918",
+  TIMESTAMP: "2127169571",
+  STUDENT: "1617596483"
+};
+
+const EXAMPLE_CFG = {
+  timezone: "America/Chicago",
+  normalSchedule: [
+    { period: "1", start: 8*60+0,  end: 8*60+50 },
+    { period: "2", start: 8*60+55, end: 9*60+45 },
+    { period: "3", start: 9*60+50, end: 10*60+40 },
+    { period: "4", start: 10*60+45, end: 11*60+35 },
+    { period: "5", start: 12*60+15, end: 13*60+5 },
+    { period: "6", start: 13*60+10, end: 14*60+0 }
+  ],
+  specialSchedule: [],
+  specialDates: []
+};
+
+
+
+const DEFAULT_TEACHERS = [
+  "Thomas",
+  "Grisby",
+  "Padilla",
+  "Anders",
+  "Hayden",
+  "Reid",
+  "Kohn",
+  "Anyadiegue",
+  "Armstrong",
+  "Barnes",
+  "Dykstra",
+  "Farmer",
+  "Franklin",
+  "Norris",
+  "Tripp",
+  "Grant",
+  "Gilmer",
+  "Williams",
+  "Goin",
+  "AfterSchoolMatters"
+];
+
+
+const $ = id => document.getElementById(id);
+const escapeHtml = s => String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+
+function logLine(s){
+  const el = $("log");
+  const t = new Date().toLocaleTimeString();
+  el.innerHTML = `${escapeHtml(`[${t}] ${s}`)}<br>` + el.innerHTML;
+}
+function normalizeTeacherList(lines){
+  // trim, drop blanks, de-dupe, sort
+  const cleaned = (lines || [])
+    .map(s => String(s || "").trim())
+    .filter(Boolean);
+
+  const seen = new Set();
+  const uniq = [];
+  for (const name of cleaned){
+    const key = name.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    uniq.push(name);
+  }
+
+  uniq.sort((a,b)=>a.localeCompare(b));
+  return uniq;
+}
+
+function loadTeachers(){
+  try{
+    const raw = localStorage.getItem(LS.teachers);
+    if (!raw) return normalizeTeacherList(DEFAULT_TEACHERS);
+    const parsed = JSON.parse(raw);
+    return normalizeTeacherList(Array.isArray(parsed) ? parsed : DEFAULT_TEACHERS);
+  }catch{
+    return normalizeTeacherList(DEFAULT_TEACHERS);
+  }
+}
+
+function saveTeachers(list){
+  localStorage.setItem(LS.teachers, JSON.stringify(normalizeTeacherList(list)));
+}
+
+function renderTeacherDropdown(){
+  const sel = $("teacherName");
+  if (!sel) return;
+
+  const saved = sel.value; // try to preserve selection
+  const teachers = loadTeachers();
+
+  // clear + rebuild
+  sel.innerHTML = `<option value="">Select your name…</option>` +
+    teachers.map(t => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join("") +
+    `<option value="__other__">Other / Guest</option>`;
+
+  // restore selection if possible
+  if (saved && [...sel.options].some(o => o.value === saved)){
+    sel.value = saved;
+  } else {
+    // if localStorage had a teacher saved previously, restoreBasics will set it anyway
+  }
+
+  updateTeacherOther();
+}
+
+function updateTeacherOther(){
+  const v = $("teacherName").value;
+  const show = (v === "__other__");
+  $("teacherNameOther").classList.toggle("hidden", !show);
+}
+
+function getTeacherName(){
+  const v = $("teacherName").value;
+  if (v === "__other__") return ($("teacherNameOther").value || "").trim();
+  return (v || "").trim();
+}
+
+/* ========= Entry IDs ========= */
+function loadEntryIds(){
+  try{
+    const raw = localStorage.getItem(LS.entryIds);
+    return raw ? {...DEFAULT_ENTRY_IDS, ...JSON.parse(raw)} : {...DEFAULT_ENTRY_IDS};
+  }catch{
+    return {...DEFAULT_ENTRY_IDS};
+  }
+}
+function saveEntryIds(obj){
+  localStorage.setItem(LS.entryIds, JSON.stringify(obj));
+}
+
+/* ========= Config ========= */
+function loadCfg(){
+  try{
+    const raw = localStorage.getItem(LS.cfg);
+    return raw ? JSON.parse(raw) : structuredClone(EXAMPLE_CFG);
+  }catch{
+    return structuredClone(EXAMPLE_CFG);
+  }
+}
+function saveCfg(cfg){
+  localStorage.setItem(LS.cfg, JSON.stringify(cfg, null, 2));
+}
+
+/* ========= Time / Schedule ========= */
+function pad2(n){ return String(n).padStart(2,"0"); }
+function todayKey(d){ return `${d.getMonth()+1}/${d.getDate()}/${d.getFullYear()}`; }
+function minsSinceMidnight(d){ return d.getHours()*60 + d.getMinutes(); }
+function scheduleForNow(cfg, now){
+  const key = todayKey(now);
+  return (cfg.specialDates||[]).includes(key) ? (cfg.specialSchedule||[]) : (cfg.normalSchedule||[]);
+}
+function sortSchedule(s){ return [...(s||[])].sort((a,b)=>(a.start??0)-(b.start??0)); }
+
+function detectPeriodWithPreScan(cfg, now, preScanMinutes){
+  const minsNow = minsSinceMidnight(now);
+  const schedule = sortSchedule(scheduleForNow(cfg, now));
+
+  for (const p of schedule){
+    if (minsNow >= p.start && minsNow <= p.end) return String(p.period);
+  }
+  const pre = Math.max(0, Number(preScanMinutes)||0);
+  for (const p of schedule){
+    if (minsNow < p.start && (p.start - minsNow) <= pre) return String(p.period);
+  }
+  return "";
+}
+function findPeriodStart(cfg, now, periodLabel){
+  const schedule = scheduleForNow(cfg, now);
+  const match = (schedule||[]).find(p => String(p.period) === String(periodLabel));
+  return match ? match.start : null;
+}
+
+/* ========= URL patching ========= */
+function entryRegex_(id){ return new RegExp(`entry\\.${id}=[^&]*`); }
+function setEntryInUrl(url, entryId, value){
+  const enc = encodeURIComponent(value ?? "");
+  if (entryRegex_(entryId).test(url)) return url.replace(entryRegex_(entryId), `entry.${entryId}=${enc}`);
+  const joiner = url.includes("?") ? "&" : "?";
+  return url + `${joiner}entry.${entryId}=${enc}`;
+}
+function getEntryFromUrl(url, entryId){
+  const m = url.match(new RegExp(`(?:\\?|&)entry\\.${entryId}=([^&]*)`));
+  return m ? decodeURIComponent(m[1] || "") : null;
+}
+function formatTimestamp(d){
+  // MM/dd/yyyy H:mm:ss
+  return `${pad2(d.getMonth()+1)}/${pad2(d.getDate())}/${d.getFullYear()} ${d.getHours()}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`;
+}
+function isLikelyUrl(s){ return /^https?:\/\//i.test(String(s||"").trim()); }
+
+function computeChosenBasePeriod(cfg, now){
+  const override = $("overridePeriod").value.trim();
+  if (override) return override;
+  const pre = Math.max(0, parseInt($("preScanMinutes").value || "10", 10));
+  return detectPeriodWithPreScan(cfg, now, pre);
+}
+
+function patchFormResponseUrl(rawUrl, cfg, now){
+  const entry = loadEntryIds();
+
+  const teacherName = getTeacherName();
+
+  const mode = $("mode").value;
+  const lrSuffix = $("lrSuffix").value;
+  const adjustedSuffix = $("adjustedSuffix").value.trim();
+  const tsMode = "now"; // always now in this teacher-proof version
+
+  const base = computeChosenBasePeriod(cfg, now);
+  let periodValue = base;
+
+  if (mode === "leaveReturn"){
+    periodValue = base ? `${base}_${lrSuffix}` : "";
+  } else if (mode === "adjusted"){
+    periodValue = adjustedSuffix ? `${base}_${adjustedSuffix}` : base;
+  }
+
+  let u = rawUrl;
+  u = setEntryInUrl(u, entry.TEACHER, teacherName);
+  u = setEntryInUrl(u, entry.PERIOD, periodValue);
+  if (tsMode !== "none"){
+    u = setEntryInUrl(u, entry.TIMESTAMP, formatTimestamp(now));
+  }
+  return u;
+}
+
+function extractStudentNameFromUrl(url){
+  const entry = loadEntryIds();
+  const v = getEntryFromUrl(url, entry.STUDENT);
+  if (!v) return null;
+  return v.replace(/\+/g," ").replace(/_/g," ").trim();
+}
+
+/* ========= Invisible submit ========= */
+function submitViaGetBeacon(url){
+  return new Promise(resolve=>{
+    const img = new Image();
+    img.onload = () => resolve(true);
+    img.onerror = () => resolve(true);
+    img.src = url + (url.includes("?") ? "&" : "?") + "_ts=" + Date.now();
+  });
+}
+
+/* ========= Roster ========= */
+let rosterByPeriod = {}; // period -> { key -> record }
+function studentKey(name){ return String(name||"").trim().toLowerCase(); }
+function getTodayStamp(){
+  const d = new Date();
+  return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+}
+function maybeLoadRoster(){
+  const persist = $("persistRoster").value === "on";
+  if (!persist) return;
+
+  const today = getTodayStamp();
+  const storedDate = localStorage.getItem(LS.rosterDate);
+  if (storedDate !== today){
+    localStorage.setItem(LS.rosterDate, today);
+    localStorage.removeItem(LS.roster);
+    rosterByPeriod = {};
+    return;
+  }
+  try{
+    const raw = localStorage.getItem(LS.roster);
+    if (raw) rosterByPeriod = JSON.parse(raw) || {};
+  }catch{
+    rosterByPeriod = {};
+  }
+}
+function maybeSaveRoster(){
+  if ($("persistRoster").value !== "on") return;
+  localStorage.setItem(LS.rosterDate, getTodayStamp());
+  localStorage.setItem(LS.roster, JSON.stringify(rosterByPeriod));
+}
+function clearRoster(){
+  rosterByPeriod = {};
+  localStorage.removeItem(LS.roster);
+  localStorage.removeItem(LS.rosterDate);
+  renderRoster();
+}
+function addRosterRecord({period, studentName, scannedAt, minutesLate, tardy}){
+  const p = period || "(unknown)";
+  if (!rosterByPeriod[p]) rosterByPeriod[p] = {};
+  rosterByPeriod[p][studentKey(studentName)] = {
+    studentName,
+    scannedAt: scannedAt.toISOString(),
+    minutesLate,
+    tardy
+  };
+  maybeSaveRoster();
+  renderRoster();
+}
+function renderRoster(){
+  const container = $("roster");
+  const periods = Object.keys(rosterByPeriod);
+
+  let total=0, tardyCount=0;
+  for (const p of periods){
+    const rows = Object.values(rosterByPeriod[p]||{});
+    total += rows.length;
+    tardyCount += rows.filter(r=>r.tardy).length;
+  }
+  $("rosterSummary").textContent = `${total} scanned • ${tardyCount} tardy`;
+
+  if (!periods.length){
+    container.innerHTML = `<div class="tiny muted">No scans yet.</div>`;
+    return;
+  }
+
+  // sort periods by schedule order
+  const cfg = loadCfg();
+  const now = new Date();
+  const schedule = sortSchedule(scheduleForNow(cfg, now));
+  const order = new Map(schedule.map((p,i)=>[String(p.period), i]));
+  periods.sort((a,b)=>(order.get(a)??999)-(order.get(b)??999) || a.localeCompare(b));
+
+  const parts = [];
+  for (const p of periods){
+    const rows = Object.values(rosterByPeriod[p]||{})
+      .map(r=>({ ...r, scannedAtObj: new Date(r.scannedAt) }))
+      .sort((a,b)=>a.studentName.localeCompare(b.studentName));
+
+    parts.push(`
+      <div class="card" style="box-shadow:none; border-radius:16px; margin-top:10px;">
+        <div class="row" style="align-items:center; justify-content:space-between; margin-bottom:8px;">
+          <div><b>Period ${escapeHtml(p)}</b> <span class="tiny muted">(${rows.length} scanned)</span></div>
+          <div class="tiny muted">${rows.filter(r=>r.tardy).length} tardy</div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Scan time</th>
+              <th style="text-align:right;">Min late</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(r=>{
+              const t = r.scannedAtObj.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+              const late = (typeof r.minutesLate === "number") ? r.minutesLate : null;
+              const status = r.tardy ? `<span class="tag tardy">Tardy</span>` : `<span class="tag ontime">On time</span>`;
+              return `
+                <tr>
+                  <td>${escapeHtml(r.studentName || "(unknown)")}</td>
+                  <td class="mono">${escapeHtml(t)}</td>
+                  <td class="mono" style="text-align:right;">${escapeHtml(late == null ? "—" : String(late))}</td>
+                  <td>${status}</td>
+                </tr>
+              `;
+            }).join("")}
+          </tbody>
+        </table>
+      </div>
+    `);
+  }
+  container.innerHTML = parts.join("");
+}
+
+/* ========= Teacher-proof status / unplug detection ========= */
+let lastKeyActivity = Date.now();
+let lastSuccessfulScan = null;
+
+function setPill(text, state){
+  $("statusText").textContent = text;
+  const dot = $("statusDot");
+  dot.className = "dot " + (state || "warn");
+}
+function setBig(title, meta, state){
+  $("bigTitle").textContent = title;
+  $("bigMeta").textContent = meta;
+  setPill(title, state);
+}
+
+function heartbeat(){
+  const now = Date.now();
+  const idleMs = now - lastKeyActivity;
+
+  // If teacher never interacted with scan box recently, nudge
+  const focused = (document.activeElement === $("scanInput"));
+
+  if (!focused){
+    $("helpBox").classList.remove("show");
+    setBig("CLICK THE SCAN BOX", "Cursor must be blinking in the scan box.", "warn");
+  } else {
+    // Focused: if no keystroke activity for 20s, show unplug tips
+    if (idleMs > 20000){
+      $("helpBox").classList.add("show");
+      setBig("WAITING FOR SCANS", "If nothing happens, the scanner may be unplugged.", "warn");
+    } else {
+      $("helpBox").classList.remove("show");
+      setBig("READY TO SCAN", "Scan a student QR. It will submit invisibly.", "ok");
+    }
+  }
+
+  // last scan tag
+  $("lastScanTag").textContent = lastSuccessfulScan ? `Last: ${lastSuccessfulScan}` : "Last: —";
+  setTimeout(heartbeat, 1000);
+}
+
+/* ========= Rate limiting (best effort) ========= */
+let tokens = 0, lastTokenTs = 0;
+async function rateLimit(maxPerSec){
+  const now = performance.now();
+  if (!lastTokenTs) lastTokenTs = now;
+  const elapsed = now - lastTokenTs;
+  const refill = (elapsed/1000)*maxPerSec;
+  tokens = Math.min(maxPerSec, tokens + refill);
+  lastTokenTs = now;
+
+  if (tokens < 1){
+    const waitMs = Math.ceil((1 - tokens) * (1000 / maxPerSec));
+    await new Promise(r=>setTimeout(r, waitMs));
+    return rateLimit(maxPerSec);
+  }
+  tokens -= 1;
+}
+
+/* ========= Dedupe ========= */
+const lastSeen = new Map();
+function shouldDedupe(value){
+  const windowMs = 2000;
+  const now = Date.now();
+  const last = lastSeen.get(value);
+  if (last && (now - last) < windowMs) return true;
+  lastSeen.set(value, now);
+  return false;
+}
+
+/* ========= Main submit ========= */
+let attempted = 0;
+function updateCounts(){
+  $("counts").textContent = `${attempted} attempted`;
+}
+
+async function handleScan(raw){
+  const value = String(raw||"").trim();
+  if (!value) return;
+
+  lastKeyActivity = Date.now();
+
+  if (!getTeacherName()){
+
+    setBig("ENTER TEACHER NAME", "Type your name once, then scan again.", "bad");
+    logLine("⚠️ Missing teacher name.");
+    return;
+  }
+  if (!isLikelyUrl(value)){
+    setBig("INVALID QR", "This QR didn’t look like a formResponse URL.", "bad");
+    logLine(`⚠️ Not a URL: ${value}`);
+    return;
+  }
+  if (shouldDedupe(value)) return;
+
+  const cfg = loadCfg();
+  const now = new Date();
+  const base = computeChosenBasePeriod(cfg, now);
+  $("detectedPeriodPill").textContent = `Period: ${base || "—"}`;
+
+  if (!base){
+    setBig("NO PERIOD DETECTED", "Use Override period or fix schedule in Admin.", "bad");
+    logLine("⚠️ No period detected.");
+    return;
+  }
+
+  const patched = patchFormResponseUrl(value, cfg, now);
+
+  // tardy calc for roster (early scans show 0)
+  const startMin = findPeriodStart(cfg, now, base);
+  const minsNow = minsSinceMidnight(now);
+  let minutesLate = null;
+  if (typeof startMin === "number") minutesLate = Math.max(0, minsNow - startMin);
+  const threshold = Math.max(0, parseInt($("tardyThreshold").value || "5", 10));
+  const tardy = (minutesLate != null) ? (minutesLate > threshold) : false;
+
+  // submit
+  try{
+    const maxPerSec = 8;
+    await rateLimit(maxPerSec);
+
+    attempted++;
+    updateCounts();
+    setBig("SUBMITTING…", "Sending scan to Google Form tracker.", "warn");
+    logLine(`GET(beacon) → ${patched}`);
+
+    await submitViaGetBeacon(patched);
+
+    // roster
+    const studentName = extractStudentNameFromUrl(value) || "(unknown)";
+    addRosterRecord({ period: base, studentName, scannedAt: now, minutesLate, tardy });
+
+    lastSuccessfulScan = studentName;
+    setBig("SCAN RECORDED ✅", `Added ${studentName} (Period ${base}).`, "ok");
+  }catch(e){
+    setBig("SUBMIT ISSUE", "Try scanning again. If it persists, open Admin log.", "bad");
+    logLine(`❌ Submit error: ${String(e)}`);
+  }
+}
+
+/* ========= Schedule Builder ========= */
+function timeToMinutes(t){
+  // "HH:MM"
+  const [h,m] = String(t||"").split(":").map(Number);
+  if (!Number.isFinite(h) || !Number.isFinite(m)) return null;
+  return h*60 + m;
+}
+function minutesToTime(mins){
+  const h = Math.floor(mins/60), m = mins%60;
+  return `${pad2(h)}:${pad2(m)}`;
+}
+function renderScheduleTableFromCfg(){
+  const cfg = loadCfg();
+  const body = $("scheduleTbody");
+  body.innerHTML = "";
+
+  const rows = sortSchedule(cfg.normalSchedule || []);
+  for (const r of rows){
+    addScheduleRow(r.period, minutesToTime(r.start), minutesToTime(r.end));
+  }
+  if (!rows.length){
+    addScheduleRow("1", "08:00", "08:50");
+  }
+}
+function addScheduleRow(label="", start="08:00", end="08:50"){
+  const tr = document.createElement("tr");
+  tr.innerHTML = `
+    <td><input class="periodLabel" value="${escapeHtml(label)}" /></td>
+    <td><input class="periodStart" type="time" value="${escapeHtml(start)}" /></td>
+    <td><input class="periodEnd" type="time" value="${escapeHtml(end)}" /></td>
+    <td><button class="btn" type="button">✕</button></td>
+  `;
+  tr.querySelector("button").addEventListener("click", ()=> tr.remove());
+  $("scheduleTbody").appendChild(tr);
+}
+function saveScheduleFromTable(){
+  const cfg = loadCfg();
+  const rows = [...$("scheduleTbody").querySelectorAll("tr")];
+  const out = [];
+
+  for (const tr of rows){
+    const label = tr.querySelector(".periodLabel").value.trim();
+    const start = timeToMinutes(tr.querySelector(".periodStart").value);
+    const end = timeToMinutes(tr.querySelector(".periodEnd").value);
+
+    if (!label) continue;
+    if (start == null || end == null) continue;
+    out.push({ period: label, start, end });
+  }
+
+  cfg.normalSchedule = out;
+  saveCfg(cfg);
+  $("configJson").value = JSON.stringify(loadCfg(), null, 2);
+  logLine("✅ Saved schedule from table.");
+}
+
+/* ========= Admin lock/unlock ========= */
+let adminUnlocked = false;
+
+async function sha256(str){
+  const enc = new TextEncoder().encode(str);
+  const buf = await crypto.subtle.digest("SHA-256", enc);
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+async function setAdminPasscode(pass){
+  const h = await sha256(pass);
+  localStorage.setItem(LS.adminHash, h);
+}
+async function checkAdminPasscode(pass){
+  const saved = localStorage.getItem(LS.adminHash);
+  if (!saved) return false;
+  const h = await sha256(pass);
+  return h === saved;
+}
+function showAdmin(unlocked){
+  adminUnlocked = unlocked;
+  $("adminTools").style.display = unlocked ? "block" : "none";
+  $("adminLocked").style.display = unlocked ? "none" : "block";
+  $("adminState").textContent = unlocked ? "Admin unlocked" : "Admin locked";
+
+  // Optional: hide teacher log unless admin enables it
+  const showLog = localStorage.getItem(LS.showLog) === "1";
+  $("teacherLogDetails").open = !!showLog;
+}
+
+async function unlockAdmin(){
+  const pass = $("adminPasscode").value || "";
+  if (await checkAdminPasscode(pass)){
+    showAdmin(true);
+    logLine("🔓 Admin unlocked.");
+  } else {
+    alert("Incorrect passcode.");
+  }
+}
+async function setPasscode(){
+  const pass = $("adminPasscode").value || "";
+  if (pass.length < 4){
+    alert("Use a passcode of at least 4 characters.");
+    return;
+  }
+  await setAdminPasscode(pass);
+  alert("Passcode set on this computer.");
+}
+
+/* ========= Init / wiring ========= */
+function persistBasics(){
+  localStorage.setItem(LS.teacher, $("teacherName").value || "");
+    localStorage.setItem(LS.teacher + "_other", $("teacherNameOther").value || "");
+
+  localStorage.setItem(LS.mode, $("mode").value || "tardy");
+  localStorage.setItem(LS.lrs, $("lrSuffix").value || "LEAVE");
+  localStorage.setItem(LS.adj, $("adjustedSuffix").value || "");
+  localStorage.setItem(LS.override, $("overridePeriod").value || "");
+}
+function restoreBasics(){
+  $("teacherName").value = localStorage.getItem(LS.teacher) || "";
+    $("teacherNameOther").value = localStorage.getItem(LS.teacher + "_other") || "";
+    updateTeacherOther();
+
+  $("mode").value = localStorage.getItem(LS.mode) || "tardy";
+  $("lrSuffix").value = localStorage.getItem(LS.lrs) || "LEAVE";
+  $("adjustedSuffix").value = localStorage.getItem(LS.adj) || "";
+  $("overridePeriod").value = localStorage.getItem(LS.override) || "";
+}
+// ===== Mode banner + theming (NO auto-revert) =====
+function applyModeTheme_(){
+  const modeSel = $("mode");
+  if (!modeSel) return;
+
+  const mode = modeSel.value;
+
+  // Set body class for CSS theming
+  document.body.classList.remove("mode-normal","mode-leaveReturn","mode-adjusted");
+  if (mode === "leaveReturn") document.body.classList.add("mode-leaveReturn");
+  else if (mode === "adjusted") document.body.classList.add("mode-adjusted");
+  else document.body.classList.add("mode-normal");
+
+  // Update banner content (safe if elements exist)
+  const titleEl = $("modeBannerTitle");
+  const hintEl  = $("modeBannerHint");
+
+  if (!titleEl || !hintEl) return;
+
+  if (mode === "leaveReturn"){
+    titleEl.textContent = "LEAVE / RETURN / PASS MODE";
+    hintEl.textContent  = "Scanning will record LEAVE/RETURN/PASS. Switch back when done.";
+  } else if (mode === "adjusted"){
+    const suf = ($("adjustedSuffix")?.value || "").trim();
+    titleEl.textContent = "ADJUSTED MODE";
+    hintEl.textContent  = suf
+      ? `Recording as: ${suf} — switch back when done.`
+      : "Choose a suffix, scan, then switch back when done.";
+  } else {
+    titleEl.textContent = "NORMAL ATTENDANCE";
+    hintEl.textContent  = "Standard scanning";
+  }
+}
+
+function forceNormalMode_(){
+  $("mode").value = "tardy";
+  updateModePanels();   // shows/hides panels + calls applyModeTheme_()
+  persistBasics();
+}
+
+function updateModePanels(){
+  const mode = $("mode").value;
+  $("leaveReturnPanel").classList.toggle("hidden", mode !== "leaveReturn");
+  $("adjustedPanel").classList.toggle("hidden", mode !== "adjusted");
+applyModeTheme_();
+}
+
+function updateTeacherOther(){
+  const v = $("teacherName").value;
+  const show = (v === "__other__");
+  $("teacherNameOther").classList.toggle("hidden", !show);
+}
+
+function getTeacherName(){
+  const v = $("teacherName").value;
+  if (v === "__other__") return ($("teacherNameOther").value || "").trim();
+  return (v || "").trim();
+}
+
+
+function restoreAdminSettings(){
+  $("persistRoster").value = localStorage.getItem(LS.persist) || "on";
+  $("tardyThreshold").value = localStorage.getItem(LS.tardy) || "5";
+  $("preScanMinutes").value = localStorage.getItem(LS.prescan) || "10";
+    $("teacherList").value = loadTeachers().join("\n");
+
+  // entry ids into admin inputs
+  const entry = loadEntryIds();
+  $("entryTeacher").value = entry.TEACHER;
+  $("entryPeriod").value = entry.PERIOD;
+  $("entryTimestamp").value = entry.TIMESTAMP;
+  $("entryStudent").value = entry.STUDENT;
+
+  $("configJson").value = JSON.stringify(loadCfg(), null, 2);
+}
+
+function persistAdminSettings(){
+  localStorage.setItem(LS.persist, $("persistRoster").value);
+  localStorage.setItem(LS.tardy, $("tardyThreshold").value);
+  localStorage.setItem(LS.prescan, $("preScanMinutes").value);
+}
+
+function tickPeriodPill(){
+  const cfg = loadCfg();
+  const now = new Date();
+  const p = computeChosenBasePeriod(cfg, now);
+  $("detectedPeriodPill").textContent = `Period: ${p || "—"}`;
+  setTimeout(tickPeriodPill, 1000);
+}
+
+function maybeLoadRoster(){
+  if ($("persistRoster").value !== "on") return;
+  const today = getTodayStamp();
+  const storedDate = localStorage.getItem(LS.rosterDate);
+  if (storedDate !== today){
+    localStorage.setItem(LS.rosterDate, today);
+    localStorage.removeItem(LS.roster);
+    rosterByPeriod = {};
+    return;
+  }
+  try{
+    const raw = localStorage.getItem(LS.roster);
+    if (raw) rosterByPeriod = JSON.parse(raw) || {};
+  }catch{
+    rosterByPeriod = {};
+  }
+}
+$("adjustedSuffix").addEventListener("change", () => {
+  persistBasics();
+  applyModeTheme_();   // so banner updates to show the suffix
+});
+
+
+$("focusBtn").addEventListener("click", ()=> $("scanInput").focus());
+$("clearRosterBtn").addEventListener("click", clearRoster);
+$("clearLogBtn").addEventListener("click", ()=> $("log").innerHTML = "");
+
+["mode","lrSuffix","adjustedSuffix","overridePeriod"].forEach(id=>{
+  $(id).addEventListener("change", persistBasics);
+});
+
+$("teacherName").addEventListener("change", () => {
+  persistBasics();        // save dropdown choice
+  updateTeacherOther();   // show/hide the "Other" text box
+});
+
+$("teacherNameOther").addEventListener("input", () => {
+  persistBasics();        // save typed name
+});
+
+// Mode needs special handling (persist + show/hide panels)
+$("mode").addEventListener("change", () => {
+  persistBasics();
+  updateModePanels();
+});
+
+
+$("scanInput").addEventListener("focus", ()=> { lastKeyActivity = Date.now(); });
+
+
+// Admin teacher list controls
+function showTeacherMsg(msg){
+  $("teacherListMsg").textContent = msg;
+  setTimeout(()=> $("teacherListMsg").textContent = "", 1500);
+}
+
+$("saveTeacherListBtn").addEventListener("click", () => {
+  const lines = ($("teacherList").value || "").split("\n");
+  saveTeachers(lines);
+  renderTeacherDropdown();
+  showTeacherMsg("Saved ✓");
+  logLine("✅ Saved teacher list.");
+});
+
+$("resetTeacherListBtn").addEventListener("click", () => {
+  saveTeachers(DEFAULT_TEACHERS);
+  $("teacherList").value = loadTeachers().join("\n");
+  renderTeacherDropdown();
+  showTeacherMsg("Reset ✓");
+  logLine("✅ Reset teacher list.");
+});
+
+
+let idleTimer = null;
+
+function scheduleIdleSubmit() {
+  const ms = Math.max(0, parseInt($("idleSubmitMs").value || "0", 10));
+  if (!ms) return;
+
+  if (idleTimer) clearTimeout(idleTimer);
+  idleTimer = setTimeout(async () => {
+    const v = $("scanInput").value.trim();
+    if (!v) return;
+
+    // Only attempt when it looks like a full URL (avoid partial clears while typing)
+    if (!isLikelyUrl(v)) return;
+    if (!v.includes("/formResponse")) return;
+
+    // IMPORTANT: don't clear until we're sure we're attempting submission
+    await submitFromBox();
+  }, ms);
+}
+
+async function submitFromBox() {
+  const v = $("scanInput").value.trim();
+  if (!v) return;
+
+  // Don’t clear the box if we’re going to fail validation
+  if (!$("teacherName").value.trim()) {
+    setBig("ENTER TEACHER NAME", "Type your name once, then scan again.", "bad");
+    logLine("⚠️ Missing teacher name.");
+    return;
+  }
+  if (!isLikelyUrl(v)) {
+    setBig("INVALID QR", "This QR didn’t look like a URL.", "bad");
+    logLine(`⚠️ Not a URL: ${v}`);
+    return;
+  }
+  if (!v.includes("/formResponse")) {
+    setBig("INVALID QR", "QR is not a formResponse link.", "bad");
+    logLine(`⚠️ Not a formResponse link: ${v}`);
+    return;
+  }
+
+  // Now we’re confident it's a real attempt — clear and submit
+  $("scanInput").value = "";
+  await handleScan(v);
+}
+
+$("scanInput").addEventListener("keydown", async (e) => {
+  lastKeyActivity = Date.now();
+  if (e.key === "Enter") {
+    e.preventDefault();
+    await submitFromBox();
+  }
+});
+
+$("scanInput").addEventListener("input", () => {
+  lastKeyActivity = Date.now();
+  scheduleIdleSubmit();
+});
+
+// Admin keyboard shortcut
+document.addEventListener("keydown", async (e)=>{
+  if (e.ctrlKey && e.shiftKey && (e.key === "A" || e.key === "a")){
+    const hasPass = !!localStorage.getItem(LS.adminHash);
+    if (!hasPass){
+      alert("No admin passcode set on this computer yet. Open Admin → Set / Change Passcode.");
+      $("adminDetails").open = true;
+      return;
+    }
+    showAdmin(!adminUnlocked);
+    $("adminDetails").open = true;
+  }
+});
+$("modeResetBtn").addEventListener("click", ()=> forceNormalMode_());
+
+$("adminUnlockBtn").addEventListener("click", unlockAdmin);
+$("adminSetBtn").addEventListener("click", setPasscode);
+$("adminLockBtn").addEventListener("click", ()=> showAdmin(false));
+
+$("addRowBtn").addEventListener("click", ()=> addScheduleRow("", "08:00", "08:50"));
+$("saveScheduleBtn").addEventListener("click", ()=>{
+  saveScheduleFromTable();
+  // reload cfg + roster render context
+  renderRoster();
+});
+
+["persistRoster","tardyThreshold","preScanMinutes"].forEach(id=>{
+  $(id).addEventListener("change", ()=>{
+    persistAdminSettings();
+    if (id === "persistRoster"){
+      if ($("persistRoster").value === "on"){
+        maybeLoadRoster();
+      } else {
+        localStorage.removeItem(LS.roster);
+        localStorage.removeItem(LS.rosterDate);
+      }
+    }
+    renderRoster();
+  });
+});
+
+$("saveCfgBtn").addEventListener("click", ()=>{
+  try{
+    const parsed = JSON.parse($("configJson").value);
+    saveCfg(parsed);
+    $("cfgMsg").textContent = "Saved ✓";
+    setTimeout(()=> $("cfgMsg").textContent = "", 1200);
+    renderScheduleTableFromCfg();
+    renderRoster();
+    logLine("✅ Saved config JSON.");
+  }catch{
+    $("cfgMsg").textContent = "Invalid JSON ✗";
+    setTimeout(()=> $("cfgMsg").textContent = "", 1800);
+  }
+});
+$("resetCfgBtn").addEventListener("click", ()=>{
+  saveCfg(structuredClone(EXAMPLE_CFG));
+  $("configJson").value = JSON.stringify(loadCfg(), null, 2);
+  $("cfgMsg").textContent = "Reset ✓";
+  setTimeout(()=> $("cfgMsg").textContent = "", 1200);
+  renderScheduleTableFromCfg();
+  renderRoster();
+});
+
+$("saveEntryIdsBtn").addEventListener("click", ()=>{
+  const obj = {
+    TEACHER: $("entryTeacher").value.trim(),
+    PERIOD: $("entryPeriod").value.trim(),
+    TIMESTAMP: $("entryTimestamp").value.trim(),
+    STUDENT: $("entryStudent").value.trim()
+  };
+  saveEntryIds(obj);
+  $("entryMsg").textContent = "Saved ✓";
+  setTimeout(()=> $("entryMsg").textContent = "", 1200);
+  logLine("✅ Saved entry IDs.");
+});
+
+// Init
+(function init(){
+  restoreBasics();
+  updateModePanels();
+  applyModeTheme_();
+
+  restoreAdminSettings();
+  renderTeacherDropdown();
+
+  // if no passcode stored, keep admin locked UI (still hidden)
+  showAdmin(false);
+
+  // roster
+  maybeLoadRoster();
+  renderRoster();
+
+  // schedule builder rows
+  renderScheduleTableFromCfg();
+
+  // start
+  updateCounts();
+  $("scanInput").focus();
+  heartbeat();
+  tickPeriodPill();
+  logLine("Ready.");
+})();
+</script>
+</body>
+</html>
