@@ -72,7 +72,7 @@ body {
 
 /* Prevent buttons from stacking */
 .toolbar-right button {
-  font-size: 18px;
+  font-size: 14px;
   padding: 8px 16px;
   margin-left: 10px;
     border-radius: 10px;
@@ -98,7 +98,7 @@ body {
   margin-left: 12px;
   padding: 6px 14px;
   border-radius: 14px;
-  font-size: 16px;
+  font-size: 12px;
   font-weight: bold;
   color: white;
 }
@@ -113,7 +113,7 @@ body {
 .hard   { background: #d9534f; }
 
 #instructions {
-  font-size: 20px;
+  font-size: 14px;
 }
 
 
@@ -275,14 +275,22 @@ body {
     <div id="instructions">
       <strong>Click</strong> a coefficient to add molecules.
       <strong>Shift + Click</strong> to remove.
-      Balance the equation by matching atom counts.
+      
       <span id="difficulty-badge"></span>
     </div>
   </div>
 
   <div class="toolbar-right">
+    <div id="scoreHud" style="margin-right:14px; font-weight:bold; color:#370047;">
+  Score: <span id="scoreValue">0</span>
+  <span id="scoreMsg" style="margin-left:10px; font-weight:normal; opacity:0.85;"></span>
+</div>
     <button onclick="clearAll()">Clear</button>
     <button onclick="newEquation()">New Equation</button>
+
+
+<button id="submitScoreBtn" style="background:#25202c;">Submit Score</button>
+
   </div>
 </div>
 
@@ -338,6 +346,37 @@ body {
   <div class="column" style="left:58%" id="col-nacl"></div>
   <div class="column" style="left:78%" id="col-h2"></div>
 </div>
+<div id="nameModal" style="
+  display:none;
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.35);
+  align-items:center; justify-content:center;
+  z-index:9999;
+">
+  <div style="
+    width:min(420px, 92vw);
+    background:#fff;
+    border:3px solid #000;
+    border-radius:16px;
+    padding:16px;
+    font-family: Georgia, serif;
+  ">
+    <div style="font-weight:bold; font-size:18px; margin-bottom:8px;">
+      Leaderboard name (optional)
+    </div>
+    <div style="opacity:.85; margin-bottom:10px;">
+      Nickname / initials. Leave blank to stay anonymous.
+    </div>
+    <input id="displayNameInput" maxlength="20" placeholder="e.g., NV / BalanceBoss"
+      style="width:80%; padding:10px 12px; font-size:18px; border-radius:10px; border:2px solid #999;"
+    />
+    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:12px;">
+      <button id="cancelName" style="background:#eee;">Cancel</button>
+      <button id="continueName" style="background:#c084fc; color:white;">Continue</button>
+    </div>
+  </div>
+</div>
+
 
 <script>
 /* ===============================
@@ -826,6 +865,105 @@ const equations = [
 
 let currentEq = null;
 let coeffs = {};
+// ===== SCORE ENGINE (Balancing Equations) =====
+const score = {
+  value: 0,
+  startedAt: Date.now(),
+  attempts: 0,          // coefficient clicks
+  solves: 0,            // solved equations this session
+  currentStart: Date.now(),
+  currentSolved: false,
+  lastSolve: null,      // store last solve details
+  events: [],
+};
+
+const SCORE_RULES = {
+  baseByDifficulty: { Easy: 50, Medium: 80, Hard: 120 },
+  timeCapSeconds: 120,     // max time bonus window
+  timeBonusMax: 120,       // up to +120 if under cap
+  clickBonusMax: 60,       // up to +60 if under click cap
+  clickCap: 60,            // >=60 clicks => 0 bonus
+  minScore: 0,
+};
+
+function flashMsg(text) {
+  const el = document.getElementById("scoreMsg");
+  if (!el) return;
+  el.textContent = text;
+  clearTimeout(flashMsg._t);
+  flashMsg._t = setTimeout(() => (el.textContent = ""), 1400);
+}
+
+function renderScore() {
+  const el = document.getElementById("scoreValue");
+  if (el) el.textContent = score.value;
+}
+
+function clampScore() {
+  if (score.value < SCORE_RULES.minScore) score.value = SCORE_RULES.minScore;
+}
+
+function addScore(type, delta, meta = {}) {
+  score.value += delta;
+  clampScore();
+  score.events.push({ t: Date.now(), type, delta, scoreAfter: score.value, ...meta });
+  renderScore();
+  if (delta !== 0) flashMsg((delta > 0 ? "+" : "") + delta);
+}
+
+function startEquationTimer() {
+  score.currentStart = Date.now();
+  score.currentSolved = false;
+  score.attempts = 0;
+}
+
+function equationSeconds() {
+  return Math.floor((Date.now() - score.currentStart) / 1000);
+}
+
+function recordAttempt() {
+  score.attempts++;
+}
+
+// call when equation is solved (first time only)
+function onSolveBalanced() {
+  if (score.currentSolved) return;
+  score.currentSolved = true;
+  score.solves++;
+
+  const diff = (currentEq && currentEq.difficulty) ? currentEq.difficulty : "Medium";
+  const base = SCORE_RULES.baseByDifficulty[diff] ?? 80;
+
+  const sec = equationSeconds();
+  const timeBonus = Math.max(0, SCORE_RULES.timeBonusMax - Math.min(SCORE_RULES.timeBonusMax, sec));
+  const clickBonus = Math.max(0, SCORE_RULES.clickBonusMax - Math.min(SCORE_RULES.clickBonusMax, score.attempts));
+
+  const gained = base + timeBonus + clickBonus;
+
+  score.lastSolve = {
+    difficulty: diff,
+    seconds: sec,
+    attempts: score.attempts,
+    gained,
+  };
+
+  addScore("solve", gained, score.lastSolve);
+  flashMsg(`Solved! +${gained} (${diff}, ${sec}s, ${score.attempts} clicks)`);
+}
+
+function scoreSummary() {
+  const totalSeconds = Math.floor((Date.now() - score.startedAt) / 1000);
+  return {
+    score: score.value,
+    solves: score.solves,
+    attempts: score.attempts,
+    seconds: totalSeconds,
+    lastSolve: score.lastSolve,
+    events: score.events,
+  };
+}
+
+renderScore();
 
 /* ===============================
    LOAD NEW EQUATION
@@ -848,6 +986,7 @@ function newEquation() {
   renderEquation();
   renderVisualColumns();
   updateDifficulty(); 
+  startEquationTimer();
   update();
 }
 
@@ -923,6 +1062,8 @@ function colorizeFormula(formula){
 ================================ */
 
 function changeCoeff(e, key){
+  recordAttempt(); 
+
   if (e.shiftKey) {
     coeffs[key] = Math.max(0, coeffs[key] - 1);
   } else {
@@ -1098,6 +1239,8 @@ function update(){
   const balanced = countAtoms();
   document.getElementById("visual")
     .classList.toggle("balanced", balanced);
+
+    if (balanced) onSolveBalanced();
 }
 
 function countAtoms(){
@@ -1133,6 +1276,131 @@ function renderCounter(id,a,b){
     row.innerText=`${e}: ${a[e]||0}`;
     d.appendChild(row);
   });
+}
+// ===== GOOGLE FORM AUTOSUBMIT (formResponse) =====
+// Uses the SAME form + entries as your Ionic sim
+
+const SIM_ID = "balancing_equations";
+const TOKEN_SALT = "MoLeCuTeOrG";
+
+// IMPORTANT: This is the autosubmit endpoint
+const FORM_BASE_URL =
+  "https://docs.google.com/forms/d/e/1FAIpQLSckXbWQsVWobjrktGMoF7AtY6gMch0eQMjsGlddVv1cxgNHgQ/formResponse";
+
+// If you already have nickname entry id, fill it in here.
+// If not, leave it commented — form will still submit without nickname.
+const FORM_ENTRIES = {
+  displayName: "entry.366340186",
+  sim: "entry.1832756779",
+  score: "entry.221944829",
+  token: "entry.1636605257",
+};
+
+function fnv1a(str) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = (h * 0x01000193) >>> 0;
+  }
+  return ("00000000" + h.toString(16)).slice(-8);
+}
+
+function makeToken(summary) {
+  const payload = {
+    v: 1,
+    sim: SIM_ID,
+    score: summary.score,
+    solves: summary.solves ?? 0,
+    attempts: summary.attempts ?? 0,
+    seconds: summary.seconds ?? 0,
+    last: summary.lastSolve ?? null,
+    t: Date.now(),
+    nonce: Math.random().toString(36).slice(2, 10),
+  };
+  const core = JSON.stringify(payload);
+  payload.sig = fnv1a(core + "|" + TOKEN_SALT);
+  return btoa(JSON.stringify(payload));
+}
+
+function askDisplayName() {
+  return new Promise((resolve) => {
+    const modal = document.getElementById("nameModal");
+    const input = document.getElementById("displayNameInput");
+    const cancel = document.getElementById("cancelName");
+    const cont = document.getElementById("continueName");
+
+    function close(val) {
+      modal.style.display = "none";
+      cancel.onclick = null;
+      cont.onclick = null;
+      modal.onclick = null;
+      document.onkeydown = null;
+      resolve(val);
+    }
+
+    input.value = "";
+    modal.style.display = "flex";
+    input.focus();
+
+    cancel.onclick = () => close(null);
+    cont.onclick = () => close(input.value.trim());
+
+    modal.onclick = (e) => { if (e.target === modal) close(null); };
+    document.onkeydown = (e) => {
+      if (e.key === "Escape") close(null);
+      if (e.key === "Enter") close(input.value.trim());
+    };
+  });
+}
+
+function buildFormBody({ displayName = "", sim, score, token }) {
+  const params = new URLSearchParams();
+  if (displayName && FORM_ENTRIES.displayName) params.set(FORM_ENTRIES.displayName, displayName);
+  params.set(FORM_ENTRIES.sim, sim);
+  params.set(FORM_ENTRIES.score, String(score));
+  params.set(FORM_ENTRIES.token, token);
+  return params;
+}
+
+function resetScoreSession() {
+  score.value = 0;
+  score.startedAt = Date.now();
+  score.events = [];
+  score.solves = 0;
+  score.attempts = 0;
+  score.currentSolved = false;
+  score.lastSolve = null;
+  startEquationTimer();
+  renderScore();
+  flashMsg("Submitted + reset");
+}
+
+const submitBtn = document.getElementById("submitScoreBtn");
+if (submitBtn) {
+  submitBtn.onclick = async () => {
+    const summary = scoreSummary();
+    const token = makeToken(summary);
+
+    const displayName = await askDisplayName();
+    if (displayName === null) return;
+
+    const body = buildFormBody({
+      displayName,
+      sim: SIM_ID,
+      score: summary.score,
+      token,
+    });
+
+    // silent autosubmit
+    fetch(FORM_BASE_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+      body: body.toString(),
+    });
+
+    resetScoreSession();
+  };
 }
 
 /* ===============================
