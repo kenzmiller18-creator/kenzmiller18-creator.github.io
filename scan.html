@@ -334,6 +334,48 @@ body.mode-adjusted .scanInput{ border-color: rgba(239,68,68,.75); }
   text-align: center;
 }
 
+/* ===== Mobile Camera Scan Button (progressive enhancement) ===== */
+#cameraScanBtn { display:none; } /* hidden by default (desktop) */
+@media (hover: none) and (pointer: coarse) {
+  #cameraScanBtn { display:inline-flex; }
+}
+
+/* camera overlay */
+#qrOverlay.hidden { display:none !important; }
+#qrOverlay{
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(0,0,0,.86);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
+}
+#qrOverlay .qrFrame{
+  width: min(92vw, 520px);
+  background: #111;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,.35);
+}
+#qrOverlay video{
+  width: 100%;
+  height: auto;
+  display: block;
+}
+#qrOverlay .qrHint{
+  color: #fff;
+  text-align: center;
+  max-width: 520px;
+  font-size: 14px;
+  line-height: 1.35;
+  opacity: .95;
+}
+
+
   </style>
 </head>
 <body>
@@ -432,6 +474,18 @@ body.mode-adjusted .scanInput{ border-color: rgba(239,68,68,.75); }
           <div class="right">
             <span class="tag" id="lastScanTag">Last: —</span>
           </div>
+        </div>
+        <button class="btn primary" id="cameraScanBtn" type="button">📷 Scan QR (phone camera)</button>
+
+        <div id="qrOverlay" class="hidden" aria-hidden="true">
+          <div class="qrFrame">
+            <video id="qrVideo" playsinline></video>
+          </div>
+          <div class="qrHint">
+            Point your camera at a student QR. It will auto-submit.<br />
+            <span style="opacity:.8;">(First time: tap “Allow” when asked for camera access.)</span>
+          </div>
+          <button class="btn" id="qrCloseBtn" type="button" style="background:#fff;">Close</button>
         </div>
 
         <input id="scanInput" class="scanInput" placeholder="CLICK HERE, THEN SCAN…" autocomplete="off" autocapitalize="off" spellcheck="false" />
@@ -709,8 +763,10 @@ body.mode-adjusted .scanInput{ border-color: rgba(239,68,68,.75); }
     Created by Mackenzie Miller · Open educational tool · Not for commercial use
   </p>
 </footer>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 
 <script>
+  
 /* ========= Defaults / Storage Keys ========= */
 const LS = {
   cfg: "att_cfg_v3",
@@ -1660,6 +1716,108 @@ $("saveEntryIdsBtn").addEventListener("click", ()=>{
   setTimeout(()=> $("entryMsg").textContent = "", 1200);
   logLine("✅ Saved entry IDs.");
 });
+/* ===== Camera QR Scan (mobile) =====
+   Scans QR via camera, writes result into #scanInput, then calls submitFromBox().
+   Does not affect keyboard-scanner workflow.
+*/
+(function setupCameraQrScan(){
+  const btn = $("cameraScanBtn");
+  const overlay = $("qrOverlay");
+  const video = $("qrVideo");
+  const closeBtn = $("qrCloseBtn");
+
+  if (!btn || !overlay || !video || !closeBtn) return;
+
+  let stream = null;
+  let rafId = null;
+
+  function setOverlayOpen(open){
+    overlay.classList.toggle("hidden", !open);
+    overlay.setAttribute("aria-hidden", open ? "false" : "true");
+  }
+
+  async function openScanner(){
+    // Graceful fallback
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+      alert("Camera scanning isn’t available on this device/browser. Use the normal scan box.");
+      $("scanInput").focus();
+      return;
+    }
+    if (typeof jsQR !== "function"){
+      alert("QR scanner library failed to load. Try refreshing, or use the normal scan box.");
+      $("scanInput").focus();
+      return;
+    }
+
+    try{
+      setOverlayOpen(true);
+
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+        audio: false
+      });
+
+      video.srcObject = stream;
+      await video.play();
+
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d", { willReadFrequently: true });
+
+      const loop = () => {
+        if (video.readyState >= 2){
+          canvas.width = video.videoWidth || 640;
+          canvas.height = video.videoHeight || 480;
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+          const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const code = jsQR(img.data, img.width, img.height);
+
+          if (code && code.data){
+            $("scanInput").value = String(code.data).trim();
+            closeScanner();
+            // Use your existing submit pipeline
+            submitFromBox();
+            return;
+          }
+        }
+        rafId = requestAnimationFrame(loop);
+      };
+
+      rafId = requestAnimationFrame(loop);
+    }catch(e){
+      closeScanner();
+      alert("Could not access the camera. Check browser permissions for this site.");
+      logLine(`❌ Camera error: ${String(e)}`);
+    }
+  }
+
+  function closeScanner(){
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = null;
+
+    if (stream){
+      stream.getTracks().forEach(t => t.stop());
+      stream = null;
+    }
+    video.srcObject = null;
+
+    setOverlayOpen(false);
+    $("scanInput").focus();
+  }
+
+  btn.addEventListener("click", openScanner);
+  closeBtn.addEventListener("click", closeScanner);
+
+  // Tap outside frame to close
+  overlay.addEventListener("click", (e)=>{
+    if (e.target === overlay) closeScanner();
+  });
+
+  // Escape to close (helpful on iPad w/ keyboard)
+  document.addEventListener("keydown", (e)=>{
+    if (e.key === "Escape" && !overlay.classList.contains("hidden")) closeScanner();
+  });
+})();
 
 // Init
 (function init(){
