@@ -554,7 +554,7 @@ body.mode-adjusted .scanInput{ border-color: rgba(239,68,68,.75); }
     <details id="adminDetails">
       <summary>Admin (hidden)</summary>
       <div class="tiny muted" style="margin:8px 0 10px;">
-        Press <b>Ctrl + Shift + A</b> to unlock/lock admin tools. (Teachers won’t know it unless you tell them.)
+        Enter code to unlock Admin.
       </div>
 
       <div id="adminLocked">
@@ -650,7 +650,7 @@ body.mode-adjusted .scanInput{ border-color: rgba(239,68,68,.75); }
         <details>
           <summary>Advanced config (JSON)</summary>
           <div class="tiny muted" style="margin:8px 0 10px;">
-            Use only if you need special schedules/dates.
+            Use only as needed for special sched (CD)
           </div>
           <div class="row">
             <div class="col">
@@ -668,7 +668,7 @@ body.mode-adjusted .scanInput{ border-color: rgba(239,68,68,.75); }
         <div class="divider"></div>
 
         <details>
-          <summary>Form entry IDs (only if your form changes)</summary>
+          <summary>Form entry IDs</summary>
           <div class="row" style="margin-top:10px;">
             <div class="col">
               <label>Teacher entry id</label>
@@ -727,14 +727,18 @@ const DEFAULT_ENTRY_IDS = {
 
 const EXAMPLE_CFG = {
   timezone: "America/Chicago",
-  normalSchedule: [
-    { period: "1", start: 8*60+0,  end: 8*60+50 },
-    { period: "2", start: 8*60+55, end: 9*60+45 },
-    { period: "3", start: 9*60+50, end: 10*60+40 },
-    { period: "4", start: 10*60+45, end: 11*60+35 },
-    { period: "5", start: 12*60+15, end: 13*60+5 },
-    { period: "6", start: 13*60+10, end: 14*60+0 }
-  ],
+normalSchedule: [
+  { period: "1", start: 8*60 + 45,  end: 9*60 + 35 },
+  { period: "2", start: 9*60 + 39,  end: 10*60 + 29 },
+  { period: "3", start: 10*60 + 33, end: 11*60 + 23 },
+  { period: "4", start: 11*60 + 27, end: 12*60 + 17 },
+  { period: "5", start: 12*60 + 21, end: 13*60 + 11 },
+  { period: "6", start: 13*60 + 15, end: 14*60 + 5 },
+  { period: "7", start: 14*60 + 9,  end: 14*60 + 59 },
+  { period: "8", start: 15*60 + 3,  end: 15*60 + 53 },
+  { period: "AfterSchoolMatters", start: 16*60 + 0, end: 19*60 + 0 }
+],
+
   specialSchedule: [],
   specialDates: []
 };
