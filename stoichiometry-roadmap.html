@@ -13,19 +13,17 @@ body {
 
 /* ===== TOOLBAR ===== */
 #toolbar {
-  display: grid;
+  display: flex;
   grid-template-columns: auto 1fr auto;
   align-items: center;
-  padding: 12px 18px;
+  padding: 12px 14px;
   background: #ead7ff;
   column-gap: 20px;
+  gap:14px;
 }
 
 /* Hub */
-.toolbar-hub {
-  display: flex;
-  align-items: center;
-}
+.toolbar-hub{ flex:0 0 auto; }
 
 .hub-link {
   font-family: Georgia, serif;
@@ -42,19 +40,36 @@ body {
 
 
 /* Center */
-.toolbar-left {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  justify-content: center;
+.toolbar-left{
+  flex: 1 1 auto;         /* center grows/shrinks */
+  min-width: 0;           /* 🔑 allows truncation */
+  display:flex;
+  align-items:center;
+  gap:12px;
+  justify-content:center;
 }
 
 /* Right */
 .toolbar-actions {
   display: flex;
-  gap: 20px;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: nowrap; /* prevents stacking */
+}
+.action-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  white-space: nowrap;
 }
 
+/* Make all toolbar buttons consistent */
+.toolbar-actions .btn,
+#submitScoreBtn {
+  font-size: 12px;
+  padding: 8px 16px;
+  border-radius: 10px;
+}
 
 #top-toolbar {
   background: #dea2ff;
@@ -70,7 +85,7 @@ body {
 }
 
 .toolbar-prompt {
-  font-size: 1.1rem;
+  font-size: 1.0rem;
   font-weight: 500;
   white-space: nowrap;
 }
@@ -127,11 +142,13 @@ body {
 
 
 
-
-.toolbar-equation {
-  font-size: 1.2rem;
-  font-weight: 700;
-  white-space: nowrap;
+.toolbar-prompt,
+.toolbar-equation{
+  min-width: 0;
+  max-width: 38vw;        /* prevents endless growth */
+  overflow: hidden;
+  
+    /* single line */
 }
 
 /* ===== WORKSPACE ===== */
@@ -159,7 +176,7 @@ body {
 
 /* ===== INSTRUCTIONS ===== */
 #instructions {
-  font-size: 0.95rem;
+  font-size: 0.85rem;
   font-weight: 500;
   text-align: center;
   margin-top: -100px;
@@ -598,6 +615,85 @@ body {
   text-align: center;
   margin: 0 12px;
 }
+/* ===== MODAL ===== */
+.modal.hidden { display: none; }
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: grid;
+  place-items: center;
+  z-index: 9999;
+  pointer-events: auto;
+}
+
+.modal-card {
+  width: min(520px, 92vw);
+  background: #fff;
+  border: 3px solid #000;
+  border-radius: 18px;
+  padding: 18px 18px 14px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+}
+
+.modal-title {
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+
+.modal-sub {
+  font-size: 14px;
+  opacity: 0.75;
+  margin-bottom: 12px;
+}
+
+.modal-input {
+  width: 80%;
+  font-family: Georgia, serif;
+  font-size: 18px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 2px solid #999;
+  outline: none;
+}
+
+.modal-input:focus {
+  border-color: #4b3fae;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.modal-btn {
+  font-family: Georgia, serif;
+  font-size: 16px;
+  font-weight: 800;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 2px solid #000;
+  cursor: pointer;
+}
+
+.modal-btn.primary {
+  background: #4b3fae;
+  color: #fff;
+}
+
+.modal-btn.secondary {
+  background: #f0f0f0;
+}
+
+.modal-status {
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 700;
+  min-height: 16px;
+}
 
 </style>
 </head>
@@ -624,13 +720,22 @@ body {
 
   <!-- RIGHT: ACTIONS -->
   <div class="toolbar-actions">
+        <div id="scoreHud" style="margin-right:14px; font-weight:bold; color:#370047;">
+  Score: <span id="scoreValue">0</span>
+  <span id="scoreMsg" style="margin-left:10px; font-weight:normal; opacity:0.85;"></span>
+</div>
     <div class="action-group">
       <button class="btn new-problem">New Problem</button>
       <button class="btn reset">Reset</button>
     </div>
 
     <div class="action-group check-group">
-      <button class="btn check-answer">Check Answer</button>
+      <button class="btn check-answer">Check</button>
+    <button id="submitScoreBtn" type="button" class="btn" style="background:#25202c; color:#fff; border:2px solid #000;">
+  Submit Score
+</button>
+
+
     </div>
   </div>
 
@@ -685,6 +790,23 @@ body {
   </div>
 
 </div>
+<!-- ===== SUBMIT MODAL (Nickname) ===== -->
+<div id="nameModal" class="modal hidden" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="nameModalTitle">
+    <div class="modal-title" id="nameModalTitle">Enter a name / nickname</div>
+    <div class="modal-sub">This will show on the class leaderboard.</div>
+
+    <input id="displayNameInput" class="modal-input" type="text" maxlength="15"
+           placeholder="e.g., Nik, V, ChemQueen" autocomplete="off" />
+
+    <div class="modal-actions">
+      <button id="nameCancelBtn" class="modal-btn secondary" type="button">Cancel</button>
+      <button id="nameSubmitBtn" class="modal-btn primary" type="button">Submit Score</button>
+    </div>
+
+    <div id="submitStatus" class="modal-status"></div>
+  </div>
+</div>
 
 
  
@@ -724,6 +846,208 @@ const ATOMIC_MASS = {
 };
 
 let mode = "steps"; // default
+
+/* =========================
+   SCORE + FORM SUBMIT (Stoich)
+   ========================= */
+
+// ✅ 1) Put your Google Form "formResponse" URL here:
+const FORM_ACTION_URL = "https://docs.google.com/forms/d/e/1FAIpQLSckXbWQsVWobjrktGMoF7AtY6gMch0eQMjsGlddVv1cxgNHgQ/formResponse";
+
+
+// ✅ 2) Entry IDs (from you)
+const FORM_ENTRIES = {
+  displayName: "entry.366340186",
+  sim: "entry.1832756779",
+  score: "entry.221944829",
+  token: "entry.1636605257",
+};
+
+// ✅ 3) Sim identifier (shows up in the sheet)
+const SIM_ID_VALUE = "stoich";
+
+// ✅ 4) Scoring rules (tweak anytime)
+const SCORE_RULES = {
+  correctBase: 100,
+  wrongPenalty: 10,
+  speedBonusMax: 60,   // max bonus points
+  speedWindowSec: 60,  // full bonus if solved instantly, falls to 0 at 60s
+  minScore: 0
+};
+
+const score = {
+  value: 0,
+  startedAt: Date.now(),
+  attempts: 0,        // how many times they clicked check
+  solved: false,
+  token: null
+};
+// ===== Score HUD + Submit button gating =====
+const scoreValueEl = document.getElementById("scoreValue");
+const scoreMsgEl = document.getElementById("scoreMsg");
+const submitScoreBtn = document.getElementById("submitScoreBtn");
+
+function updateScoreHud(msg = "") {
+  if (scoreValueEl) scoreValueEl.textContent = String(score.value);
+  if (scoreMsgEl) scoreMsgEl.textContent = msg;
+}
+
+function setSubmitEnabled(on) {
+  if (!submitScoreBtn) return;
+  submitScoreBtn.disabled = !on;
+  submitScoreBtn.style.opacity = on ? "1" : "0.5";
+  submitScoreBtn.style.cursor = on ? "pointer" : "not-allowed";
+}
+
+// submit opens modal ONLY when allowed
+submitScoreBtn?.addEventListener("click", () => {
+  if (!score.solved) {
+    updateScoreHud("Solve it first 🙂");
+    return;
+  }
+  openNameModal();
+});
+
+function resetScore() {
+  score.value = 0;
+  score.startedAt = Date.now();
+  score.attempts = 0;
+  score.solved = false;
+  score.token = newToken();
+
+  updateScoreHud("");
+  setSubmitEnabled(false);
+}
+
+
+function newToken() {
+  // simple unique token to reduce duplicate submissions
+  return Math.random().toString(36).slice(2) + "-" + Date.now().toString(36);
+}
+
+function secondsElapsed() {
+  return Math.max(0, Math.floor((Date.now() - score.startedAt) / 1000));
+}
+
+function applyWrongAttemptPenalty() {
+  score.attempts += 1;
+  score.value = Math.max(SCORE_RULES.minScore, score.value - SCORE_RULES.wrongPenalty);
+  updateScoreHud("Try again!");
+}
+
+function finalizeCorrectScore() {
+  const t = secondsElapsed();
+  const bonus = Math.max(0, Math.round(SCORE_RULES.speedBonusMax * (1 - (t / SCORE_RULES.speedWindowSec))));
+  const earned = Math.max(
+    0,
+    SCORE_RULES.correctBase + bonus - (score.attempts * SCORE_RULES.wrongPenalty)
+  );
+
+  score.value = Math.max(SCORE_RULES.minScore, score.value + earned); // ✅ add to total
+  updateScoreHud(`+${earned}!`);
+}
+
+
+
+/* ===== Modal helpers ===== */
+const nameModal = document.getElementById("nameModal");
+const displayNameInput = document.getElementById("displayNameInput");
+const nameCancelBtn = document.getElementById("nameCancelBtn");
+const nameSubmitBtn = document.getElementById("nameSubmitBtn");
+const submitStatus = document.getElementById("submitStatus");
+
+function openNameModal() {
+  submitStatus.textContent = "";
+  nameModal.classList.remove("hidden");
+  nameModal.setAttribute("aria-hidden", "false");
+  setTimeout(() => displayNameInput.focus(), 0);
+}
+
+function closeNameModal() {
+  nameModal.classList.add("hidden");
+  nameModal.setAttribute("aria-hidden", "true");
+}
+
+nameCancelBtn?.addEventListener("click", () => closeNameModal());
+
+nameModal?.addEventListener("click", (e) => {
+  // click outside card closes
+  if (e.target === nameModal) closeNameModal();
+});
+
+displayNameInput?.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeNameModal();
+  if (e.key === "Enter") nameSubmitBtn.click();
+});
+
+/* ===== Form submit ===== */
+function buildFormBody({ displayName, sim, scoreValue, token }) {
+  const p = new URLSearchParams();
+  p.append(FORM_ENTRIES.displayName, displayName);
+  p.append(FORM_ENTRIES.sim, sim);
+  p.append(FORM_ENTRIES.score, String(scoreValue));
+  p.append(FORM_ENTRIES.token, token);
+  return p;
+}
+
+async function submitToGoogleForm({ displayName, scoreValue }) {
+  // Using fetch no-cors: we don't get a readable response, but it submits.
+  const body = buildFormBody({
+    displayName,
+    sim: SIM_ID_VALUE,
+    scoreValue,
+    token: score.token
+  });
+
+  await fetch(FORM_ACTION_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body
+  });
+}
+
+async function submitScoreFlow() {
+  const raw = (displayNameInput.value || "").trim();
+  const displayName = raw.slice(0, 20);
+
+  if (!displayName) {
+    submitStatus.textContent = "Please enter a name first 🙂";
+    return;
+  }
+
+  // prevent double-submits
+  nameSubmitBtn.disabled = true;
+  nameCancelBtn.disabled = true;
+  submitStatus.textContent = "Submitting…";
+
+  try {
+    await submitToGoogleForm({ displayName, scoreValue: score.value });
+
+    submitStatus.textContent = "✅ Submitted!";
+    setTimeout(() => {
+      closeNameModal();
+
+      // Reset score AFTER submit (your request)
+      resetScore();
+
+      // Optional: clear input for next student
+      displayNameInput.value = "";
+
+      // Re-enable buttons
+      nameSubmitBtn.disabled = false;
+      nameCancelBtn.disabled = false;
+    }, 700);
+
+  } catch (err) {
+    console.error(err);
+    submitStatus.textContent = "Hmm… submission failed. Try again.";
+    nameSubmitBtn.disabled = false;
+    nameCancelBtn.disabled = false;
+  }
+}
+
+nameSubmitBtn?.addEventListener("click", submitScoreFlow);
 
 document.querySelectorAll('input[name="mode"]').forEach(radio => {
   radio.addEventListener("change", (e) => {
@@ -981,15 +1305,15 @@ document
 
 function loadProblem(problem) {
   currentProblem = problem;
+  resetForNewProblem(); // ✅ doesn’t erase total score
 
-  document.querySelector(".toolbar-prompt").textContent =
-    problem.prompt;
-  document.querySelector(".toolbar-equation").textContent =
-    renderEquation(problem.equation);
+  document.querySelector(".toolbar-prompt").textContent = problem.prompt;
+  document.querySelector(".toolbar-equation").textContent = renderEquation(problem.equation);
 
   resetAll();
   buildRoadmap(problem);
 }
+
 
 
 
@@ -1036,6 +1360,8 @@ const colorPalette = [
   "#ffc6ff",
 ];
 let colorIndex = 0;
+
+resetScore();
 
 buildRoadmap(currentProblem);
 
@@ -1299,19 +1625,40 @@ function checkFinalAnswer() {
   const isCorrect = Math.abs(studentValue - value) <= tolerance;
 
   if (isCorrect) {
-    resultInput.classList.add("correct");
-    feedback.textContent = "✓ Correct!";
-    feedback.classList.add("correct");
-  } else {
-    resultInput.classList.add("incorrect");
-    feedback.textContent = "Not correct yet";
-    feedback.classList.add("incorrect");
+  resultInput.classList.add("correct");
+  feedback.textContent = "✓ Correct!";
+  feedback.classList.add("correct");
+
+  if (!score.solved) {
+    score.solved = true;
+    finalizeCorrectScore();
+    setSubmitEnabled(true);  // ✅ pop nickname AFTER correct
   }
+
+} else {
+  resultInput.classList.add("incorrect");
+  feedback.textContent = "Not correct yet";
+  feedback.classList.add("incorrect");
+
+  // ✅ penalty only if not solved yet
+  if (!score.solved) applyWrongAttemptPenalty();
+}
+
 
   feedback.classList.remove("hidden");
 }
 
 
+function resetForNewProblem() {
+  // keep score.value (running total)
+  score.startedAt = Date.now();
+  score.attempts = 0;
+  score.solved = false;
+  score.token = newToken();
+
+  updateScoreHud("");      // keep displayed total
+  setSubmitEnabled(false); // require solving current problem before submitting
+}
 
 
 /* ---- Node click handling ---- */
