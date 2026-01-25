@@ -933,7 +933,7 @@ function isLikelyUrl(s){ return /^https?:\/\//i.test(String(s||"").trim()); }
 function computeChosenBasePeriod(cfg, now){
   const override = $("overridePeriod").value.trim();
   if (override) return override;
-  const pre = Math.max(0, parseInt($("preScanMinutes").value || "10", 10));
+  const pre = Math.max(0, parseInt($("preScanMinutes").value || "4", 10));
   return detectPeriodWithPreScan(cfg, now, pre);
 }
 
@@ -1425,7 +1425,7 @@ function getTeacherName(){
 function restoreAdminSettings(){
   $("persistRoster").value = localStorage.getItem(LS.persist) || "on";
   $("tardyThreshold").value = localStorage.getItem(LS.tardy) || "5";
-  $("preScanMinutes").value = localStorage.getItem(LS.prescan) || "10";
+  $("preScanMinutes").value = localStorage.getItem(LS.prescan) || "4";
     $("teacherList").value = loadTeachers().join("\n");
 
   // entry ids into admin inputs
