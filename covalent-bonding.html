@@ -104,10 +104,34 @@ body {
   text-decoration: underline;
 }
 
+#submitScoreBtn {
+  background: #4cf5bd;
+  color: rgb(0, 0, 0);
+  border: none;
+  padding: 10px 18px;
+  font-weight: 600;
+  border-radius: 8px;
+}
 
+#submitScoreBtn:hover {
+  background: #7affe4;
+}
+
+#challengeBtn {
+  background: #c54cf5;
+  color: rgb(255, 255, 255);
+  border: none;
+  padding: 10px 18px;
+  font-weight: 600;
+  border-radius: 8px;
+}
+
+#challengeBtn:hover {
+  background: #de82fc;
+}
 
 #resetBtn {
-  background: #000;
+  background: #624cf5;
   color: white;
   border: none;
   padding: 10px 18px;
@@ -116,7 +140,7 @@ body {
 }
 
 #resetBtn:hover {
-  background: #222;
+  background: #88e5ff;
 }
 
 
@@ -548,10 +572,21 @@ padding-top: 12px;
   </div>
 
   <div class="toolbar-right">
+        <div id="scoreHud" style="margin-right:14px; font-weight:bold; color:#370047;">
+  Score: <span id="scoreValue">0</span>
+  <span id="scoreMsg" style="margin-left:10px; font-weight:normal; opacity:0.85;"></span>
+</div>
     <div id="charge-controls">
       <button id="deleteBtn">Delete</button>
       <button id="resetBtn">Clear All</button>
     </div>
+
+
+
+<button id="challengeBtn">Challenge</button>
+<button id="submitScoreBtn">Submit Score</button>
+
+
 
     
   </div>
@@ -562,9 +597,65 @@ padding-top: 12px;
 
 <div id="statusMessage"></div>
 
+<div id="challengePanel" style="
+  display:none;
+  max-width: 900px;
+  margin: 14px auto 0 auto;
+  background: #fff;
+  border: 2px solid #000;
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-family: Georgia, serif;
+">
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+    <div>
+      <div id="challengePrompt" style="font-weight:bold; font-size:18px;"></div>
+      <div id="challengeHint" style="opacity:.85; margin-top:2px;"></div>
+    </div>
+
+    <div style="display:flex; gap:10px; align-items:center;">
+      <button id="checkChallengeBtn" style="background:#c084fc; color:#fff; border:none;">Check</button>
+      <button id="nextChallengeBtn" style="background:#25202c; color:#fff; border:none;">New Challenge</button>
+    </div>
+  </div>
+
+  <div id="challengeFeedback" style="font-weight:bold; font-size:18px; margin-top:10px;"></div>
+</div>
 
 
 <div id="workspace"></div>
+
+<div id="nameModal" style="
+  display:none;
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.35);
+  align-items:center; justify-content:center;
+  z-index:9999;
+">
+  <div style="
+    width:min(420px, 92vw);
+    background:#fff;
+    border:3px solid #000;
+    border-radius:16px;
+    padding:16px;
+    font-family: Georgia, serif;
+  ">
+    <div style="font-weight:bold; font-size:18px; margin-bottom:8px;">
+      Leaderboard name (optional)
+    </div>
+    <div style="opacity:.85; margin-bottom:10px;">
+      Nickname / initials. Leave blank to stay anonymous.
+    </div>
+    <input id="displayNameInput" maxlength="20" placeholder="e.g., NV / ChemQueen"
+      style="width:90%; padding:10px 12px; font-size:18px; border-radius:10px; border:2px solid #999;"
+    />
+    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:12px;">
+      <button id="cancelName" style="background:#eee;">Cancel</button>
+      <button id="continueName" style="background:#c084fc; color:white;">Continue</button>
+    </div>
+  </div>
+</div>
+
 
 <script>
 const workspace = document.getElementById('workspace');
@@ -596,6 +687,69 @@ const TARGET_ELECTRONS = {
   P:8, S:8, Se:8,
   F:8, Cl:8, Br:8, I:8
 };
+
+// ===== SCORE (Covalent Bonding) =====
+
+let scoringMode = "free"; // "free" | "challenge"
+
+const score = {
+  value: 0,
+  startedAt: Date.now(),
+  satisfiedAtoms: 0,
+  overfilledEvents: 0,
+  moleculeBonuses: 0,
+  challengesCorrect: 0,
+  challengesWrong: 0,
+  events: []
+};
+
+const SCORE_RULES = {
+  atomSatisfied: 2,
+  moleculeComplete: 5,
+  overfilled: -2,
+
+  challengeCorrect: 25,
+  challengeWrong: -2,
+  minScore: 0
+};
+
+
+
+function renderScore() {
+  const el = document.getElementById("scoreValue");
+  if (el) el.textContent = score.value;
+}
+
+function flashMsg(text) {
+  const el = document.getElementById("scoreMsg");
+  if (!el) return;
+  el.textContent = text;
+  clearTimeout(flashMsg._t);
+  flashMsg._t = setTimeout(() => (el.textContent = ""), 1200);
+}
+
+function addScore(type, delta, meta={}) {
+  score.value += delta;
+  if (score.value < SCORE_RULES.minScore) score.value = SCORE_RULES.minScore;
+  score.events.push({ t: Date.now(), type, delta, scoreAfter: score.value, ...meta });
+  renderScore();
+  if (delta !== 0) flashMsg((delta > 0 ? "+" : "") + delta);
+}
+
+renderScore();
+function scoreSummary() {
+  return {
+    score: score.value,
+    satisfiedAtoms: score.satisfiedAtoms,
+    overfilledEvents: score.overfilledEvents,
+    moleculeBonuses: score.moleculeBonuses,
+    challengesCorrect: score.challengesCorrect,
+    challengesWrong: score.challengesWrong,
+    seconds: Math.floor((Date.now() - score.startedAt) / 1000),
+    events: score.events
+  };
+}
+
 
 let bonds = [];
 let selectedElectron = null;
@@ -1258,13 +1412,58 @@ b.e.angle = b.e.angle;
 
 }
 function updateAllSatisfaction() {
+  // capture BEFORE states
+  const before = new Map();
+  document.querySelectorAll('.atom').forEach(atom => {
+    before.set(atom, atomState(atom));
+  });
+
+  // existing logic
   document.querySelectorAll('.atom').forEach(atom => {
     updateSatisfaction(atom);
     updateFormalCharge(atom);
   });
 
   updateIonBox();
+
+  // ✅ Gate: during challenge mode, still update visuals,
+  // but do NOT award free-play points.
+  if (scoringMode !== "free") return;
+
+  // score AFTER transitions (free-play only)
+  document.querySelectorAll('.atom').forEach(atom => {
+    const b = before.get(atom);
+    const a = atomState(atom);
+    if (!b) return;
+
+    // newly satisfied
+    if (!b.satisfied && a.satisfied) {
+      score.satisfiedAtoms++;
+      addScore("atom_satisfied", SCORE_RULES.atomSatisfied, { symbol: atom.dataset.symbol });
+
+      // molecule completion bonus (once per component)
+      const comp = getConnectedComponent(atom);
+      const compId = comp
+        .map(x => x.dataset.symbol + "_" + (x._id || (x._id = Math.random().toString(36).slice(2, 8))))
+        .sort()
+        .join("|");
+
+      score._completed = score._completed || new Set();
+      if (!score._completed.has(compId) && isComponentComplete(comp)) {
+        score._completed.add(compId);
+        score.moleculeBonuses++;
+        addScore("molecule_complete", SCORE_RULES.moleculeComplete, { size: comp.length });
+      }
+    }
+
+    // newly overfilled
+    if (!b.overfilled && a.overfilled) {
+      score.overfilledEvents++;
+      addScore("overfilled", SCORE_RULES.overfilled, { symbol: atom.dataset.symbol });
+    }
+  });
 }
+
 
 
 
@@ -1606,6 +1805,146 @@ function updateIonicLinks() {
   });
 }
 
+// ===== CHALLENGES =====
+const CHALLENGES = [
+  { label: "H₂",  formula: { H:2 }, hint: "Diatomic molecule" },
+  { label: "O₂",  formula: { O:2 }, hint: "Diatomic molecule" },
+  { label: "N₂",  formula: { N:2 }, hint: "Diatomic molecule" },
+  { label: "H₂O", formula: { H:2, O:1 }, hint: "Central atom: O" },
+  { label: "NH₃", formula: { N:1, H:3 }, hint: "Central atom: N" },
+  { label: "CH₄", formula: { C:1, H:4 }, hint: "4 single bonds" },
+  { label: "CO₂", formula: { C:1, O:2 }, hint: "Linear" },
+  { label: "HF",  formula: { H:1, F:1 }, hint: "Single bond" },
+  { label: "Cl₂", formula: { Cl:2 }, hint: "Diatomic molecule" },
+];
+
+let currentChallenge = null;
+let solvedThisChallenge = false;
+
+const challengePanel = document.getElementById("challengePanel");
+const challengeBtn = document.getElementById("challengeBtn");
+const challengePrompt = document.getElementById("challengePrompt");
+const challengeHint = document.getElementById("challengeHint");
+const challengeFeedback = document.getElementById("challengeFeedback");
+
+function pickChallenge() {
+  const idx = Math.floor(Math.random() * CHALLENGES.length);
+  currentChallenge = CHALLENGES[idx];
+  solvedThisChallenge = false;
+  challengePrompt.textContent = `Build: ${currentChallenge.label}`;
+  challengeHint.textContent = currentChallenge.hint ? `Hint: ${currentChallenge.hint}` : "";
+  challengeFeedback.textContent = "";
+}
+
+challengeBtn.onclick = () => {
+  const opening = (challengePanel.style.display === "none" || !challengePanel.style.display);
+
+  challengePanel.style.display = opening ? "block" : "none";
+  scoringMode = opening ? "challenge" : "free";
+
+  if (!currentChallenge) pickChallenge();
+};
+
+document.getElementById("nextChallengeBtn").onclick = () => pickChallenge();
+document.getElementById("checkChallengeBtn").onclick = () => checkChallenge();
+
+function formulaOfComponent(component) {
+  const counts = {};
+  component.forEach(a => {
+    if (a.dataset.metal) return; // ignore metals for covalent challenges
+    const sym = a.dataset.symbol;
+    counts[sym] = (counts[sym] || 0) + 1;
+  });
+  return counts;
+}
+
+function sameFormula(a, b) {
+  const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+  for (const k of keys) {
+    if ((a[k] || 0) !== (b[k] || 0)) return false;
+  }
+  return true;
+}
+
+function getConnectedComponent(startAtom) {
+  const visited = new Set();
+  const stack = [startAtom];
+
+  while (stack.length) {
+    const node = stack.pop();
+    if (visited.has(node)) continue;
+    visited.add(node);
+
+    bonds.forEach(group => {
+      if (group.a === node && !visited.has(group.b)) stack.push(group.b);
+      if (group.b === node && !visited.has(group.a)) stack.push(group.a);
+    });
+  }
+  return [...visited];
+}
+
+function allSatisfiedNoOverfill(component) {
+  const nonMetals = component.filter(a => !a.dataset.metal);
+  if (nonMetals.length === 0) return false;
+  return nonMetals.every(a => a.classList.contains("satisfied")) &&
+         nonMetals.every(a => !a.classList.contains("overfilled"));
+}
+
+function allComponents() {
+  const comps = [];
+  const seen = new Set();
+
+  atoms.forEach(a => {
+    if (seen.has(a)) return;
+    const comp = getConnectedComponent(a);
+    comp.forEach(x => seen.add(x));
+    comps.push(comp);
+  });
+
+  return comps;
+}
+
+function checkChallenge() {
+  if (!currentChallenge) return;
+
+  // must not double-award
+  if (solvedThisChallenge) {
+    challengeFeedback.textContent = "✅ Already solved — click New Challenge for another!";
+    return;
+  }
+
+  // Look for ANY connected component that matches the target formula
+  const comps = allComponents();
+  const target = currentChallenge.formula;
+
+  for (const comp of comps) {
+    const f = formulaOfComponent(comp);
+
+    if (sameFormula(f, target)) {
+      if (!allSatisfiedNoOverfill(comp)) {
+        challengeFeedback.textContent = "⚠ Formula matches, but atoms aren’t satisfied yet (or something is overfilled).";
+        addScore("challenge_wrong", SCORE_RULES.challengeWrong, { label: currentChallenge.label, reason: "not_satisfied" });
+        score.challengesWrong++;
+        return;
+      }
+
+      // Success
+      solvedThisChallenge = true;
+      challengeFeedback.textContent = "🎉 Correct molecule built!";
+      addScore("challenge_correct", SCORE_RULES.challengeCorrect, { label: currentChallenge.label });
+      score.challengesCorrect++;
+
+      // auto-next after a beat
+      setTimeout(() => pickChallenge(), 900);
+      return;
+    }
+  }
+
+  // No matching component found
+  challengeFeedback.textContent = "✘ Not yet — build a connected molecule that matches the formula.";
+  addScore("challenge_wrong", SCORE_RULES.challengeWrong, { label: currentChallenge.label, reason: "no_match" });
+  score.challengesWrong++;
+}
 
 /* ---------- RESET ---------- */
 function clearAll() {
@@ -1657,15 +1996,189 @@ workspace.addEventListener('click', () => {
   clearSelectedElectron();
 });
 
+function atomState(atom) {
+  return {
+    satisfied: atom.classList.contains("satisfied"),
+    overfilled: atom.classList.contains("overfilled")
+  };
+}
+
+function getConnectedComponent(startAtom) {
+  const visited = new Set();
+  const stack = [startAtom];
+
+  while (stack.length) {
+    const a = stack.pop();
+    if (visited.has(a)) continue;
+    visited.add(a);
+
+    bonds.forEach(group => {
+      if (group.a === a && !visited.has(group.b)) stack.push(group.b);
+      if (group.b === a && !visited.has(group.a)) stack.push(group.b);
+    });
+  }
+  return [...visited];
+}
+
+function isComponentComplete(component) {
+  // ignore metals for covalent scoring
+  const nonMetals = component.filter(a => !a.dataset.metal);
+  if (nonMetals.length === 0) return false;
+  return nonMetals.every(a => a.classList.contains("satisfied")) &&
+         nonMetals.every(a => !a.classList.contains("overfilled"));
+}
+
+// ===== GOOGLE FORM EXPORT (Model A) — using SAME form + IDs as Ionic =====
+
+// IMPORTANT: put the PLAIN viewform URL (no entry params)
+const FORM_BASE_URL =
+  "https://docs.google.com/forms/d/e/1FAIpQLSckXbWQsVWobjrktGMoF7AtY6gMch0eQMjsGlddVv1cxgNHgQ/formResponse";
+
+// Entry IDs (known from your Ionic code)
+const FORM_ENTRIES = {
+  // ✅ you must paste the nickname entry id here once:
+  displayName: "entry.366340186",
+
+  sim: "entry.1832756779",
+  score: "entry.221944829",
+  token: "entry.1636605257",
+};
+
+const SIM_ID = "covalent_bonding";
+const TOKEN_SALT = "MoLeCuTeOrG";
+
+// FNV-1a hash
+function fnv1a(str) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = (h * 0x01000193) >>> 0;
+  }
+  return ("00000000" + h.toString(16)).slice(-8);
+}
+
+function makeToken(summary) {
+  const payload = {
+    v: 1,
+    sim: SIM_ID,
+    score: summary.score,
+
+    satisfiedAtoms: summary.satisfiedAtoms ?? 0,
+    overfilledEvents: summary.overfilledEvents ?? 0,
+    moleculeBonuses: summary.moleculeBonuses ?? 0,
+    challengesCorrect: summary.challengesCorrect ?? 0,
+    challengesWrong: summary.challengesWrong ?? 0,
+    seconds: summary.seconds ?? 0,
+
+    t: Date.now(),
+    nonce: Math.random().toString(36).slice(2, 10),
+  };
+
+  const core = JSON.stringify(payload);
+  payload.sig = fnv1a(core + "|" + TOKEN_SALT);
+  return btoa(JSON.stringify(payload));
+}
+
+function buildPrefillUrl({ displayName = "", sim, score, token }) {
+  const params = new URLSearchParams();
+
+  if (displayName && FORM_ENTRIES.displayName) {
+    params.set(FORM_ENTRIES.displayName, displayName);
+  }
+
+  params.set(FORM_ENTRIES.sim, sim);
+  params.set(FORM_ENTRIES.score, String(score));
+  params.set(FORM_ENTRIES.token, token);
+
+  return FORM_BASE_URL + "?" + params.toString();
+}
+
+// Modal nickname prompt
+function askDisplayName() {
+  return new Promise((resolve) => {
+    const modal = document.getElementById("nameModal");
+    const input = document.getElementById("displayNameInput");
+    const cancel = document.getElementById("cancelName");
+    const cont = document.getElementById("continueName");
+
+    function close(val) {
+      modal.style.display = "none";
+      cancel.onclick = null;
+      cont.onclick = null;
+      modal.onclick = null;
+      document.onkeydown = null;
+      resolve(val);
+    }
+
+    input.value = "";
+    modal.style.display = "flex";
+    input.focus();
+
+    cancel.onclick = () => close(null);
+    cont.onclick = () => close(input.value.trim());
+
+    modal.onclick = (e) => {
+      if (e.target === modal) close(null);
+    };
+
+    document.onkeydown = (e) => {
+      if (e.key === "Escape") close(null);
+      if (e.key === "Enter") close(input.value.trim());
+    };
+  });
+}
+
+function resetScoreSession() {
+  score.value = 0;
+  score.startedAt = Date.now();
+  score.events = [];
+
+  // reset your covalent counters (only if they exist)
+  if ("satisfiedAtoms" in score) score.satisfiedAtoms = 0;
+  if ("overfilledEvents" in score) score.overfilledEvents = 0;
+  if ("moleculeBonuses" in score) score.moleculeBonuses = 0;
+  if ("challengesCorrect" in score) score.challengesCorrect = 0;
+  if ("challengesWrong" in score) score.challengesWrong = 0;
+
+  if (score._completed) score._completed = new Set();
+
+  renderScore();
+  flashMsg("Score reset");
+}
+
+const submitBtn = document.getElementById("submitScoreBtn");
+if (submitBtn) {
+  submitBtn.onclick = async () => {
+    try {
+      const summary = scoreSummary();
+      const token = makeToken(summary);
+
+      const displayName = await askDisplayName();
+      if (displayName === null) return;
+
+      const url = buildPrefillUrl({
+        displayName,
+        sim: SIM_ID,
+        score: summary.score,
+        token,
+      });
+
+      fetch(url, { method: "POST", mode: "no-cors" });
+      flashMsg("Score submitted!");
+
+
+      resetScoreSession();
+    } catch (err) {
+      console.error(err);
+      alert("Submit failed. Open DevTools Console to see the error.");
+    }
+  };
+}
 
 
 document.getElementById('resetBtn').onclick = clearAll;
 
-document.getElementById('covalentModeBtn').onclick = () =>
-  setBondingMode('covalent');
 
-document.getElementById('ionicModeBtn').onclick = () =>
-  setBondingMode('ionic');
 
 </script>
 
