@@ -1,0 +1,926 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Reaction Chamber</title>
+
+<style>
+  :root{
+    --bg:#ffffff;
+    --bar:#e8b4fe;
+    --ink:#2b1b2e;
+    --muted:#4f2f92;
+    --line:#000;
+    --shadow: 0 10px 30px rgba(43,27,46,.10);
+
+    --H:#9ec9f5;
+    --Cl:#166f3b;
+    --O:#ff6262;
+    --C:#9561f4;
+  }
+
+  *{ box-sizing:border-box; }
+  body{
+    margin:0;
+    background:var(--bg);
+    font-family: Georgia, serif;
+    color:var(--ink);
+  }
+
+  /* Toolbar */
+  #toolbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:12px 16px;
+    background:var(--bar);
+    border-bottom:2px solid var(--line);
+  }
+  .toolbar-left, .toolbar-center, .toolbar-right{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  }
+  .hub-link{
+    font-size:18px; font-weight:bold; text-decoration:none; color:var(--muted);
+  }
+  .hub-link:hover{ text-decoration:underline; }
+
+  .btn{
+    border:none;
+    border-radius:10px;
+    padding:10px 14px;
+    font-weight:bold;
+    cursor:pointer;
+    box-shadow:0 2px 4px rgba(0,0,0,.15);
+    background:#624cf5;
+    color:#fff;
+  }
+  .btn:hover{ filter:brightness(1.05); }
+  .btn.secondary{ background:#25202c; }
+  .btn.green{ background:#4cf5bd; color:#000; }
+  .btn.pink{ background:#c54cf5; }
+
+  .pill{
+    background:rgba(255,255,255,.75);
+    border:1px solid rgba(0,0,0,.25);
+    padding:8px 10px;
+    border-radius:999px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .pill b{ font-size:16px; }
+  input[type="range"]{ width:160px; }
+
+  #reactionSelect{
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: bold;
+    padding: 6px 8px;
+    border-radius: 10px;
+    border: 1px solid rgba(0,0,0,.35);
+    background: rgba(255,255,255,.9);
+  }
+
+  #spawnBar{ gap: 8px; flex-wrap: wrap; }
+  #spawnBar .btn{ padding:10px 12px; }
+
+  /* Workspace */
+  #workspace{
+    width:100vw;
+    height:calc(100vh - 64px);
+    background:linear-gradient(180deg, rgba(232,180,254,.22), rgba(255,255,255,0));
+    overflow:hidden;
+  }
+
+  /* Layout: left chamber, right panels */
+  #layout{
+    height:100%;
+    display:grid;
+    grid-template-columns: 1fr 360px;
+    gap:14px;
+    padding:14px;
+    align-items:stretch;
+  }
+
+  #chamberWrap{
+    height:100%;              /* IMPORTANT: definite height */
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-width:0;
+    min-height:0;
+  }
+
+  /* ✅ SINGLE chamber definition (definite size) */
+  #chamber{
+    position:relative;
+    width: min(920px, 100%);
+    height: clamp(360px, 70vh, 560px);  /* IMPORTANT: definite height */
+    border:3px solid #000;
+    border-radius:18px;
+    background:#fff;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+
+  /* Molecules */
+  .molecule{
+    position:absolute;
+    width:0; height:0;
+    pointer-events:none;
+  }
+
+  .atom{
+    position:absolute;
+    width:30px; height:30px;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+    font-weight:bold;
+    font-size:14px;
+    user-select:none;
+  }
+
+  .atom.H{ background:var(--H); color:#0b2a4a; }
+  .atom.Cl{ background:var(--Cl); }
+  .atom.O{ background:var(--O); }
+  .atom.C{ background:var(--C); }
+
+  .pop{ animation: pop .22s ease-out; }
+  @keyframes pop{
+    from{ transform:scale(.8); filter:brightness(1.25); }
+    to{ transform:scale(1); filter:brightness(1); }
+  }
+
+  /* Right column panels */
+  #sidePanel{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    min-width:0;
+    min-height:0;
+  }
+
+  #status, #log{
+    background:#fff;
+    border:2px solid #000;
+    border-radius:14px;
+    padding:10px 12px;
+    box-shadow:var(--shadow);
+  }
+  #status .title{ font-weight:bold; font-size:16px; }
+  #status .sub{ opacity:.85; margin-top:2px; line-height:1.25; }
+
+  #log{ flex:1; min-height:220px; display:flex; flex-direction:column; }
+  #log .title{ font-weight:bold; font-size:16px; margin-bottom:6px; }
+  #logBody{
+    font-size:14px;
+    line-height:1.25;
+    overflow:auto;
+    padding-right:4px;
+    flex:1;
+  }
+
+  .logItem{
+    padding:6px 8px;
+    border:1px solid rgba(0,0,0,.12);
+    border-radius:10px;
+    margin-bottom:6px;
+    background:rgba(232,180,254,.18);
+  }
+  .logItem small{ opacity:.75; display:block; margin-top:2px; }
+
+  /* Reaction highlight overlay */
+  #spotlight{
+    position:absolute;
+    inset:0;
+    background:rgba(0,0,0,0.08);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .12s ease;
+  }
+  #spotlight.show{ opacity:1; }
+
+  #ring{
+    position:absolute;
+    width:140px;
+    height:140px;
+    border-radius:50%;
+    border:4px solid rgba(0,0,0,0.85);
+    box-shadow: 0 0 0 6px rgba(232,180,254,.45);
+    opacity:0;
+    transform: translate(-50%, -50%) scale(0.92);
+    pointer-events:none;
+    transition: opacity .12s ease, transform .12s ease;
+  }
+  #ring.show{
+    opacity:1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  @media (max-width: 980px){
+    #layout{ grid-template-columns: 1fr; }
+    #chamber{ height: min(60vh, 520px); }
+  }
+</style>
+</head>
+
+<body>
+  <div id="toolbar">
+    <div class="toolbar-left">
+      <a class="hub-link" href="index.html">← Hub</a>
+    </div>
+
+    <div class="toolbar-center">
+      <span class="pill">
+        <b>Reaction</b>
+        <select id="reactionSelect">
+          <option value="hcl">H₂ + Cl₂ → 2 HCl</option>
+          <option value="water">2 H₂ + O₂ → 2 H₂O</option>
+          <option value="co2">2 CO + O₂ → 2 CO₂</option>
+        </select>
+      </span>
+
+      <span class="pill"><b id="eqLabel">H₂ + Cl₂ → 2 HCl</b></span>
+
+      <span class="pill" id="spawnBar"></span>
+
+      <span class="pill">
+        <b>Temp</b>
+        <input id="temp" type="range" min="0" max="100" value="45" />
+        <span id="tempVal" style="min-width:42px; text-align:right;">45%</span>
+      </span>
+
+      <span class="pill">
+        <b>Reaction chance</b>
+        <input id="reactChance" type="range" min="0" max="100" value="35" />
+        <span id="chanceVal" style="min-width:42px; text-align:right;">35%</span>
+      </span>
+    </div>
+
+    <div class="toolbar-right">
+      <button class="btn green" id="toggleRun">▶ Start</button>
+      <button class="btn secondary" id="reset">Clear</button>
+      <span class="pill">
+        <b>Counts:</b>
+        <span id="counts">—</span>
+      </span>
+    </div>
+  </div>
+
+  <div id="workspace">
+    <div id="layout">
+      <div id="chamberWrap">
+        <div id="chamber">
+          <div id="spotlight"></div>
+          <div id="ring"></div>
+        </div>
+      </div>
+
+      <div id="sidePanel">
+        <div id="status">
+          <div class="title">Reaction: H₂ + Cl₂ → 2 HCl</div>
+          <div class="sub">Molecules bounce randomly…</div>
+        </div>
+
+        <div id="log">
+          <div class="title">Status Log</div>
+          <div id="logBody"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  const chamber = document.getElementById('chamber');
+  const countsEl = document.getElementById('counts');
+
+  const temp = document.getElementById('temp');
+  const reactChance = document.getElementById('reactChance');
+  const tempVal = document.getElementById('tempVal');
+  const chanceVal = document.getElementById('chanceVal');
+
+  const btnRun = document.getElementById('toggleRun');
+  const btnReset = document.getElementById('reset');
+
+  const spotlight = document.getElementById("spotlight");
+  const ring = document.getElementById("ring");
+
+  const reactionSelect = document.getElementById("reactionSelect");
+  const eqLabel = document.getElementById("eqLabel");
+  const spawnBar = document.getElementById("spawnBar");
+  const logBody = document.getElementById("logBody");
+
+  const REACTION = {
+    freezeMs: 1600,
+    breakDelayMs: 200,
+    formDelayMs: 1100,
+  };
+
+  let currentReaction = "hcl";
+
+  function logStatus(text){
+    if(!logBody) return;
+    const item = document.createElement("div");
+    item.className = "logItem";
+    const time = new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit", second:"2-digit"});
+    item.innerHTML = `<div>${text}</div><small>${time}</small>`;
+    logBody.prepend(item);
+    while(logBody.children.length > 12) logBody.lastChild.remove();
+  }
+
+  function chamberSize(){
+    // ✅ definite size now, but this is also robust
+    return { w: chamber.clientWidth, h: chamber.clientHeight };
+  }
+
+  function rand(min, max){ return min + Math.random()*(max-min); }
+
+  function speedScale(){
+    const t = Number(temp.value)/100;
+    return 0.4 + t*1.8;
+  }
+
+  function reactionProb(){
+    return Number(reactChance.value)/100;
+  }
+
+  function updateSliders(){
+    tempVal.textContent = `${temp.value}%`;
+    chanceVal.textContent = `${reactChance.value}%`;
+  }
+  temp.addEventListener('input', updateSliders);
+  reactChance.addEventListener('input', updateSliders);
+  updateSliders();
+
+  const molecules = [];
+  let running = false;
+  let rafId = null;
+
+  const ATOM_R = 15;
+  const BOND_D = 30;
+  const COLLISION_R = ATOM_R;
+
+  function updateCounts(){
+    const tally = {};
+    for(const m of molecules) tally[m.type] = (tally[m.type] || 0) + 1;
+
+    if(currentReaction === "hcl"){
+      countsEl.textContent = `H₂: ${tally.H2||0} | Cl₂: ${tally.Cl2||0} | HCl: ${tally.HCl||0}`;
+    } else if(currentReaction === "water"){
+      countsEl.textContent = `H₂: ${tally.H2||0} | O₂: ${tally.O2||0} | H₂O: ${tally.H2O||0}`;
+    } else if(currentReaction === "co2"){
+      countsEl.textContent = `CO: ${tally.CO||0} | O₂: ${tally.O2||0} | CO₂: ${tally.CO2||0}`;
+    } else {
+      countsEl.textContent = Object.entries(tally).map(([k,v])=>`${k}: ${v}`).join(" | ");
+    }
+  }
+
+  function makeMoleculeEl(){
+    const el = document.createElement('div');
+    el.className = 'molecule';
+    chamber.appendChild(el);
+    return el;
+  }
+
+  function makeAtom(symbol, cssClass){
+    const a = document.createElement('div');
+    a.className = `atom ${cssClass}`;
+    a.textContent = symbol;
+    return a;
+  }
+
+  function placeMolecule(m){
+    m.el.style.left = `${m.x}px`;
+    m.el.style.top  = `${m.y}px`;
+  }
+
+  function safeSpawnXY(molW, molH){
+    const { w, h } = chamberSize();
+    const maxX = Math.max(0, w - molW);
+    const maxY = Math.max(0, h - molH);
+    return {
+      x: rand(10, Math.max(11, maxX - 10)),
+      y: rand(10, Math.max(11, maxY - 10)),
+    };
+  }
+
+  function newDiatomic(type){
+    const m = { type, el: makeMoleculeEl(), x:0, y:0, vx:0, vy:0, atoms:[] };
+
+    if(type==="H2"){
+      const a1 = makeAtom("H","H"), a2 = makeAtom("H","H");
+      m.el.appendChild(a1); m.el.appendChild(a2);
+      m.atoms = [{ el:a1, dx:0, dy:0, symbol:"H" }, { el:a2, dx:BOND_D, dy:0, symbol:"H" }];
+    } else if(type==="Cl2"){
+      const a1 = makeAtom("Cl","Cl"), a2 = makeAtom("Cl","Cl");
+      m.el.appendChild(a1); m.el.appendChild(a2);
+      m.atoms = [{ el:a1, dx:0, dy:0, symbol:"Cl" }, { el:a2, dx:BOND_D, dy:0, symbol:"Cl" }];
+    } else {
+      // ignore unknown
+      m.el.remove();
+      return;
+    }
+
+    for(const a of m.atoms){
+      a.el.style.left = `${a.dx}px`;
+      a.el.style.top  = `${a.dy}px`;
+    }
+
+    const molW = BOND_D + ATOM_R*2;
+    const molH = ATOM_R*2;
+    const pos = safeSpawnXY(molW, molH);
+    m.x = pos.x; m.y = pos.y;
+
+    const base = 1.2 * speedScale();
+    m.vx = rand(-base, base);
+    m.vy = rand(-base, base);
+
+    placeMolecule(m);
+    molecules.push(m);
+    updateCounts();
+  }
+
+  function newDiatomicOf(symbol, typeLabel){
+    const m = { type: typeLabel, el: makeMoleculeEl(), x:0, y:0, vx:0, vy:0, atoms:[] };
+    const a1 = makeAtom(symbol, symbol);
+    const a2 = makeAtom(symbol, symbol);
+    m.el.appendChild(a1); m.el.appendChild(a2);
+    m.atoms = [{ el:a1, dx:0, dy:0, symbol }, { el:a2, dx:BOND_D, dy:0, symbol }];
+
+    for(const a of m.atoms){
+      a.el.style.left = `${a.dx}px`;
+      a.el.style.top  = `${a.dy}px`;
+    }
+
+    const molW = BOND_D + ATOM_R*2;
+    const molH = ATOM_R*2;
+    const pos = safeSpawnXY(molW, molH);
+    m.x = pos.x; m.y = pos.y;
+
+    const base = 1.2 * speedScale();
+    m.vx = rand(-base, base);
+    m.vy = rand(-base, base);
+
+    placeMolecule(m);
+    molecules.push(m);
+    updateCounts();
+  }
+
+  function newO2(){ newDiatomicOf("O","O2"); }
+
+  function newCO(){
+    const m = { type:"CO", el: makeMoleculeEl(), x:0, y:0, vx:0, vy:0, atoms:[] };
+    const aC = makeAtom("C","C");
+    const aO = makeAtom("O","O");
+    m.el.appendChild(aC); m.el.appendChild(aO);
+    m.atoms = [{ el:aC, dx:0, dy:0, symbol:"C" }, { el:aO, dx:BOND_D, dy:0, symbol:"O" }];
+
+    for(const a of m.atoms){
+      a.el.style.left = `${a.dx}px`;
+      a.el.style.top  = `${a.dy}px`;
+    }
+
+    const molW = BOND_D + ATOM_R*2;
+    const molH = ATOM_R*2;
+    const pos = safeSpawnXY(molW, molH);
+    m.x = pos.x; m.y = pos.y;
+
+    const base = 1.2 * speedScale();
+    m.vx = rand(-base, base);
+    m.vy = rand(-base, base);
+
+    placeMolecule(m);
+    molecules.push(m);
+    updateCounts();
+  }
+
+  function spawnH2O(cx, cy){
+    const m = { type:"H2O", el: makeMoleculeEl(), x:cx-30, y:cy-15, vx:rand(-1.2,1.2)*speedScale(), vy:rand(-1.2,1.2)*speedScale(), atoms:[] };
+    const aH1 = makeAtom("H","H"), aO = makeAtom("O","O"), aH2 = makeAtom("H","H");
+    m.el.appendChild(aH1); m.el.appendChild(aO); m.el.appendChild(aH2);
+    m.atoms = [{ el:aH1, dx:0, dy:10, symbol:"H" }, { el:aO, dx:BOND_D, dy:10, symbol:"O" }, { el:aH2, dx:BOND_D*2, dy:10, symbol:"H" }];
+    for(const a of m.atoms){
+      a.el.style.left = `${a.dx}px`;
+      a.el.style.top  = `${a.dy}px`;
+      a.el.classList.add("pop");
+      setTimeout(()=>a.el.classList.remove("pop"), 260);
+    }
+    placeMolecule(m);
+    molecules.push(m);
+  }
+
+  function spawnCO2(cx, cy){
+    const m = { type:"CO2", el: makeMoleculeEl(), x:cx-30, y:cy-15, vx:rand(-1.2,1.2)*speedScale(), vy:rand(-1.2,1.2)*speedScale(), atoms:[] };
+    const aO1 = makeAtom("O","O"), aC = makeAtom("C","C"), aO2 = makeAtom("O","O");
+    m.el.appendChild(aO1); m.el.appendChild(aC); m.el.appendChild(aO2);
+    m.atoms = [{ el:aO1, dx:0, dy:10, symbol:"O" }, { el:aC, dx:BOND_D, dy:10, symbol:"C" }, { el:aO2, dx:BOND_D*2, dy:10, symbol:"O" }];
+    for(const a of m.atoms){
+      a.el.style.left = `${a.dx}px`;
+      a.el.style.top  = `${a.dy}px`;
+      a.el.classList.add("pop");
+      setTimeout(()=>a.el.classList.remove("pop"), 260);
+    }
+    placeMolecule(m);
+    molecules.push(m);
+  }
+
+  function findNearbyMolecule(type, cx, cy, radius, exclude = new Set()){
+    for(const m of molecules){
+      if(m.type !== type) continue;
+      if(exclude.has(m)) continue;
+      const mx = m.x + (BOND_D/2) + ATOM_R;
+      const my = m.y + ATOM_R;
+      if(Math.hypot(mx - cx, my - cy) <= radius) return m;
+    }
+    return null;
+  }
+
+  function newHClPairInCircle(cx, cy, radius){
+    const { w, h } = chamberSize();
+    const ang = Math.random() * Math.PI * 2;
+    const sep = Math.min(38, radius * 0.55);
+    const kick = 1.6 * speedScale();
+
+    const positions = [
+      { x: cx + Math.cos(ang)*sep, y: cy + Math.sin(ang)*sep, vx:  Math.cos(ang)*kick, vy:  Math.sin(ang)*kick },
+      { x: cx - Math.cos(ang)*sep, y: cy - Math.sin(ang)*sep, vx: -Math.cos(ang)*kick, vy: -Math.sin(ang)*kick }
+    ];
+
+    for(const p of positions){
+      const m = { type:"HCl", el: makeMoleculeEl(), x:0, y:0, vx:0, vy:0, atoms:[] };
+      m.x = Math.max(0, Math.min(w - (BOND_D + ATOM_R*2), p.x - 20));
+      m.y = Math.max(0, Math.min(h - (ATOM_R*2),           p.y - 15));
+      m.vx = p.vx + rand(-0.3, 0.3)*speedScale();
+      m.vy = p.vy + rand(-0.3, 0.3)*speedScale();
+
+      const aH  = makeAtom("H","H");
+      const aCl = makeAtom("Cl","Cl");
+      m.el.appendChild(aH); m.el.appendChild(aCl);
+      m.atoms = [{ el:aH, dx:0, dy:0, symbol:"H" }, { el:aCl, dx:BOND_D, dy:0, symbol:"Cl" }];
+
+      for(const a of m.atoms){
+        a.el.style.left = `${a.dx}px`;
+        a.el.style.top  = `${a.dy}px`;
+        a.el.classList.add('pop');
+        setTimeout(()=>a.el.classList.remove('pop'), 260);
+      }
+
+      placeMolecule(m);
+      molecules.push(m);
+    }
+    updateCounts();
+  }
+
+  function removeMolecule(m){
+    const idx = molecules.indexOf(m);
+    if(idx !== -1) molecules.splice(idx,1);
+    m.el.remove();
+  }
+
+  function spawnBreakCloudConfined(m1, m2, cx, cy, radius){
+    const { w, h } = chamberSize();
+    const symbols = [];
+    for (const a of m1.atoms) symbols.push(a.symbol);
+    for (const a of m2.atoms) symbols.push(a.symbol);
+
+    const free = symbols.map(sym => {
+      const el = document.createElement('div');
+      el.className = `atom ${sym}`;
+      el.textContent = sym;
+      chamber.appendChild(el);
+
+      const ang = Math.random() * Math.PI * 2;
+      const rr  = Math.random() * (radius * 0.55);
+      const x = cx + Math.cos(ang)*rr - ATOM_R;
+      const y = cy + Math.sin(ang)*rr - ATOM_R;
+
+      el.style.left = `${x}px`;
+      el.style.top  = `${y}px`;
+      el.classList.add('pop');
+      setTimeout(()=>el.classList.remove('pop'), 220);
+
+      return { el, x, y, vx: rand(-0.55, 0.55), vy: rand(-0.55, 0.55) };
+    });
+
+    const t0 = performance.now();
+    const duration = 900;
+    const damping  = 0.94;
+    const jitter   = 0.14;
+
+    function clampToCircle(f){
+      const ax = f.x + ATOM_R;
+      const ay = f.y + ATOM_R;
+      let dx = ax - cx, dy = ay - cy;
+      const dist = Math.hypot(dx, dy);
+      const max = radius - 2;
+
+      if (dist > max){
+        dx /= dist; dy /= dist;
+        const nx = cx + dx*max;
+        const ny = cy + dy*max;
+        f.x = nx - ATOM_R;
+        f.y = ny - ATOM_R;
+        f.vx *= -0.45;
+        f.vy *= -0.45;
+      }
+
+      f.x = Math.max(0, Math.min(w - ATOM_R*2, f.x));
+      f.y = Math.max(0, Math.min(h - ATOM_R*2, f.y));
+    }
+
+    function animate(now){
+      const t = Math.min(1, (now - t0) / duration);
+      for (const f of free){
+        f.vx += rand(-jitter, jitter) * (1 - t);
+        f.vy += rand(-jitter, jitter) * (1 - t);
+        f.x += f.vx; f.y += f.vy;
+        f.vx *= damping; f.vy *= damping;
+        clampToCircle(f);
+        f.el.style.left = `${f.x}px`;
+        f.el.style.top  = `${f.y}px`;
+      }
+      if (t < 1) requestAnimationFrame(animate);
+      else for (const f of free) f.el.remove();
+    }
+    requestAnimationFrame(animate);
+  }
+
+  function atomWorldPos(m, atom){
+    return { x: m.x + atom.dx + ATOM_R, y: m.y + atom.dy + ATOM_R };
+  }
+
+  function moleculesCollide(m1, m2){
+    for(const a1 of m1.atoms){
+      const p1 = atomWorldPos(m1, a1);
+      for(const a2 of m2.atoms){
+        const p2 = atomWorldPos(m2, a2);
+        const dx = p2.x - p1.x, dy = p2.y - p1.y;
+        const d2 = dx*dx + dy*dy;
+        const r = COLLISION_R*2;
+        if(d2 <= r*r) return true;
+      }
+    }
+    return false;
+  }
+
+  function bounceWalls(m){
+    const { w, h } = chamberSize();
+    const molW = BOND_D + ATOM_R*2;
+    const molH = ATOM_R*2;
+
+    if(m.x <= 0){ m.x = 0; m.vx *= -1; }
+    if(m.y <= 0){ m.y = 0; m.vy *= -1; }
+    if(m.x + molW >= w){ m.x = w - molW; m.vx *= -1; }
+    if(m.y + molH >= h){ m.y = h - molH; m.vy *= -1; }
+  }
+
+  function nudgeApart(m1, m2){
+    const tmpx = m1.vx, tmpy = m1.vy;
+    m1.vx = m2.vx; m1.vy = m2.vy;
+    m2.vx = tmpx;  m2.vy = tmpy;
+  }
+
+  let freezeUntil = 0;
+  function freezeFor(ms){ freezeUntil = performance.now() + ms; }
+
+  function showReactionHighlight(x, y, radius = 70){
+    if (spotlight) spotlight.classList.add("show");
+    if (ring){
+      ring.style.left = `${x}px`;
+      ring.style.top  = `${y}px`;
+      ring.style.width = `${radius*2}px`;
+      ring.style.height = `${radius*2}px`;
+      ring.classList.add("show");
+    }
+    setTimeout(() => {
+      if (spotlight) spotlight.classList.remove("show");
+      if (ring) ring.classList.remove("show");
+    }, 700);
+    return { cx:x, cy:y, r:radius };
+  }
+
+  function tryReact(m1, m2){
+    const cx = (m1.x + m2.x)/2 + 30;
+    const cy = (m1.y + m2.y)/2 + 15;
+    const pair = [m1.type, m2.type].sort().join("+");
+    if(Math.random() > reactionProb()) return false;
+
+    if (currentReaction === "hcl" && pair === "Cl2+H2"){
+      const circle = showReactionHighlight(cx, cy, 75);
+      freezeFor(REACTION.freezeMs);
+      logStatus("✅ Collision: H₂ + Cl₂");
+
+      setTimeout(() => {
+        logStatus("⚡ Bonds breaking: H–H, Cl–Cl");
+        spawnBreakCloudConfined(m1, m2, circle.cx, circle.cy, circle.r);
+        removeMolecule(m1); removeMolecule(m2);
+      }, REACTION.breakDelayMs);
+
+      setTimeout(() => {
+        logStatus("🔁 New bonds formed: 2 H–Cl");
+        newHClPairInCircle(circle.cx, circle.cy, circle.r);
+      }, REACTION.formDelayMs);
+
+      return true;
+    }
+
+    if (currentReaction === "water" && pair === "H2+O2"){
+      const exclude = new Set([m1, m2]);
+      const extraH2 = findNearbyMolecule("H2", cx, cy, 110, exclude);
+      if(!extraH2) return false;
+
+      const circle = showReactionHighlight(cx, cy, 85);
+      freezeFor(1400);
+      logStatus("✅ Collision: H₂ + O₂ (needs another H₂)");
+
+      setTimeout(() => {
+        logStatus("⚡ Bonds breaking: H–H, H–H, O–O");
+        spawnBreakCloudConfined(m1, m2, circle.cx, circle.cy, circle.r);
+        spawnBreakCloudConfined(extraH2, extraH2, circle.cx, circle.cy, circle.r);
+        removeMolecule(m1); removeMolecule(m2); removeMolecule(extraH2);
+      }, 200);
+
+      setTimeout(() => {
+        logStatus("🔁 New bonds formed: 2 H₂O");
+        const ang = Math.random()*Math.PI*2, sep = 38;
+        spawnH2O(circle.cx + Math.cos(ang)*sep, circle.cy + Math.sin(ang)*sep);
+        spawnH2O(circle.cx - Math.cos(ang)*sep, circle.cy - Math.sin(ang)*sep);
+        updateCounts();
+      }, 1050);
+
+      return true;
+    }
+
+    if (currentReaction === "co2" && pair === "CO+O2"){
+      const exclude = new Set([m1, m2]);
+      const extraCO = findNearbyMolecule("CO", cx, cy, 110, exclude);
+      if(!extraCO) return false;
+
+      const circle = showReactionHighlight(cx, cy, 85);
+      freezeFor(1400);
+      logStatus("✅ Collision: CO + O₂ (needs another CO)");
+
+      setTimeout(() => {
+        logStatus("⚡ Bonds breaking/rearranging");
+        spawnBreakCloudConfined(m1, m2, circle.cx, circle.cy, circle.r);
+        spawnBreakCloudConfined(extraCO, extraCO, circle.cx, circle.cy, circle.r);
+        removeMolecule(m1); removeMolecule(m2); removeMolecule(extraCO);
+      }, 200);
+
+      setTimeout(() => {
+        logStatus("🔁 New bonds formed: 2 CO₂");
+        const ang = Math.random()*Math.PI*2, sep = 38;
+        spawnCO2(circle.cx + Math.cos(ang)*sep, circle.cy + Math.sin(ang)*sep);
+        spawnCO2(circle.cx - Math.cos(ang)*sep, circle.cy - Math.sin(ang)*sep);
+        updateCounts();
+      }, 1050);
+
+      return true;
+    }
+
+    return false;
+  }
+
+  function placeAll(){ for(const m of molecules) placeMolecule(m); }
+
+  function step(){
+    if(!running) return;
+
+    if (performance.now() < freezeUntil){
+      placeAll();
+      rafId = requestAnimationFrame(step);
+      return;
+    }
+
+    const s = speedScale();
+
+    for(const m of molecules){
+      m.x += m.vx * s;
+      m.y += m.vy * s;
+      bounceWalls(m);
+    }
+
+    for(let i=0;i<molecules.length;i++){
+      for(let j=i+1;j<molecules.length;j++){
+        const a = molecules[i], b = molecules[j];
+        if(moleculesCollide(a,b)){
+          const reacted = tryReact(a,b);
+          if(!reacted) nudgeApart(a,b);
+          if(reacted){
+            placeAll();
+            rafId = requestAnimationFrame(step);
+            return;
+          }
+        }
+      }
+    }
+
+    placeAll();
+    rafId = requestAnimationFrame(step);
+  }
+
+  const REACTIONS = {
+    hcl: {
+      equation: "H₂ + Cl₂ → 2 HCl",
+      buttons: [
+        { label: "+ H₂", fn: () => newDiatomic("H2") },
+        { label: "+ Cl₂", fn: () => newDiatomic("Cl2") },
+        { label: "Stoich mix", cls: "pink", fn: () => { for(let i=0;i<6;i++){ newDiatomic("H2"); newDiatomic("Cl2"); } } },
+      ],
+      starter: () => { for(let i=0;i<6;i++){ newDiatomic("H2"); newDiatomic("Cl2"); } }
+    },
+    water: {
+      equation: "2 H₂ + O₂ → 2 H₂O",
+      buttons: [
+        { label: "+ H₂", fn: () => newDiatomic("H2") },
+        { label: "+ O₂", fn: () => newO2() },
+        { label: "Stoich mix", cls: "pink", fn: () => { for(let i=0;i<10;i++) newDiatomic("H2"); for(let i=0;i<5;i++) newO2(); } },
+      ],
+      starter: () => { for(let i=0;i<8;i++) newDiatomic("H2"); for(let i=0;i<4;i++) newO2(); }
+    },
+    co2: {
+      equation: "2 CO + O₂ → 2 CO₂",
+      buttons: [
+        { label: "+ CO", fn: () => newCO() },
+        { label: "+ O₂", fn: () => newO2() },
+        { label: "Stoich mix", cls: "pink", fn: () => { for(let i=0;i<10;i++) newCO(); for(let i=0;i<5;i++) newO2(); } },
+      ],
+      starter: () => { for(let i=0;i<8;i++) newCO(); for(let i=0;i<4;i++) newO2(); }
+    },
+  };
+
+  function renderSpawnButtons(){
+    spawnBar.innerHTML = "";
+    const rxn = REACTIONS[currentReaction];
+    eqLabel.textContent = rxn.equation;
+
+    rxn.buttons.forEach(b => {
+      const btn = document.createElement("button");
+      btn.className = "btn" + (b.cls ? ` ${b.cls}` : "");
+      btn.textContent = b.label;
+      btn.onclick = b.fn;
+      spawnBar.appendChild(btn);
+    });
+
+    const statusTitle = document.querySelector("#status .title");
+    if(statusTitle) statusTitle.textContent = `Reaction: ${rxn.equation}`;
+  }
+
+  function setReaction(key){
+    currentReaction = key;
+    renderSpawnButtons();
+    logStatus(`🧪 Reaction set: ${REACTIONS[currentReaction].equation}`);
+    updateCounts();
+  }
+
+  reactionSelect.addEventListener("change", (e) => setReaction(e.target.value));
+  setReaction(reactionSelect.value);
+
+  btnRun.onclick = () => {
+    running = !running;
+    btnRun.textContent = running ? "⏸ Pause" : "▶ Start";
+    if(running){
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(step);
+    }else{
+      cancelAnimationFrame(rafId);
+    }
+  };
+
+  btnReset.onclick = () => {
+  cancelAnimationFrame(rafId);
+  running = false;
+  btnRun.textContent = "▶ Start";
+
+  while(molecules.length){
+    molecules[0].el.remove();
+    molecules.shift();
+  }
+
+  if (logBody) logBody.innerHTML = "";   // ✅ clear log
+
+  updateCounts();
+};
+
+
+  // ✅ start with a starter set AFTER layout is definitely measured
+  window.addEventListener("load", () => {
+    // guard: if chamber somehow still 0, delay one more frame
+    const boot = () => {
+      const {w,h} = chamberSize();
+      if(w < 50 || h < 50){
+        requestAnimationFrame(boot);
+        return;
+      }
+      REACTIONS[currentReaction]?.starter?.();
+      updateCounts();
+      
+    };
+    boot();
+  });
+</script>
+</body>
+</html>
