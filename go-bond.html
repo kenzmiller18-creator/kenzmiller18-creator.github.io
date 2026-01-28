@@ -1,0 +1,1939 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Go Bond! (Tabletop V1++ Correct Types + Banner)</title>
+
+<style>
+  :root{
+    --bg:#ffffff;
+    --bar:#e8b4fe;
+    --ink:#2b1b2e;
+    --muted:#4f2f92;
+    --line:#000;
+    --shadow: 0 10px 30px rgba(43,27,46,.10);
+
+    --accent:#624cf5;
+    --dark:#25202c;
+    --good:#4cf5bd;
+    --bad:#ff6b6b;
+    --warn:#f5c04c;
+
+    --ionicBg: rgba(76, 245, 189, .18);
+    --covBg: rgba(98, 76, 245, .14);
+
+    --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  }
+
+  *{ box-sizing:border-box; }
+  body{
+    margin:0;
+    background:var(--bg);
+    font-family: Georgia, serif;
+    color:var(--ink);
+  }
+
+  #toolbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:12px 16px;
+    background:var(--bar);
+    border-bottom:2px solid var(--line);
+  }
+  .toolbar-left, .toolbar-center, .toolbar-right{
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  }
+  .hub-link{
+    font-size:18px; font-weight:bold; text-decoration:none; color:var(--muted);
+  }
+  .hub-link:hover{ text-decoration:underline; }
+
+  .btn{
+    border:none;
+    border-radius:10px;
+    padding:10px 14px;
+    font-weight:bold;
+    cursor:pointer;
+    box-shadow:0 2px 4px rgba(0,0,0,.15);
+    background:var(--accent);
+    color:#fff;
+  }
+  .btn:hover{ filter:brightness(1.05); }
+  .btn.secondary{ background:var(--dark); }
+  .btn.green{ background:var(--good); color:#000; }
+  .btn.red{ background:var(--bad); color:#000; }
+  .btn.warn{ background:var(--warn); color:#000; }
+  .btn:disabled{ opacity:.55; cursor:not-allowed; }
+
+  .pill{
+    background:rgba(255,255,255,.75);
+    border:1px solid rgba(0,0,0,.25);
+    padding:8px 10px;
+    border-radius:999px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .pill b{ font-size:16px; }
+  .tiny{ font-size:13px; opacity:.9; }
+
+  #workspace{
+    width:100vw;
+    height:calc(100vh - 64px);
+    background:linear-gradient(180deg, rgba(232,180,254,.22), rgba(255,255,255,0));
+    overflow:hidden;
+  }
+
+  /* Use for big multi-line control blocks (NOT .pill) */
+.panel{
+  background: rgba(255,255,255,.85);
+  border: 2px solid rgba(0,0,0,.25);
+  border-radius: 16px;          /* key: not 999px */
+  padding: 10px 12px;
+  box-shadow: var(--shadow);
+}
+
+.panelTitle{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-bottom:8px;
+  font-weight:900;
+}
+
+
+  #table{
+    position:relative;
+    width:min(1120px, calc(100vw - 28px));
+    height: min(820px, calc(100vh - 92px));
+    margin:14px auto;
+    border:3px solid var(--line);
+    border-radius:18px;
+    background:#fff;
+    box-shadow:var(--shadow);
+    overflow:hidden;
+  }
+
+  .zone{
+    position:absolute;
+    border:2px solid var(--line);
+    border-radius:14px;
+    background:rgba(255,255,255,.9);
+    box-shadow:var(--shadow);
+    padding:10px 12px;
+  }
+  .zone h3{ margin:0 0 6px 0; font-size:15px; }
+
+  #oppZone{
+    top:10px; left:10px; right:10px;
+    height:110px;
+    display:flex; flex-direction:column;
+    justify-content:space-between;
+    background: linear-gradient(180deg, rgba(232,180,254,.22), rgba(255,255,255,.95));
+  }
+  #oppRow{ display:flex; justify-content:space-between; align-items:center; gap:12px; }
+  #oppBacks{
+    display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; align-items:center;
+    min-height:62px;
+  }
+  .back{
+    width:46px; height:64px; border-radius:14px;
+    border:2px solid rgba(0,0,0,.35);
+    background:
+      radial-gradient(circle at 30% 30%, rgba(98,76,245,.25), transparent 45%),
+      radial-gradient(circle at 70% 70%, rgba(197,76,245,.18), transparent 55%),
+      #fff;
+    box-shadow: 0 10px 22px rgba(43,27,46,.10);
+  }
+
+
+  #centerGrid{
+    height:100%;
+    display:grid;
+    grid-template-columns: 1fr 290px;
+    gap:12px;
+    align-items:stretch;
+    min-height:0;
+  }
+
+  #meldArea{
+    border:2px dashed rgba(0,0,0,.25);
+    border-radius:14px;
+    padding:10px;
+    background:rgba(232,180,254,.10);
+    overflow:auto;
+  }
+  #melds{
+    display:flex; flex-wrap:wrap; gap:10px;
+    margin-top:6px;
+  }
+  .meld{
+    border:2px solid rgba(0,0,0,.25);
+    border-radius:12px;
+    padding:8px 10px;
+    background:#fff;
+    font-family: var(--mono);
+    font-weight:800;
+    box-shadow: 0 6px 16px rgba(43,27,46,.10);
+    min-width: 92px;
+  }
+  .meld.ionic{ background: var(--ionicBg); }
+  .meld.covalent{ background: var(--covBg); }
+  .meld small{
+    display:block;
+    font-family: Georgia, serif;
+    font-weight:normal;
+    opacity:.85;
+    margin-top:2px;
+  }
+
+  #rightStack{
+  display:grid;
+  grid-template-columns: 1fr 1.3fr; /* prompt a bit wider */
+  gap:12px;
+  align-items:stretch;
+  min-height:0;
+}
+  #deckBox{
+    border:2px dashed rgba(0,0,0,.25);
+    border-radius:14px;
+    padding:10px;
+    background:rgba(232,180,254,.08);
+    flex:0 0 auto;
+    min-height:0;
+  }
+ #deckPile{
+  display:flex;
+  gap:2px;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;           /* allows button to wrap under count if needed */
+}
+#deckCard{
+    width:66px; height:88px; border-radius:14px;
+    border:2px solid rgba(0,0,0,.35);
+    background:
+      radial-gradient(circle at 30% 30%, rgba(98,76,245,.25), transparent 45%),
+      radial-gradient(circle at 70% 70%, rgba(197,76,245,.18), transparent 55%),
+      #fff;
+    box-shadow: 0 10px 22px rgba(43,27,46,.10);
+  }
+
+  #promptBox{
+    border:2px solid rgba(0,0,0,.65);
+    border-radius:14px;
+    padding:10px;
+    background: rgba(232,180,254,.16);
+    position: relative;
+    flex:1 1 auto;
+    min-height:0;
+    overflow:auto;
+  }
+
+  /* ========= FEEDBACK BANNER (NEW) ========= */
+  #feedbackBanner{
+    display:none;
+    border:2px solid rgba(0,0,0,.75);
+    border-radius:14px;
+    padding:10px 10px;
+    margin-bottom:10px;
+    font-weight:900;
+    font-size:16px;
+    letter-spacing:.2px;
+    text-align:center;
+    box-shadow: 0 10px 20px rgba(0,0,0,.12);
+    transform: translateY(-6px) scale(.98);
+    opacity:0;
+  }
+  #feedbackBanner.show{
+    display:block;
+    animation: bannerIn .18s ease-out forwards, bannerPulse .9s ease-in-out .18s 1;
+  }
+  #feedbackBanner.ok{
+    background: rgba(76,245,189,.35);
+  }
+  #feedbackBanner.bad{
+    background: rgba(255,107,107,.35);
+  }
+  #feedbackBanner small{
+    display:block;
+    margin-top:4px;
+    font-weight:700;
+    font-size:13px;
+    opacity:.9;
+  }
+  @keyframes bannerIn{
+    to{ transform: translateY(0) scale(1); opacity:1; }
+  }
+  @keyframes bannerPulse{
+    0%{ filter:brightness(1); }
+    40%{ filter:brightness(1.08); }
+    100%{ filter:brightness(1); }
+  }
+  /* ======================================= */
+
+  #promptText{ font-size:14px; line-height:1.25; }
+  #promptActions{
+    margin-top:10px;
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+/* Make the You zone a 2-column layout */
+
+
+
+
+
+
+
+.askBtn{
+  padding:7px 0;
+  border-radius:12px;
+  font-size:13px;
+}
+
+#handWrap{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+}
+/* ========= LAYOUT FIX: keep right controls fully on-screen ========= */
+
+/* 1) Single source of truth for the bottom zone height */
+:root{
+  --youH: 230px; /* tweak if you want more/less */
+}
+
+/* 2) Center zone reserves exactly the space the You zone actually uses */
+#centerZone{
+  left:10px; right:10px;
+  top:132px;
+  bottom: calc(var(--youH) + 22px); /* 22px = spacing buffer */
+  background:#fff;
+  overflow:hidden;
+}
+
+/* 3) You zone uses the same height variable and tighter padding */
+#youZone{
+  left:10px; right:10px; bottom:10px;
+  height: var(--youH);
+  background: linear-gradient(180deg, rgba(255,255,255,.95), rgba(232,180,254,.12));
+  overflow: hidden;          /* keep the zone clean */
+  padding: 8px 10px;         /* override .zone padding (smaller) */
+}
+
+/* 4) Make the right column scroll *inside* the zone if needed */
+#youLayout{
+  display:grid;
+  grid-template-columns: 1fr 280px; /* slightly narrower to reduce wrapping */
+  gap:10px;
+  height:100%;
+  min-height:0;
+}
+
+#youLeft{
+  min-width:0;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+}
+
+/* The hand row should scroll horizontally, not force vertical overflow */
+#handRow{
+  flex: 1;
+  min-height: 0;
+  display:flex;
+  gap:10px;
+  flex-wrap:nowrap;
+  align-items:flex-start;
+  overflow:auto;            /* horizontal scroll */
+  padding-bottom:6px;
+  scrollbar-width: thin;
+}
+
+#youRight{
+  min-width:0;
+  min-height:0;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+  overflow:auto;            /* <-- key: if panels are taller than space, scroll here */
+  padding-right: 2px;       /* prevents scrollbar from covering content */
+}
+.askRow{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:10px;
+  margin-top:5px;
+}
+
+.askRow .btn{
+  width:100%;
+}
+
+.askSelectedLine{
+  margin-top:4px;
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:10px;
+  padding:6px 10px;
+  border:1px solid rgba(0,0,0,.18);
+  border-radius:12px;
+  background: rgba(255,255,255,.65);
+}
+
+/* Tighten panel + buttons so they fit comfortably */
+.panel{
+  background: rgba(255,255,255,.85);
+  border: 2px solid rgba(0,0,0,.25);
+  border-radius: 16px;
+  padding: 8px 10px;
+  box-shadow: var(--shadow);
+}
+
+.panelTitle{
+  margin-bottom:6px;
+  font-weight:900;
+}
+
+#youRight .btn{
+  padding: 8px 10px;
+  font-size: 14px;
+}
+
+.typeBtn{
+  padding: 6px 9px; /* a bit smaller */
+}
+
+/* Responsive: give the bottom zone more room on shorter screens */
+@media (max-height: 760px){
+  :root{ --youH: 250px; }
+}
+@media (max-height: 680px){
+  :root{ --youH: 270px; }
+}
+
+/* Mobile layout (stack) */
+@media (max-width: 900px){
+  #youLayout{ grid-template-columns: 1fr; }
+  #youRight{ flex-direction:row; overflow:auto; }
+  #youRight .panel{ flex:1; min-width: 240px; }
+}
+
+
+
+  .topControls{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+
+
+
+  .card{
+    flex: 0 0 auto;
+    width:78px;
+    border:2px solid rgba(0,0,0,.35);
+    border-radius:14px;
+    background:#fff;
+    box-shadow: 0 10px 22px rgba(43,27,46,.10);
+    padding:7px;
+    cursor:pointer;
+    user-select:none;
+    position:relative;
+  }
+  .card.sel{
+    border-color: rgba(98,76,245,.95);
+    box-shadow: 0 12px 26px rgba(98,76,245,.18);
+    transform: translateY(-1px);
+  }
+  .card .name{
+    font-size:11px; opacity:.85; text-align:center;
+    margin-top:2px;
+  }
+
+  .lewis{
+    position:relative;
+    width:60px; height:60px;
+    margin:0 auto;
+    border:1px solid rgba(0,0,0,.15);
+    border-radius:14px;
+    background: rgba(232,180,254,.10);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .lewis .sym{
+    font-family: var(--mono);
+    font-weight:900;
+    font-size:16px;
+  }
+  .dot{
+    position:absolute;
+    width:7px; height:7px;
+    border-radius:50%;
+    background: rgba(0,0,0,.75);
+  }
+  .top1{ top:8px; left:50%; transform:translateX(-10px); }
+  .top2{ top:8px; left:50%; transform:translateX(3px); }
+  .right1{ right:8px; top:50%; transform:translateY(-10px); }
+  .right2{ right:8px; top:50%; transform:translateY(3px); }
+  .bot1{ bottom:8px; left:50%; transform:translateX(-10px); }
+  .bot2{ bottom:8px; left:50%; transform:translateX(3px); }
+  .left1{ left:8px; top:50%; transform:translateY(-10px); }
+  .left2{ left:8px; top:50%; transform:translateY(3px); }
+
+  #askBar{
+    display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+  }
+  .askBtn{
+    border:2px solid rgba(0,0,0,.25);
+    background:#fff;
+    border-radius:12px;
+    padding:7px 9px;
+    font-weight:bold;
+    cursor:pointer;
+    box-shadow:0 2px 4px rgba(0,0,0,.10);
+    font-family: var(--mono);
+  }
+  .askBtn.sel{
+    border-color: rgba(98,76,245,.95);
+    background: rgba(98,76,245,.10);
+  }
+.askChip{
+  border:2px solid rgba(0,0,0,.25);
+  background:#fff;
+  border-radius:14px;
+  height:54px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family: var(--mono);
+  font-weight:900;
+  font-size:18px;
+  cursor:pointer;
+  box-shadow:0 2px 6px rgba(0,0,0,.12);
+}
+.askChip:hover{ filter:brightness(1.03); }
+.askChip.sel{
+  border-color: rgba(98,76,245,.95);
+  background: rgba(98,76,245,.10);
+  box-shadow: 0 10px 20px rgba(98,76,245,.15);
+}
+@media (max-width: 520px){
+  #askGrid{ grid-template-columns: repeat(4, 1fr) !important; }
+}
+
+  #bondTypeBar{
+    display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+  }
+  .typeBtn{
+    border:2px solid rgba(0,0,0,.25);
+    background:#fff;
+    border-radius:12px;
+    padding:7px 10px;
+    font-weight:bold;
+    cursor:pointer;
+    box-shadow:0 2px 4px rgba(0,0,0,.10);
+  }
+  .typeBtn.sel{ border-color: rgba(0,0,0,.55); }
+  .typeBtn.ionic.sel{ background: var(--ionicBg); }
+  .typeBtn.covalent.sel{ background: var(--covBg); }
+
+  .subHelp{ margin-top:2px; font-size:13px; opacity:.9; }
+
+  @media (max-width: 980px){
+    #table{ height: calc(100vh - 92px); }
+    #centerGrid{ grid-template-columns: 1fr; }
+    #rightStack{ flex-direction:row; }
+    #centerZone{ bottom:230px; }
+    #youZone{ height:210px; }
+  }
+</style>
+</head>
+
+<body>
+<div id="toolbar">
+  <div class="toolbar-left">
+    <a class="hub-link" href="index.html">← Hub</a>
+  </div>
+
+  <div class="toolbar-center">
+    <span class="pill"><b>Go Bond!</b> </span>
+    <span class="pill"><b>Turn:</b> <span id="turnLabel">—</span></span>
+    <span class="pill"><b>Deck:</b> <span id="deckCount">—</span></span>
+    <span class="pill"><b>Points:</b> You <span id="youPts">0</span> · CPU <span id="cpuPts">0</span></span>
+    <span class="pill" style="gap:6px;">
+  <b>CPU:</b>
+  <button class="typeBtn" id="btnDiffEasy" type="button" style="padding:6px 10px;">Easy</button>
+  <button class="typeBtn" id="btnDiffMed" type="button" style="padding:6px 10px;">Med</button>
+  <button class="typeBtn" id="btnDiffHard" type="button" style="padding:6px 10px;">Hard</button>
+  <button class="typeBtn" id="btnDiffRamp" type="button" style="padding:6px 10px;">Ramp</button>
+</span>
+
+</div>
+
+  <div class="toolbar-right">
+    <button class="btn secondary" id="btnRules">Rules</button>
+    <button class="btn green" id="btnNew">New Game</button>
+    <button class="btn secondary" id="submitScoreBtn">Submit Score</button>
+  </div>
+</div>
+
+<div id="workspace">
+  <div id="table">
+
+    <div class="zone" id="oppZone">
+      <div id="oppRow">
+        <div>
+          <h3>Computer</h3>
+          <div class="tiny">Cards: <b id="oppCount">0</b></div>
+        </div>
+        <div id="oppBacks"></div>
+      </div>
+      <div class="tiny" id="oppHint">Computer’s hand is face-down.</div>
+    </div>
+
+    <div class="zone" id="centerZone">
+      <div id="centerGrid">
+        <div id="meldArea">
+          <h3>Molecules (played to the middle)</h3>
+          <div id="melds"></div>
+        </div>
+
+        <div id="rightStack">
+          <div id="deckBox">
+            <h3>Deck</h3>
+            <div id="deckPile">
+              <div id="deckCard" aria-label="Deck"></div>
+              <div class="tiny">
+                <div>Cards left: <b id="deckCount2">—</b></div>
+                <div style="margin-top:6px;">
+                  <button class="btn warn" id="btnDraw" disabled>Draw (Go Bond)</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="promptBox">
+            <h3>Prompt</h3>
+
+            <!-- FEEDBACK BANNER (NEW) -->
+            <div id="feedbackBanner" aria-live="polite"></div>
+
+            <div id="promptText" class="tiny">Click New Game to start.</div>
+            <div id="promptActions"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ✅ RESTORED: bottom zone must be a .zone with absolute positioning handled by your CSS -->
+    <div class="zone" id="youZone">
+      <div id="youLayout">
+
+        <!-- LEFT: Hand -->
+        <div id="youLeft">
+          <div class="subHelp" id="youHelp" style="margin:0 0 6px 0;">
+            Click cards to select. Choose <b>Ionic</b> or <b>Covalent</b>, then <b>Bond Selected</b>.
+          </div>
+          <div id="handRow"></div>
+        </div>
+
+        <!-- RIGHT: Controls -->
+        <div id="youRight">
+
+          <div class="panel">
+            <div class="panelTitle">Bond type:</div>
+
+            <div id="bondTypeBar">
+              <button class="typeBtn ionic" id="btnTypeIonic">Ionic</button>
+              <button class="typeBtn covalent" id="btnTypeCovalent">Covalent</button>
+            </div>
+
+            <div style="display:flex; gap:10px; margin-top:5px;">
+              <button class="btn secondary" id="btnClear" style="flex:1;">Clear</button>
+              <button class="btn green" id="btnBond" style="flex:1;">Bond</button>
+            </div>
+          </div>
+
+          <div class="panel">
+        <div class="panelTitle">Ask for:</div>
+
+        <div class="askRow">
+            <button class="btn secondary" id="btnOpenAsk" type="button">Choose…</button>
+            <button class="btn" id="btnAsk" disabled>Ask</button>
+        </div>
+
+        <div class="askSelectedLine">
+            <span class="tiny">Selected:</span>
+            <b id="askSelectedLabel">—</b>
+        </div>
+        </div>
+
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div id="nameModal" style="
+  display:none;
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.35);
+  align-items:center; justify-content:center;
+  z-index:9999;
+">
+  <div style="
+    width:min(420px, 92vw);
+    background:#fff;
+    border:3px solid #000;
+    border-radius:16px;
+    padding:16px;
+    font-family: Georgia, serif;
+  ">
+    <div style="font-weight:bold; font-size:18px; margin-bottom:8px;">
+      Leaderboard name (optional)
+    </div>
+    <div style="opacity:.85; margin-bottom:10px;">
+      Nickname / initials. Leave blank to stay anonymous.
+    </div>
+    <input id="displayNameInput" maxlength="20" placeholder="e.g., NV / BondBoss"
+      style="width:80%; padding:10px 12px; font-size:18px; border-radius:10px; border:2px solid #999;"
+    />
+    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:12px;">
+      <button id="cancelName" style="background:#eee;">Cancel</button>
+      <button id="continueName" style="background:#c084fc; color:white;">Continue</button>
+    </div>
+  </div>
+</div>
+
+<div id="askModal" style="
+  display:none;
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.35);
+  align-items:center; justify-content:center;
+  z-index:9999;
+">
+  <div style="
+    width:min(520px, 92vw);
+    background:#fff;
+    border:3px solid #000;
+    border-radius:18px;
+    padding:14px;
+    box-shadow:0 16px 40px rgba(0,0,0,.22);
+    font-family: Georgia, serif;
+  ">
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+      <div style="font-weight:900; font-size:18px;">Ask for an element</div>
+      <button class="btn secondary" id="btnCloseAsk" type="button">Close</button>
+    </div>
+
+    <div class="tiny" style="margin-top:6px; opacity:.85;">
+      Click an element to select it.
+    </div>
+
+    <div id="askGrid" style="
+      margin-top:12px;
+      display:grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap:10px;
+    "></div>
+  </div>
+</div>
+
+
+<script>
+/*** Elements ***/
+const ELEMENTS = {
+  H:  { name:"Hydrogen", valence:1 },
+  O:  { name:"Oxygen",   valence:6 },
+  N:  { name:"Nitrogen", valence:5 },
+  C:  { name:"Carbon",   valence:4 },
+  Cl: { name:"Chlorine", valence:7 },
+  Na: { name:"Sodium",   valence:1 },
+  Mg: { name:"Magnesium",valence:2 },
+  Ne: { name:"Neon",     valence:8 },
+  K:  { name:"Potassium", valence:1 },
+    Ca: { name:"Calcium",  valence:2 },
+    F:  { name:"Fluorine", valence:7 },
+    S:  { name:"Sulfur",   valence:6 },
+
+  
+};
+
+const DECK_RECIPE = [
+  ["H", 12],
+  ["O", 7],
+  ["N", 6],
+  ["C", 6],
+  ["Cl", 7],
+  ["Na", 6],
+  ["Mg", 5],
+  ["Ne", 3],
+  ["K", 5],
+    ["Ca", 4],
+    ["F", 7],
+    ["S", 5],
+];
+
+// ---------- Helpers to format formulas ----------
+function subscript(n){
+  const map = {0:"₀",1:"₁",2:"₂",3:"₃",4:"₄",5:"₅",6:"₆",7:"₇",8:"₈",9:"₉"};
+  return String(n).split("").map(d=>map[d]||d).join("");
+}
+function fmtFormula(symA, nA, symB, nB){
+  // order kept as (cation, anion) for ionic; for covalent we pass in desired order
+  const a = symA + (nA>1 ? subscript(nA) : "");
+  const b = symB + (nB>1 ? subscript(nB) : "");
+  return a + b;
+}
+function gcd(a,b){ while(b){ [a,b] = [b, a%b]; } return Math.abs(a); }
+function lcm(a,b){ return Math.abs(a*b)/gcd(a,b); }
+
+// ---------- Auto-generate ALL binary ionic compounds in your element set ----------
+function buildAllIonicBinaries(){
+  // Metals in your ELEMENTS set (typical ionic charges)
+  const cations = {
+    Na: +1,
+    K:  +1,
+    Mg: +2,
+    Ca: +2,
+  };
+
+  // Common anions you have (typical charges)
+  // (H- included so you get ionic hydrides like NaH, CaH₂ if you want them)
+  const anions = {
+    F:  -1,
+    Cl: -1,
+    O:  -2,
+    S:  -2,
+    N:  -3,
+    H:  -1,
+  };
+
+  const out = [];
+  for(const cat of Object.keys(cations)){
+    for(const an of Object.keys(anions)){
+      const qCat = Math.abs(cations[cat]);
+      const qAn  = Math.abs(anions[an]);
+
+      const L = lcm(qCat, qAn);
+      const nCat = L / qCat;
+      const nAn  = L / qAn;
+
+      // Build formula + needs object
+      const label = fmtFormula(cat, nCat, an, nAn);
+      const key = (cat + (nCat>1 ? nCat : "") + an + (nAn>1 ? nAn : ""));
+
+      const needs = {};
+      needs[cat] = nCat;
+      needs[an]  = nAn;
+
+      out.push({ key, label, needs, correct:"ionic" });
+    }
+  }
+  return out;
+}
+
+// ---------- Curated covalent molecules (expanded) ----------
+const COVALENT = [
+  // diatomic / elemental molecules
+  { key:"H2",  label:"H₂",  needs:{H:2}, correct:"covalent" },
+  { key:"N2",  label:"N₂",  needs:{N:2}, correct:"covalent" },
+  { key:"O2",  label:"O₂",  needs:{O:2}, correct:"covalent" },
+  { key:"F2",  label:"F₂",  needs:{F:2}, correct:"covalent" },
+  { key:"Cl2", label:"Cl₂", needs:{Cl:2}, correct:"covalent" },
+
+  // common small covalent molecules
+  { key:"H2O",  label:"H₂O",  needs:{H:2, O:1}, correct:"covalent" },
+  { key:"H2O2", label:"H₂O₂", needs:{H:2, O:2}, correct:"covalent" },
+
+  { key:"NH3",  label:"NH₃",  needs:{N:1, H:3}, correct:"covalent" },
+  { key:"CH4",  label:"CH₄",  needs:{C:1, H:4}, correct:"covalent" },
+
+  { key:"CO",   label:"CO",   needs:{C:1, O:1}, correct:"covalent" },
+  { key:"CO2",  label:"CO₂",  needs:{C:1, O:2}, correct:"covalent" },
+
+  { key:"NO",   label:"NO",   needs:{N:1, O:1}, correct:"covalent" },
+  { key:"NO2",  label:"NO₂",  needs:{N:1, O:2}, correct:"covalent" },
+  { key:"N2O",  label:"N₂O",  needs:{N:2, O:1}, correct:"covalent" },
+
+  { key:"H2S",  label:"H₂S",  needs:{H:2, S:1}, correct:"covalent" },
+  { key:"SO2",  label:"SO₂",  needs:{S:1, O:2}, correct:"covalent" },
+  { key:"SO3",  label:"SO₃",  needs:{S:1, O:3}, correct:"covalent" },
+
+  // hydrogen halides
+  { key:"HF",   label:"HF",   needs:{H:1, F:1},  correct:"covalent" },
+  { key:"HCl",  label:"HCl",  needs:{H:1, Cl:1}, correct:"covalent" },
+
+  // simple halogenated methanes (nice for “valence” practice)
+  { key:"CF4",  label:"CF₄",  needs:{C:1, F:4},  correct:"covalent" },
+  { key:"CCl4", label:"CCl₄", needs:{C:1, Cl:4}, correct:"covalent" },
+
+  // carbon sulfide (simple & common in textbooks)
+  { key:"CS2",  label:"CS₂",  needs:{C:1, S:2},  correct:"covalent" },
+];
+
+// ---------- Final MOLECULES list (ionic auto + covalent curated) ----------
+const MOLECULES = [
+  ...COVALENT,
+  ...buildAllIonicBinaries(),
+].filter(m => {
+  // Keep Neon out of anything, and (optional) drop weird “ionic hydrides” if you don’t want them:
+  // return !("Ne" in (m.needs||{}));
+  return true;
+});
+
+
+/*** Lewis dots: singles first then pairs ***/
+const DOT_POS = ["top1","right1","bot1","left1","top2","right2","bot2","left2"];
+function lewisDotsHTML(valence){
+  let html = "";
+  const n = Math.max(0, Math.min(8, valence|0));
+  for(let i=0;i<n;i++) html += `<span class="dot ${DOT_POS[i]}"></span>`;
+  return html;
+}
+
+/*** State machine ***/
+const S = {
+  YOUR_ASK: "YOUR_ASK",
+  YOUR_NEEDS_DRAW: "YOUR_NEEDS_DRAW",
+  YOUR_DRAWN: "YOUR_DRAWN",
+  CPU_ASKING: "CPU_ASKING",
+  GAME_OVER: "GAME_OVER"
+};
+
+let deck = [];
+let you = { hand:[], molecules:[], pts:0 };
+let cpu = { hand:[], molecules:[], pts:0 };
+let cpuAskHistory = []; // track last few asks to avoid repeats
+
+
+let state = S.GAME_OVER;
+let selectedAsk = null;
+let selectedIdx = new Set();
+let selectedBondType = null; // "ionic" | "covalent"
+let cpuRequest = null;
+let lastStudentAsk = null;   // ✅ remembers what the student asked for
+let lastStudentDraw = null;  // ✅ remembers what they drew on Go Bond
+
+
+const MOVE_DELAY = 900;
+
+// ===== Difficulty (CPU recipe restrictions) =====
+const DIFF = {
+  EASY: "easy",
+  MED: "medium",
+  HARD: "hard",
+  RAMP: "ramp"   // optional: starts easy, ramps up over time
+};
+
+let cpuDifficulty = localStorage.getItem("goBond_cpuDifficulty") || DIFF.MED;
+
+function setCpuDifficulty(mode){
+  cpuDifficulty = mode;
+  localStorage.setItem("goBond_cpuDifficulty", mode);
+  updateDifficultyUI();
+  // refresh prompt/buttons text if needed
+  renderControls();
+}
+
+function recipeStats(r){
+  const atoms = atomsInNeeds(r.needs);
+  const uniq = Object.keys(r.needs).length;
+  return { atoms, uniq };
+}
+
+// You can tweak these cutoffs anytime:
+function recipeAllowedForCpu(r){
+  const { atoms, uniq } = recipeStats(r);
+
+  // define "simple":
+  // - Easy: only 2-atom binaries (diatomics like O2, and ionic 1:1 like NaCl / MgO)
+  // - Medium: up to 3 atoms (H2O, CO2, Na2O, MgCl2, etc.)
+  // - Hard: everything
+  if(cpuDifficulty === DIFF.HARD) return true;
+
+  if(cpuDifficulty === DIFF.MED)  return atoms <= 3;
+
+  if(cpuDifficulty === DIFF.EASY) return atoms <= 2;
+
+  // RAMP: starts easy, then loosens later in the game.
+  // Example ramp: first 1/3 of deck = easy, middle = medium, last = hard.
+  if(cpuDifficulty === DIFF.RAMP){
+    const total = deck.length + you.hand.length + cpu.hand.length; // rough “game size”
+    // if total is small, fallback:
+    const remaining = deck.length;
+    const fracLeft = total ? (remaining / total) : 0.5;
+
+    if(fracLeft > 0.66) return atoms <= 2; // early: easy
+    if(fracLeft > 0.33) return atoms <= 3; // mid: medium
+    return true; // late: hard
+  }
+
+  return true;
+}
+
+function cpuActiveRecipes(){
+  return MOLECULES.filter(recipeAllowedForCpu);
+}
+
+
+/*** Helpers ***/
+const $ = (id)=>document.getElementById(id);
+function randInt(n){ return Math.floor(Math.random()*n); }
+function shuffle(a){
+  for(let i=a.length-1;i>0;i--){
+    const j = randInt(i+1);
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+function buildDeck(){
+  const d=[];
+  for(const [sym, n] of DECK_RECIPE){
+    for(let i=0;i<n;i++) d.push(sym);
+  }
+  return shuffle(d);
+}
+function draw(hand){
+  if(deck.length===0) return null;
+  const c = deck.pop();
+  hand.push(c);
+  return c;
+}
+function countSym(hand, sym){
+  let n=0; for(const c of hand) if(c===sym) n++;
+  return n;
+}
+function removeAll(hand, sym){
+  let n=0;
+  for(let i=hand.length-1;i>=0;i--){
+    if(hand[i]===sym){ hand.splice(i,1); n++; }
+  }
+  return n;
+}
+function setPrompt(html, buttons=[]){
+  $("promptText").innerHTML = html;
+  const wrap = $("promptActions");
+  wrap.innerHTML = "";
+  for(const b of buttons){
+    const btn = document.createElement("button");
+    btn.className = b.className || "btn";
+    btn.textContent = b.text;
+    btn.disabled = !!b.disabled;
+    btn.onclick = b.onClick;
+    wrap.appendChild(btn);
+  }
+}
+
+function continueBtnIfDrawn(){
+  return (state === S.YOUR_DRAWN)
+    ? [{ text: "Continue", className:"btn", onClick: finishAfterDraw }]
+    : [];
+}
+
+function multiset(arr){
+  const m={};
+  for(const x of arr) m[x]=(m[x]||0)+1;
+  return m;
+}
+function countsCoverNeeds(counts, needs){
+  for(const k in needs){
+    if((counts[k]||0) < needs[k]) return false;
+  }
+  return true;
+}
+function consumeNeeds(hand, needs){
+  for(const sym in needs){
+    let need = needs[sym];
+    for(let i=hand.length-1;i>=0 && need>0;i--){
+      if(hand[i]===sym){
+        hand.splice(i,1);
+        need--;
+      }
+    }
+  }
+}
+function atomsInNeeds(needs){
+  let sum = 0;
+  for(const k in needs) sum += needs[k];
+  return sum;
+}
+
+/* ========= FEEDBACK BANNER LOGIC (NEW) ========= */
+let bannerTimer = null;
+function showBanner(kind, title, detail){
+  const el = $("feedbackBanner");
+  el.className = ""; // reset
+  el.innerHTML = `<div>${title}</div>${detail ? `<small>${detail}</small>` : ""}`;
+  el.classList.add(kind === "bad" ? "bad" : "ok");
+  // force reflow so animation restarts if clicked quickly
+  void el.offsetWidth;
+  el.classList.add("show");
+
+  clearTimeout(bannerTimer);
+  bannerTimer = setTimeout(()=>{
+    el.classList.remove("show");
+    // keep it hidden after animation
+    setTimeout(()=>{ el.style.display = "none"; }, 160);
+  }, 1400);
+  el.style.display = "block";
+}
+/* ============================================== */
+
+/*** Rendering ***/
+
+function renderOpponent(){
+  $("oppCount").textContent = cpu.hand.length;
+  const backs = $("oppBacks");
+  backs.innerHTML = "";
+  const show = Math.min(cpu.hand.length, 12);
+  for(let i=0;i<show;i++){
+    const d = document.createElement("div");
+    d.className = "back";
+    backs.appendChild(d);
+  }
+  if(cpu.hand.length > show){
+    const extra = document.createElement("span");
+    extra.className = "pill";
+    extra.style.padding = "6px 10px";
+    extra.innerHTML = `<b>+${cpu.hand.length-show}</b>`;
+    backs.appendChild(extra);
+  }
+}
+function renderMelds(){
+  $("youPts").textContent = you.pts;
+  $("cpuPts").textContent = cpu.pts;
+  $("deckCount").textContent = deck.length;
+  $("deckCount2").textContent = deck.length;
+
+  const m = $("melds");
+  m.innerHTML = "";
+
+  const all = [
+    ...you.molecules.map(x=>({owner:"You", ...x})),
+    ...cpu.molecules.map(x=>({owner:"CPU", ...x}))
+  ];
+
+  if(all.length===0){
+    const empty = document.createElement("div");
+    empty.className = "tiny";
+    empty.style.marginTop = "10px";
+    empty.textContent = "No molecules yet — select cards from your hand and try bonding.";
+    m.appendChild(empty);
+    return;
+  }
+
+  for(const mol of all){
+    const d = document.createElement("div");
+    d.className = `meld ${mol.correct}`.trim();
+    const penaltyText = mol.penalty ? ` · penalty -1` : "";
+    d.innerHTML = `${mol.label}<small>${mol.owner} · ${mol.pts} pts · ${mol.correct}${penaltyText}</small>`;
+    m.appendChild(d);
+  }
+}
+function renderHand(){
+  const row = $("handRow");
+  row.innerHTML = "";
+
+  you.hand.forEach((sym, idx)=>{
+    const info = ELEMENTS[sym];
+    const c = document.createElement("div");
+    c.className = "card" + (selectedIdx.has(idx) ? " sel" : "");
+    c.innerHTML = `
+      <div class="lewis">
+        ${lewisDotsHTML(info.valence)}
+        <div class="sym">${sym}</div>
+      </div>
+      <div class="name">${info.name}</div>
+    `;
+    c.onclick = ()=>{
+      if(selectedIdx.has(idx)) selectedIdx.delete(idx);
+      else selectedIdx.add(idx);
+      renderHand();
+    };
+    row.appendChild(c);
+  });
+}
+function renderAskUI(){
+  // update label in toolbar
+  const lab = $("askSelectedLabel");
+  if(lab) lab.textContent = selectedAsk || "—";
+
+  // build grid inside modal
+  const grid = $("askGrid");
+  if(!grid) return;
+  grid.innerHTML = "";
+
+  Object.keys(ELEMENTS).forEach(sym=>{
+    const chip = document.createElement("button");
+    chip.type = "button";
+    chip.className = "askChip" + (selectedAsk===sym ? " sel" : "");
+    chip.textContent = sym;
+
+    chip.onclick = ()=>{
+      if(state !== S.YOUR_ASK) return;   // only choose during your ask phase
+      selectedAsk = sym;
+      $("askModal").style.display = "none";
+      renderAskUI();
+      renderControls();
+    };
+
+    grid.appendChild(chip);
+  });
+}
+
+function renderBondType(){
+  $("btnTypeIonic").classList.toggle("sel", selectedBondType==="ionic");
+  $("btnTypeCovalent").classList.toggle("sel", selectedBondType==="covalent");
+}
+function renderControls(){
+  $("turnLabel").textContent =
+    state===S.YOUR_ASK ? "You" :
+    state===S.YOUR_NEEDS_DRAW ? "You (Draw)" :
+    state===S.CPU_ASKING ? "CPU" :
+    "—";
+
+  $("btnAsk").disabled = !(state===S.YOUR_ASK && !!selectedAsk);
+  $("btnDraw").disabled = !(state===S.YOUR_NEEDS_DRAW);
+
+    $("btnBond").disabled = (state === S.CPU_ASKING || state === S.GAME_OVER);
+    $("btnClear").disabled = (state === S.CPU_ASKING || state === S.GAME_OVER);
+
+    $("btnAsk").disabled = !(state===S.YOUR_ASK && !!selectedAsk);
+    if(state === S.YOUR_DRAWN) $("btnAsk").disabled = true;
+
+    $("btnOpenAsk").disabled = (state !== S.YOUR_ASK);
+
+
+  if(state===S.YOUR_ASK){
+    setPrompt(`It’s <b>your turn</b>. Pick an element and click <b>Ask</b>.`);
+  } else if(state===S.YOUR_NEEDS_DRAW){
+    setPrompt(`CPU said <b>“Go Bond!”</b> Click <b>Draw</b>.`);
+  } else if(state===S.CPU_ASKING){
+    const sym = cpuRequest;
+    const have = countSym(you.hand, sym);
+    setPrompt(
+      `<b>CPU asks:</b> “Do you have <b>${sym}</b>?”<br><span class="tiny">If you have it, you must give <b>all</b>.</span>`,
+      [
+        { text: have>0 ? `Give ${sym} (${have})` : `Give ${sym} (0)`, className:"btn red", disabled: have===0, onClick: ()=>playerGive(sym) },
+    {
+  text: "Go Bond!",
+  className:"btn green",
+  disabled: have > 0,   // ✅ disable if student has the card
+  onClick: playerGoBond
+}
+]
+    );
+  }
+}
+function renderAll(){
+  
+  renderOpponent();
+  renderMelds();
+  renderHand();
+  renderAskUI();     
+  renderBondType();
+  renderControls();
+}
+
+/*** Student bonding (with big banner) ***/
+function bondSelected(){
+
+    // ✅ Prevent "stuck" state: don't let bonding overwrite the CPU prompt buttons
+  if(state === S.CPU_ASKING){
+    showBanner("bad","WAIT — CPU TURN","Answer the computer first (Give card or Go Bond).");
+    return; // IMPORTANT: do not call setPrompt here
+  }
+  if(state === S.GAME_OVER){
+    showBanner("bad","GAME OVER","Start a new game to keep playing.");
+    return;
+  }
+  const idxs = [...selectedIdx].sort((a,b)=>a-b);
+  const syms = idxs.map(i=>you.hand[i]).filter(Boolean);
+
+  if(syms.length===0){
+    showBanner("bad", "SELECT CARDS FIRST", "Click cards in your hand, then try bonding.");
+    setPrompt(
+  `Select cards in your hand, then click <b>Bond</b>.` +
+  (state === S.YOUR_DRAWN ? `<br><span class="tiny">Or click <b>Continue</b> to end your draw step.</span>` : ``),
+  continueBtnIfDrawn()
+);
+return;
+
+  }
+  if(syms.includes("Ne")){
+    showBanner("bad", "NO BOND!", "Neon (Ne) does not bond.");
+    setPrompt(
+  `Neon (<b>Ne</b>) does not bond in this game.` +
+  (state === S.YOUR_DRAWN ? `<br><span class="tiny">Click <b>Continue</b> to end your draw step.</span>` : ``),
+  continueBtnIfDrawn()
+);
+return;
+
+  }
+  if(!selectedBondType){
+    showBanner("bad", "CHOOSE A TYPE", "Pick Ionic or Covalent first.");
+    setPrompt(
+  `Before bonding, choose a bond type: <b>Ionic</b> or <b>Covalent</b>.` +
+  (state === S.YOUR_DRAWN ? `<br><span class="tiny">Or click <b>Continue</b> to end your draw step.</span>` : ``),
+  continueBtnIfDrawn()
+);
+return;
+
+  }
+
+  const counts = multiset(syms);
+
+  const recipe = MOLECULES.find(r=>{
+    const keys = new Set([...Object.keys(counts), ...Object.keys(r.needs)]);
+    for(const k of keys){
+      if((counts[k]||0) !== (r.needs[k]||0)) return false;
+    }
+    return true;
+  });
+
+  if(!recipe){
+    showBanner("bad", "NOT A VALID MOLECULE", "Try a different set of cards.");
+    setPrompt(
+  `That set does not match any valid molecule in this level. Try a different selection.` +
+  (state === S.YOUR_DRAWN ? `<br><span class="tiny">Or click <b>Continue</b> to end your draw step.</span>` : ``),
+  continueBtnIfDrawn()
+);
+return;
+
+  }
+
+  // remove selected
+  const desc = [...selectedIdx].sort((a,b)=>b-a);
+  for(const i of desc){
+    if(i>=0 && i<you.hand.length) you.hand.splice(i,1);
+  }
+  selectedIdx.clear();
+
+  const basePts = atomsInNeeds(recipe.needs);
+  let delta = basePts;
+  let penalty = false;
+
+  if(selectedBondType !== recipe.correct){
+    delta = basePts - 1;
+    penalty = true;
+
+    showBanner(
+      "bad",
+      `INCORRECT TYPE: ${recipe.label}`,
+      `Correct is ${recipe.correct.toUpperCase()} • -1 point`
+    );
+
+    const continueBtn = (state === S.YOUR_DRAWN)
+  ? [{ text:"Continue", className:"btn", onClick: finishAfterDraw }]
+  : [];
+
+    if(selectedBondType !== recipe.correct){
+    // ... banner call ...
+
+    setPrompt(
+        `⚠️ You formed <b>${recipe.label}</b>, but the correct type is <b>${recipe.correct}</b>.<br>
+        You chose <b>${selectedBondType}</b> → <b>-1 point</b> penalty. (+${basePts} - 1 = <b>${delta}</b> pts)` +
+        (state === S.YOUR_DRAWN ? `<br><span class="tiny">Click <b>Continue</b> to finish your draw step.</span>` : ``),
+        continueBtn
+    );
+    } else {
+    // ... banner call ...
+
+    setPrompt(
+        `Nice! <b>${recipe.label}</b> is <b>${recipe.correct}</b>. You earned <b>${basePts}</b> points.` +
+        (state === S.YOUR_DRAWN ? `<br><span class="tiny">Click <b>Continue</b> to finish your draw step.</span>` : ``),
+        continueBtn
+    );
+    }
+
+  } else {
+    showBanner(
+      "ok",
+      `CORRECT! ${recipe.label}`,
+      `${recipe.correct.toUpperCase()} • +${basePts} points`
+    );
+    setPrompt(`Nice! <b>${recipe.label}</b> is <b>${recipe.correct}</b>. You earned <b>${basePts}</b> points.`);
+  }
+
+  you.pts += delta;
+
+  you.molecules.push({
+    key:recipe.key,
+    label:recipe.label,
+    correct:recipe.correct,
+    pts: basePts,
+    penalty
+  });
+
+  if(deck.length===0) endGame();
+  renderAll();
+  if(state === S.YOUR_DRAWN){
+  setTimeout(finishAfterDraw, 900); // auto-advance after ~1s
+}
+
+}
+
+/*** CPU bonding (always correct) ***/
+function cpuAutoBondAll(){
+  let made = [];
+  let changed = true;
+
+  const RECIPES = cpuActiveRecipes();
+
+  while(changed){
+    changed = false;
+    const counts = multiset(cpu.hand);
+
+    for(const r of RECIPES){
+      if(countsCoverNeeds(counts, r.needs)){
+        consumeNeeds(cpu.hand, r.needs);
+        const basePts = atomsInNeeds(r.needs);
+        cpu.pts += basePts;
+        cpu.molecules.push({ key:r.key, label:r.label, correct:r.correct, pts: basePts, penalty:false });
+        made.push(`${r.label} (${r.correct}, ${basePts} pts)`);
+        changed = true;
+        break;
+      }
+    }
+  }
+  return made;
+}
+
+
+function cpuPickAskSmart(){
+  const counts = multiset(cpu.hand);
+
+  // Score each possible ask by how useful it would be to finish a molecule soon.
+  // Higher score = better ask.
+  const scores = {};
+  const RECIPES = cpuActiveRecipes();
+    for(const r of RECIPES){
+
+    // how close are we to completing this recipe?
+    let missingTotal = 0;
+    let hasAny = false;
+
+    for(const sym in r.needs){
+      const have = counts[sym] || 0;
+      if(have > 0) hasAny = true;
+      const miss = Math.max(0, r.needs[sym] - have);
+      missingTotal += miss;
+    }
+    if(!hasAny) continue;              // don't chase recipes we have zero progress on
+    if(missingTotal === 0) continue;   // already complete (would have bonded)
+
+    // For every missing symbol, add score based on:
+    // - how many we still need
+    // - how "big" the molecule is (more atoms = more valuable)
+    const moleculeValue = atomsInNeeds(r.needs); // encourages asking toward bigger molecules
+    for(const sym in r.needs){
+      const have = counts[sym] || 0;
+      const miss = Math.max(0, r.needs[sym] - have);
+      if(miss <= 0) continue;
+
+      // base usefulness
+      let add = miss * (1 + moleculeValue * 0.25);
+
+      // tiny nudge against over-asking H specifically
+      if(sym === "H") add *= 0.9;
+
+      scores[sym] = (scores[sym] || 0) + add;
+    }
+  }
+
+  // If we found scored candidates, pick among the best few (adds variety).
+  let candidates = Object.keys(scores);
+
+  // Avoid asking for Ne ever
+  candidates = candidates.filter(s => s !== "Ne");
+
+  // Avoid repeating the last 2 asks if possible
+  const recent = new Set(cpuAskHistory.slice(-2));
+  let filtered = candidates.filter(s => !recent.has(s));
+  if(filtered.length === 0) filtered = candidates;
+
+  if(filtered.length > 0){
+    // sort by score desc
+    filtered.sort((a,b)=> (scores[b]||0) - (scores[a]||0));
+
+    // pick randomly from top 3 (or fewer)
+    const topN = Math.min(3, filtered.length);
+    const choice = filtered[randInt(topN)];
+
+    cpuAskHistory.push(choice);
+    if(cpuAskHistory.length > 10) cpuAskHistory.shift();
+    return choice;
+  }
+
+  // Fallback: ask something not always H (balanced pool)
+  const pool = ["O","Cl","Na","N","C","Mg","H","O","Cl","Na"];
+  // try not to repeat last ask
+  let pick = pool[randInt(pool.length)];
+  const last = cpuAskHistory[cpuAskHistory.length-1];
+  if(pick === last && pool.length > 1){
+    for(let tries=0; tries<6; tries++){
+      const alt = pool[randInt(pool.length)];
+      if(alt !== last){ pick = alt; break; }
+    }
+  }
+  cpuAskHistory.push(pick);
+  if(cpuAskHistory.length > 10) cpuAskHistory.shift();
+  return pick;
+}
+
+
+/*** Turns ***/
+function youAsk(sym){
+  if(state !== S.YOUR_ASK) return;
+
+  setPrompt(`You ask the computer for <b>${sym}</b>…`);
+
+  const n = countSym(cpu.hand, sym);
+  if(n>0){
+    removeAll(cpu.hand, sym);
+    for(let i=0;i<n;i++) you.hand.push(sym);
+
+    selectedAsk = null;
+    setPrompt(`Computer gives you <b>${n}</b> ${sym}. You may <b>ask again</b>.`);
+    renderAll();
+    return;
+  }
+    lastStudentAsk = sym; // ✅ NEW
+    state = S.YOUR_NEEDS_DRAW;
+
+  
+  selectedAsk = null;
+  renderAll();
+}
+
+function youDraw(){
+  if(state !== S.YOUR_NEEDS_DRAW) return;
+
+  const c = draw(you.hand);
+  lastStudentDraw = c;
+
+  // ✅ Give the student a bonding window BEFORE the CPU starts
+  state = S.YOUR_DRAWN;
+  cpuRequest = null;
+  renderAll();
+
+  if(!c){
+    setPrompt(`The deck is empty.`, [
+      { text: "Continue", className:"btn", onClick: finishAfterDraw }
+    ]);
+    return;
+  }
+
+  setPrompt(
+    `You drew <b>${c}</b>.<br>
+     <span class="tiny">You may bond now. When you’re done, click <b>Continue</b>.</span>`,
+    [{ text: "Continue", className:"btn", onClick: finishAfterDraw }]
+  );
+}
+function finishAfterDraw(){
+  // Deck empty = end game checks
+  if(deck.length === 0){
+    endGame();
+    return;
+  }
+
+  // Classic Go Fish rule: if you draw what you asked for, you keep your turn
+  if(lastStudentDraw && lastStudentAsk && lastStudentDraw === lastStudentAsk){
+    state = S.YOUR_ASK;
+    selectedAsk = null;
+    renderAll();
+    setPrompt(`Lucky! You drew what you asked for (<b>${lastStudentDraw}</b>). You may <b>ask again</b>.`);
+    return;
+  }
+
+  // Otherwise, CPU's turn
+  state = S.CPU_ASKING;
+  cpuRequest = null;
+  renderAll();
+  setPrompt(`Now it’s the computer’s turn.`);
+  setTimeout(startCpuAsk, MOVE_DELAY);
+}
+
+
+function startCpuAsk(){
+  if(state !== S.CPU_ASKING) return;
+
+  const made = cpuAutoBondAll();
+  renderAll();
+
+  if(deck.length===0){
+    if(made.length) setPrompt(`Computer bonds: <b>${made.join(", ")}</b>. Deck is empty.`);
+    endGame();
+    return;
+  }
+
+  if(made.length){
+    setPrompt(`Computer bonds: <b>${made.join(", ")}</b>. Now it will ask you for a card…`);
+  } else {
+    setPrompt(`Computer is thinking…`);
+  }
+
+  setTimeout(()=>{
+    cpuRequest = cpuPickAskSmart();
+    renderControls();
+  }, MOVE_DELAY);
+}
+
+function playerGive(sym){
+  if(state !== S.CPU_ASKING) return;
+
+  const n = countSym(you.hand, sym);
+  if(n<=0) return;
+
+  removeAll(you.hand, sym);
+  for(let i=0;i<n;i++) cpu.hand.push(sym);
+
+  renderAll();
+  setPrompt(`You give the computer <b>${n}</b> ${sym}. Computer may bond and ask again…`);
+
+  if(deck.length===0){ endGame(); return; }
+
+  setTimeout(()=>{
+    const made = cpuAutoBondAll();
+    renderAll();
+
+    if(deck.length===0){
+      if(made.length) setPrompt(`Computer bonds: <b>${made.join(", ")}</b>. Deck is empty.`);
+      endGame();
+      return;
+    }
+
+    if(made.length){
+      setPrompt(`Computer bonds: <b>${made.join(", ")}</b>. It will ask again…`);
+    } else {
+      setPrompt(`Computer will ask again…`);
+    }
+
+    cpuRequest = null;
+    setTimeout(startCpuAsk, MOVE_DELAY);
+  }, MOVE_DELAY);
+}
+
+function playerGoBond(){
+  if(state !== S.CPU_ASKING) return;
+
+  setPrompt(`You say <b>Go Bond!</b> Computer draws…`);
+
+  setTimeout(()=>{
+    const c = draw(cpu.hand);
+    const made = cpuAutoBondAll();
+    renderAll();
+
+    if(deck.length===0){
+      if(c && made.length) setPrompt(`Computer drew a card and bonded: <b>${made.join(", ")}</b>. Deck is empty.`);
+      else if(c) setPrompt(`Computer drew a card. Deck is empty.`);
+      else if(made.length) setPrompt(`Computer bonded: <b>${made.join(", ")}</b>. Deck is empty.`);
+      else setPrompt(`Deck is empty.`);
+      endGame();
+      return;
+    }
+
+    state = S.YOUR_ASK;
+    cpuRequest = null;
+    selectedAsk = null;
+    renderAll();
+
+    if(c && made.length) setPrompt(`Computer drew a card and bonded: <b>${made.join(", ")}</b>. Your turn: ask for a card.`);
+    else if(c) setPrompt(`Computer drew a card. Your turn: ask for a card.`);
+    else if(made.length) setPrompt(`Computer bonded: <b>${made.join(", ")}</b>. Your turn: ask for a card.`);
+    else setPrompt(`Your turn: ask for a card.`);
+  }, MOVE_DELAY);
+}
+
+function endGame(){
+  state = S.GAME_OVER;
+  const neYou = countSym(you.hand,"Ne");
+  const neCpu = countSym(cpu.hand,"Ne");
+  const finalYou = you.pts - neYou;
+  const finalCpu = cpu.pts - neCpu;
+
+  setPrompt(
+    `<b>Game Over.</b><br>
+     You: <b>${finalYou}</b> pts (Ne: -${neYou})<br>
+     CPU: <b>${finalCpu}</b> pts (Ne: -${neCpu})`
+  );
+  renderAll();
+}
+
+function newGame(){
+  deck = buildDeck();
+  you = { hand:[], molecules:[], pts:0 };
+  cpu = { hand:[], molecules:[], pts:0 };
+  selectedAsk = null;
+  selectedIdx.clear();
+  cpuRequest = null;
+  selectedBondType = null;
+
+  for(let i=0;i<6;i++){
+    draw(you.hand);
+    draw(cpu.hand);
+  }
+
+  cpuAutoBondAll();
+  state = S.YOUR_ASK;
+  renderAll();
+  setPrompt(`New game started. Your turn: pick an element and click <b>Ask</b>.`);
+}
+
+// ===== GOOGLE FORM AUTOSUBMIT (formResponse) =====
+// Reused from your Balancing Equations sim
+
+const SIM_ID = "go_bond";              // ✅ change per sim
+const TOKEN_SALT = "MoLeCuTeOrG";      // same salt you used
+
+const FORM_BASE_URL =
+  "https://docs.google.com/forms/d/e/1FAIpQLSckXbWQsVWobjrktGMoF7AtY6gMch0eQMjsGlddVv1cxgNHgQ/formResponse";
+
+const FORM_ENTRIES = {
+  displayName: "entry.366340186",
+  sim: "entry.1832756779",
+  score: "entry.221944829",
+  token: "entry.1636605257",
+};
+
+function fnv1a(str) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = (h * 0x01000193) >>> 0;
+  }
+  return ("00000000" + h.toString(16)).slice(-8);
+}
+
+function makeToken(summary) {
+  const payload = {
+    v: 1,
+    sim: SIM_ID,
+    score: summary.score,
+    youPts: summary.youPts ?? 0,
+    cpuPts: summary.cpuPts ?? 0,
+    moleculesYou: summary.moleculesYou ?? 0,
+    moleculesCpu: summary.moleculesCpu ?? 0,
+    mistakes: summary.mistakes ?? 0,
+    t: Date.now(),
+    nonce: Math.random().toString(36).slice(2, 10),
+  };
+  const core = JSON.stringify(payload);
+  payload.sig = fnv1a(core + "|" + TOKEN_SALT);
+  return btoa(JSON.stringify(payload));
+}
+
+function askDisplayName() {
+  return new Promise((resolve) => {
+    const modal = document.getElementById("nameModal");
+    const input = document.getElementById("displayNameInput");
+    const cancel = document.getElementById("cancelName");
+    const cont = document.getElementById("continueName");
+
+    function close(val) {
+      modal.style.display = "none";
+      cancel.onclick = null;
+      cont.onclick = null;
+      modal.onclick = null;
+      document.onkeydown = null;
+      resolve(val);
+    }
+
+    input.value = (localStorage.getItem("goBond_displayName") || "");
+    modal.style.display = "flex";
+    input.focus();
+
+    cancel.onclick = () => close(null);
+    cont.onclick = () => close(input.value.trim());
+
+    modal.onclick = (e) => { if (e.target === modal) close(null); };
+    document.onkeydown = (e) => {
+      if (e.key === "Escape") close(null);
+      if (e.key === "Enter") close(input.value.trim());
+    };
+  });
+}
+
+function buildFormBody({ displayName = "", sim, score, token }) {
+  const params = new URLSearchParams();
+  if (displayName && FORM_ENTRIES.displayName) params.set(FORM_ENTRIES.displayName, displayName);
+  params.set(FORM_ENTRIES.sim, sim);
+  params.set(FORM_ENTRIES.score, String(score));
+  params.set(FORM_ENTRIES.token, token);
+  return params;
+}
+
+// ✅ Go Bond score summary (THIS is the key adaptation)
+function goBondScoreSummary() {
+  // Use the same final scoring logic you show at Game Over (Ne penalty)
+  const neYou = countSym(you.hand, "Ne");
+  const neCpu = countSym(cpu.hand, "Ne");
+  const youFinal = you.pts - neYou;
+  const cpuFinal = cpu.pts - neCpu;
+
+  const mistakes = you.molecules.reduce((acc, m) => acc + (m.penalty ? 1 : 0), 0);
+
+  return {
+    score: youFinal,
+    youPts: youFinal,
+    cpuPts: cpuFinal,
+    moleculesYou: you.molecules.length,
+    moleculesCpu: cpu.molecules.length,
+    mistakes
+  };
+}
+
+// optional: reset session after submit (either start new game or just zero score)
+function resetGoBondAfterSubmit() {
+  // simplest: just start a new game
+  newGame();
+  showBanner("ok", "SUBMITTED + RESET", "New game started.");
+}
+
+const submitBtn = document.getElementById("submitScoreBtn");
+if (submitBtn) {
+  submitBtn.onclick = async () => {
+    const summary = goBondScoreSummary();
+
+    // (optional) prevent 0-score spam:
+    // if(summary.score <= 0){ showBanner("bad","NO SCORE YET","Make at least one molecule first."); return; }
+
+    const token = makeToken(summary);
+    const displayName = await askDisplayName();
+    if (displayName === null) return;
+
+    localStorage.setItem("goBond_displayName", displayName);
+
+    const body = buildFormBody({
+      displayName,
+      sim: SIM_ID,
+      score: summary.score,
+      token,
+    });
+
+    fetch(FORM_BASE_URL, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+      body: body.toString(),
+    });
+
+    showBanner("ok", "SCORE SUBMITTED!", `${displayName || "Anonymous"} • ${summary.score} pts`);
+    resetGoBondAfterSubmit();
+  };
+}
+
+
+
+/*** Events ***/
+
+function updateDifficultyUI(){
+  const setSel = (id, on)=> $(id)?.classList.toggle("sel", !!on);
+
+  setSel("btnDiffEasy", cpuDifficulty === DIFF.EASY);
+  setSel("btnDiffMed",  cpuDifficulty === DIFF.MED);
+  setSel("btnDiffHard", cpuDifficulty === DIFF.HARD);
+  setSel("btnDiffRamp", cpuDifficulty === DIFF.RAMP);
+}
+
+// init once (after renderAll() is defined is fine)
+updateDifficultyUI();
+
+$("btnDiffEasy").onclick = ()=> setCpuDifficulty(DIFF.EASY);
+$("btnDiffMed").onclick  = ()=> setCpuDifficulty(DIFF.MED);
+$("btnDiffHard").onclick = ()=> setCpuDifficulty(DIFF.HARD);
+$("btnDiffRamp").onclick = ()=> setCpuDifficulty(DIFF.RAMP);
+
+
+$("btnOpenAsk").onclick = ()=>{
+  if(state !== S.YOUR_ASK){
+    showBanner("bad","NOT YOUR ASK YET","Wait for your turn to choose an ask.");
+    return;
+  }
+  $("askModal").style.display = "flex";
+  renderAskUI();
+};
+
+$("btnCloseAsk").onclick = ()=> $("askModal").style.display = "none";
+$("askModal").onclick = (e)=>{ if(e.target === $("askModal")) $("askModal").style.display="none"; };
+document.addEventListener("keydown", (e)=>{
+  if(e.key === "Escape" && $("askModal").style.display === "flex"){
+    $("askModal").style.display = "none";
+  }
+});
+
+$("btnNew").onclick = newGame;
+
+$("btnAsk").onclick = ()=>{
+  if(state!==S.YOUR_ASK) return;
+  if(!selectedAsk){
+    showBanner("bad","CHOOSE AN ELEMENT","Pick a symbol, then click Ask.");
+    setPrompt(`Pick an element first, then click <b>Ask</b>.`);
+    return;
+  }
+  youAsk(selectedAsk);
+};
+
+$("btnDraw").onclick = youDraw;
+
+$("btnClear").onclick = ()=>{
+  selectedIdx.clear();
+  renderHand();
+  setPrompt(
+    `Selection cleared. Select cards to bond, or keep playing.` +
+    (state === S.YOUR_DRAWN ? `<br><span class="tiny">Or click <b>Continue</b> to end your draw step.</span>` : ``),
+    continueBtnIfDrawn()
+  );
+};
+
+
+$("btnBond").onclick = bondSelected;
+
+$("btnTypeIonic").onclick = ()=>{
+  selectedBondType = "ionic";
+  renderBondType();
+  setPrompt(
+    `Bond type selected: <b>Ionic</b>. Now select cards and bond.` +
+    (state === S.YOUR_DRAWN ? `<br><span class="tiny">Or click <b>Continue</b> to end your draw step.</span>` : ``),
+    continueBtnIfDrawn()
+  );
+};
+
+$("btnTypeCovalent").onclick = ()=>{
+  selectedBondType = "covalent";
+  renderBondType();
+  setPrompt(
+    `Bond type selected: <b>Covalent</b>. Now select cards and bond.` +
+    (state === S.YOUR_DRAWN ? `<br><span class="tiny">Or click <b>Continue</b> to end your draw step.</span>` : ``),
+    continueBtnIfDrawn()
+  );
+};
+
+
+$("btnRules").onclick = ()=>{
+  alert(
+`GO BOND! (Banner Feedback)
+- Ask for an element. If the computer has it, it gives you ALL of that element and you may ask again.
+- If it does not have it: "Go Bond!" → draw one card.
+- To bond: select cards, choose Ionic or Covalent, then click Bond Selected.
+- Points = number of atoms in the molecule.
+- Wrong bond type: molecule still forms, but you get -1 point and a BIG red banner.
+- Neon (Ne) never bonds.`
+  );
+};
+
+// Start
+renderAll();
+setPrompt("Click <b>New Game</b> to start.");
+</script>
+</body>
+</html>
