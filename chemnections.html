@@ -1,0 +1,1059 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chemnections</title>
+  <style>
+:root{
+  --bg:#f7f4fb;
+  --card:#ffffff;
+  --ink:#231528;
+  --muted:#5a4a64;
+  --line: rgba(35,21,40,.12);
+
+  --accent:#eda6ff;   /* purple */
+  --accent2:#e9a9ff;  /* pink */
+
+  --good:#16a34a;
+  --bad:#dc2626;
+  --warn:#d97706;
+
+  --r:18px;
+  --shadow: 0 14px 40px rgba(35,21,40,.10);
+  --tileShadow: 0 10px 20px rgba(35,21,40,.10);
+
+  --font: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body{
+  margin:0;
+  min-height:100vh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  display:flex;
+  justify-content:center;
+  padding: 18px;
+}
+
+
+    .app{
+  width: min(880px, 100%);
+  display:block;
+}
+
+
+
+
+    .panel{
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  overflow:hidden;
+}
+
+
+
+    header{
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(255,255,255,.22);
+    background:
+        linear-gradient(90deg, #eda6ff, #e9a9ff);
+    color: #000000;
+    display:flex;
+    gap: 12px;
+    align-items:center;
+    justify-content:space-between;
+    }
+
+    .title h1{
+    margin:0;
+    font-size: 18px;
+    letter-spacing: .2px;
+    }
+
+    .title p{
+    margin:0;
+    font-size: 12px;
+    color: #39136e;
+    line-height: 1.35;
+    }
+
+    .title{
+      display:flex;
+      flex-direction:column;
+      gap: 4px;
+    }
+
+
+    .controls{
+      display:flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content:flex-end;
+    }
+
+    button{
+  appearance:none;
+  border: 1px solid rgba(255,255,255,.28);
+  background: rgba(255,255,255,.14);
+  color: #39136e;
+  padding: 10px 12px;
+  border-radius: 14px;
+  cursor:pointer;
+  font-weight: 750;
+  font-size: 13px;
+  transition: transform .05s ease, background .2s ease, border-color .2s ease;
+  user-select:none;
+}
+button:hover{ background: rgba(255,255,255,.20); border-color: rgba(255,255,255,.40); }
+button:active{ transform: translateY(1px); }
+button:disabled{
+  opacity:.55;
+  cursor:not-allowed;
+}
+
+
+    .main{
+      padding: 14px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+      user-select:none;
+    }
+.tile{
+  min-height: 72px;
+  
+  border-radius: 18px;
+  border:1px solid var(--line);
+  background: #fff;
+  box-shadow: var(--tileShadow);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  padding: 16px 14px;
+  font-weight: 800;
+  font-size: 16px;              
+  line-height: 1.25; 
+  letter-spacing: .2px;
+  cursor:pointer;
+  transition: transform .06s ease, outline .2s ease, background .2s ease;
+}
+
+.tile:hover{ transform: translateY(-1px); }
+
+.tile.selected{
+  outline: 3px solid rgba(124,58,237,.35);
+  background: rgba(124,58,237,.06);
+}
+
+.tile.locked{
+  cursor: default;
+  opacity: .95;
+}
+
+
+    .tile.locked:hover{ transform:none; }
+
+    .tile .small{
+      display:block;
+      font-size: 12px;
+      font-weight: 650;
+      color: var(--muted);
+      margin-top: 4px;
+      letter-spacing:0;
+    }
+
+    .right{
+      display:flex;
+      flex-direction:column;
+      gap: 14px;
+    }
+
+    .stats{
+      padding: 14px;
+      display:grid;
+      gap: 10px;
+    }
+
+    .pillRow{
+      display:flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+
+  
+
+    .pill{
+    padding: 6px 8px;
+    border-radius: 999px;
+    border:1px solid var(--line);
+    background: #fff;
+    font-size: 12px;
+    font-weight: 750;
+    color: var(--ink);
+    box-shadow: 0 6px 16px rgba(35,21,40,.06);
+    }
+    .pill em{ color: var(--muted); }
+
+    .msg{
+    padding: 10px;
+    border-radius: 14px;
+    border:1px solid var(--line);
+    background: #fff;
+    color: var(--muted);
+    line-height:1.35;
+    font-size: 12.5px;
+    min-height: 44px;
+    box-shadow: 0 6px 16px rgba(35,21,40,.06);
+    }
+    .msg.good{ border-color: rgba(22,163,74,.35); color: #14532d; }
+    .msg.bad{ border-color: rgba(220,38,38,.35); color: #7f1d1d; }
+    .msg.warn{ border-color: rgba(217,119,6,.35); color: #7c2d12; }
+
+        .solved{
+      padding: 14px;
+      border-top: 1px solid var(--line);
+      display:flex;
+      flex-direction:column;
+      gap: 10px;
+    }
+
+    .groupCard{
+      border:1px solid var(--line);
+      background: rgba(15,23,42,.7);
+      border-radius: 16px;
+      padding: 10px 12px;
+    }
+    .groupCard .label{
+      font-weight: 900;
+      font-size: 13px;
+      color: var(--ink);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+    }
+    .groupCard .label span{
+      color: var(--muted);
+      font-weight: 750;
+      font-size: 12px;
+    }
+    .groupCard .words{
+      margin-top: 6px;
+      display:flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .chip{
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,.04);
+      padding: 6px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .footerNote{
+      padding: 12px 14px 14px;
+      border-top:1px solid var(--line);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .toggle{
+      display:flex;
+      gap: 8px;
+      align-items:center;
+      font-size: 12px;
+      color: var(--muted);
+      padding: 0 14px 14px;
+    }
+    input[type="checkbox"]{
+      width: 16px; height: 16px;
+      accent-color: var(--accent);
+    }
+
+/* ===== Solved Rows (Connections-style) ===== */
+.solvedRows{
+  display:flex;
+  flex-direction:column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.solvedRow{
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  box-shadow: var(--tileShadow);
+  overflow:hidden;
+  background: var(--rowBg);
+  border-color: var(--rowBorder);
+  margin-bottom: 6px;
+}
+
+.solvedRowHeader{
+  color: var(--ink);
+  padding: 10px 14px 6px;
+  font-size: 16px;
+}
+
+.solvedRowWords .tile{
+  min-height: 68px;              /* ⬅️ bigger */
+  padding: 12px 10px;
+  background: rgba(255,255,255,.9);
+  border-color: rgba(35,21,40,.18);
+  box-shadow: none;
+
+  font-size: 16px;
+  line-height: 1.25;
+  font-weight: 800;
+}
+
+
+
+
+
+.solvedRowHeader{
+  padding: 14px 16px 8px;  /* more top space, less bottom */
+  font-weight: 900;
+  font-size: 18px;         /* ⬅️ bigger, clearer */
+  letter-spacing: .2px;
+
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 10px;
+}
+
+.solvedRowWords{
+  padding: 6px 14px 14px;
+  display:grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;               /* ⬅️ bigger gap */
+}
+
+
+
+.solvedRowWords .tile:hover{ transform:none; }
+
+/* 4 row colors (NYT-ish) */
+.row0{ --rowBg: rgba(250,204,21,.18); --rowBorder: rgba(250,204,21,.45); }  /* yellow */
+.row1{ --rowBg: rgba(34,197,94,.16);  --rowBorder: rgba(34,197,94,.42); }   /* green */
+.row2{ --rowBg: rgba(96,165,250,.16); --rowBorder: rgba(96,165,250,.42); }  /* blue */
+.row3{ --rowBg: rgba(167,139,250,.16);--rowBorder: rgba(167,139,250,.42); } /* purple */
+
+/* Snap animation when a group is solved */
+@keyframes snapIn{
+  0%   { transform: translateY(10px) scale(.985); opacity: 0; }
+  60%  { transform: translateY(-2px) scale(1.01); opacity: 1; }
+  100% { transform: translateY(0) scale(1); }
+}
+
+@keyframes shakeX{
+  0%, 100% { transform: translateX(0); }
+  15% { transform: translateX(-8px); }
+  30% { transform: translateX(8px); }
+  45% { transform: translateX(-6px); }
+  60% { transform: translateX(6px); }
+  75% { transform: translateX(-3px); }
+  90% { transform: translateX(3px); }
+}
+
+.grid.shake{
+  animation: shakeX 240ms ease-out;
+}
+
+.solvedRow.justSolved{
+  animation: snapIn 260ms ease-out;
+}
+
+.statusArea{
+  display:flex;
+  flex-direction:column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.statusArea .pillRow{
+  margin-bottom: 2px;
+}
+
+
+@media (max-width: 900px){
+  .app{ width: 100%; }
+
+  .tile{
+    min-height: 64px;
+    font-size: 15px;
+  }
+
+  .solvedRowWords .tile{
+    min-height: 60px;
+    font-size: 15px;
+  }
+
+  .solvedRowHeader{
+    font-size: 15px;
+  }
+}
+
+
+.hubLink{
+  display:inline-block;
+  margin-bottom:8px;
+  text-decoration:none;
+  font-weight:bold;
+  color:var(--deep-purple);
+}
+
+.hubLink:hover{
+  text-decoration:underline;
+}
+
+  </style>
+</head>
+<body>
+  <div class="app">
+
+    <!-- LEFT: GAME -->
+    <section class="panel">
+      <header>
+        <div class="title">
+            <a href="index.html" class="hubLink">← Back to Hub</a>
+          <h1>🧬 Chemnections</h1>
+          <p>Find 4 groups of 4 chemistry-connected terms. Select up to 4 tiles, then submit.</p>
+        </div>
+        <div class="controls">
+          <button id="btnClear" title="Clear your current selection">Clear</button>
+          <button id="btnSubmit" title="Submit the 4 selected tiles">Submit</button>
+          <button id="btnNew" title="Load a new puzzle">New Puzzle</button>
+        </div>
+      </header>
+
+      <div class="main">
+
+  <!-- STATUS / FEEDBACK -->
+  <div class="statusArea">
+    <div class="pillRow">
+  <div class="pill"><strong>Puzzle </strong><em id="puzzleName">—</em></div>
+  <div class="pill"><strong>Attempts </strong><em id="attemptsLeft">—</em></div>
+  <div class="pill"><strong>Solved </strong><em id="solvedCount">0/4</em></div>
+</div>
+
+    <div id="message" class="msg">
+      Select 4 tiles that share a chemistry connection.
+    </div>
+  </div>
+
+  <!-- SOLVED ROWS -->
+  <div id="solvedRows" class="solvedRows"></div>
+
+  <!-- MAIN GRID -->
+  <div id="grid" class="grid"></div>
+
+</div>
+
+
+
+      <div class="footerNote">
+        Tip: after a correct group, those tiles lock. You can reveal solutions at the end.
+      </div>
+    </section>
+
+
+
+  </div>
+
+<script>
+/* =========================
+   Chemnections Prototype
+   Single-file: HTML/CSS/JS
+   ========================= */
+
+/** Your 3 puzzles (from earlier) — all words lowercase for matching. */
+const PUZZLES = [
+  {
+    id: "P1",
+    name: "Foundations (Easy)",
+    attempts: 8,
+    words: [
+      "proton","neutron","electron","nucleus",
+      "reactants","products","equation","formula",
+      "halogens","noble gases","alkali metals","alkaline earth metals",
+      "atomic number","atomic mass","symbol","name"
+    ],
+    groups: [
+      { label: "Atomic structure", words: ["proton","neutron","electron","nucleus"],
+        explanation: "These describe parts of an atom." },
+      { label: "Parts of a chemical equation", words: ["reactants","products","equation","formula"],
+        explanation: "These appear when writing chemical changes." },
+      { label: "Periodic table families", words: ["halogens","noble gases","alkali metals","alkaline earth metals"],
+        explanation: "These are groups/families on the periodic table." },
+      { label: "Periodic table box information", words: ["atomic number","atomic mass","symbol","name"],
+        explanation: "These appear in an element’s square/box." }
+    ]
+  },
+  {
+    id: "P2",
+    name: "Overlap & Language (Medium)",
+    attempts: 7,
+    words: [
+      "ion","cation","anion","electron",
+      "bohr","lewis dot","periodic table","phase diagram",
+      "prefix","suffix","root word","chemical name",
+      "stable","inert","noble gases","unreactive"
+    ],
+    groups: [
+      { label: "Charged particle terminology", words: ["ion","cation","anion","electron"],
+        explanation: "Ions are charged atoms/molecules; electrons are charged particles (not ions)." },
+      { label: "Scientific models / representations", words: ["bohr","lewis dot","periodic table","phase diagram"],
+        explanation: "Each represents information about matter in a structured way." },
+      { label: "Word-building / naming tools", words: ["prefix","suffix","root word","chemical name"],
+        explanation: "Tools we use to build and interpret chemical language." },
+      { label: "Unreactive language", words: ["stable","inert","noble gases","unreactive"],
+        explanation: "Words students use to describe low reactivity (with nuance!)." }
+    ]
+  },
+  {
+    id: "P3",
+    name: "Misconception Mode (Hard)",
+    attempts: 6,
+    words: [
+      "proton","atomic number","symbol","name",
+      "covalent","ionic","single","double",
+      "hg","liquid","freezes","boils",
+      "solid","freeze","family","compound"
+    ],
+    groups: [
+      { label: "Identity of an element", words: ["proton","atomic number","symbol","name"],
+        explanation: "Atomic number (protons) determines an element’s identity." },
+      { label: "Bonding terms", words: ["covalent","ionic","single","double"],
+        explanation: "Bond types and bond counts are different ideas—watch for that!" },
+      { label: "Relating to liquids", words: ["hg","liquid","freezes","boils"],
+        explanation: "Mercury (Hg) is a liquid at room temperature; freezing/boiling connect to phase change." },
+      { label: "Words with non-chemistry meanings", words: ["solid","freeze","family","compound"],
+        explanation: "Each has a common meaning outside chemistry, too." }
+    ]
+  },
+  {
+  id: "P4",
+  name: "Charge vs Particles (Medium)",
+  attempts: 7,
+  words: [
+    "ion","cation","anion","electron",
+    "proton","neutron","nucleus","energy level",
+    "atomic number","atomic mass","symbol","name",
+    "stable","inert","noble gases","unreactive"
+  ],
+  groups: [
+    { label: "Charged particle vocabulary", words: ["ion","cation","anion","electron"] },
+    { label: "Atomic structure terms", words: ["proton","neutron","nucleus","energy level"] },
+    { label: "Periodic table box information", words: ["atomic number","atomic mass","symbol","name"] },
+    { label: "Unreactive language", words: ["stable","inert","noble gases","unreactive"] }
+  ]
+},
+{
+  id: "P5",
+  name: "Models & Representations (Easy/Medium)",
+  attempts: 7,
+  words: [
+    "bohr","lewis dot","periodic table","phase diagram",
+    "reactants","products","equation","formula",
+    "prefix","suffix","root word","chemical name",
+    "subscript","superscript","symbol","name"
+  ],
+  groups: [
+    { label: "Models / representations", words: ["bohr","lewis dot","periodic table","phase diagram"] },
+    { label: "Equation words", words: ["reactants","products","equation","formula"] },
+    { label: "Word-building tools", words: ["prefix","suffix","root word","chemical name"] },
+    { label: "Notation / writing chemistry", words: ["subscript","superscript","symbol","name"] }
+  ]
+},
+{
+  id: "P6",
+  name: "Bonds & Counting (Medium)",
+  attempts: 7,
+  words: [
+    "covalent","ionic","single","double",
+    "triple","duet","octet","energy level",
+    "subscript","superscript","symbol","formula",
+    "ion","cation","anion","proton"
+  ],
+  groups: [
+    { label: "Bonding terms", words: ["covalent","ionic","single","double"] },
+    { label: "Rules & electron ideas", words: ["triple","duet","octet","energy level"] },   // trap: triple isn’t a rule
+    { label: "How formulas are written", words: ["subscript","superscript","symbol","formula"] },
+    { label: "Charge-related terms", words: ["ion","cation","anion","proton"] }            // trap: proton isn’t an ion
+  ]
+},
+{
+  id: "P7",
+  name: "Families & Classification (Easy)",
+  attempts: 8,
+  words: [
+    "halogens","noble gases","alkali metals","alkaline earth metals",
+    "transition metals","metalloids","nonmetals","metal",
+    "atomic number","atomic mass","symbol","name",
+    "reactants","products","equation","formula"
+  ],
+  groups: [
+    { label: "Periodic table families", words: ["halogens","noble gases","alkali metals","alkaline earth metals"] },
+    { label: "Broad classifications", words: ["transition metals","metalloids","nonmetals","metal"] },
+    { label: "Periodic table box information", words: ["atomic number","atomic mass","symbol","name"] },
+    { label: "Equation words", words: ["reactants","products","equation","formula"] }
+  ]
+},
+{
+  id: "P8",
+  name: "Liquids, Gases, and Traps (Hard)",
+  attempts: 6,
+  words: [
+    "hg","liquid","boils","freezes",
+    "oxygen","gas","halogens","noble gases",
+    "solid","freeze","family","compound",
+    "stable","inert","unreactive","argon"
+  ],
+  groups: [
+    { label: "Relating to liquids", words: ["hg","liquid","boils","freezes"] },
+    { label: "Relating to gas", words: ["oxygen","gas","halogens","noble gases"] },
+    { label: "Words with other meanings", words: ["solid","freeze","family","compound"] },
+    { label: "Often-used “not reactive” words", words: ["stable","inert","unreactive","argon"] } // nucleus is the oddball
+  ]
+},
+{
+  id: "P9",
+  name: "Identity vs Box Info (Hard)",
+  attempts: 6,
+  words: [
+    "proton","atomic number","symbol","name",
+    "atomic mass","neutron","electron","nucleus",
+    "ion","cation","anion","electron",
+    "periodic table","group/family","period","phase diagram"
+  ],
+  groups: [
+    { label: "Identity of an element", words: ["proton","atomic number","symbol","name"] },
+    { label: "Atomic structure", words: ["atomic mass","neutron","electron","nucleus"] },
+    { label: "Charged particle terms", words: ["ion","cation","anion","electron"] },
+    { label: "Science representations", words: ["periodic table","group/family","period","phase diagram"] }
+  ]
+}
+,
+{
+  id: "P10",
+  name: "Wordy Chemistry (Medium)",
+  attempts: 7,
+  words: [
+    "prefix","suffix","root word","chemical name",
+    "subscript","superscript","symbol","formula",
+    "reactants","products","equation","arrow",
+    "bohr","lewis dot","periodic table","nucleus"
+  ],
+  groups: [
+    { label: "Naming pieces", words: ["prefix","suffix","root word","chemical name"] },
+    { label: "Written notation", words: ["subscript","superscript","symbol","formula"] },
+    { label: "Chemistry writing / representations", words: ["reactants","products","equation","arrow"] }, 
+    { label: "Models", words: ["bohr","lewis dot","periodic table","phase diagram"] }                                  // nucleus trap
+  ]
+},
+{
+  id: "P11",
+  name: "Reactivity & Families (Medium)",
+  attempts: 7,
+  words: [
+    "alkali metals","alkaline earth metals","halogens","noble gases",
+    "reactive","unstable","stable","unreactive",
+    "covalent","ionic","single","double",
+    "ion","cation","anion","proton"
+  ],
+  groups: [
+    { label: "Families", words: ["alkali metals","alkaline earth metals","halogens","noble gases"] },
+    { label: "Reactivity language", words: ["reactive","unstable","stable","unreactive"] },
+    { label: "Bonding terms", words: ["covalent","ionic","single","double"] },
+    { label: "Charge vocabulary", words: ["ion","cation","anion","proton"] }
+  ]
+},
+{
+  id: "P12",
+  name: "Rules & Representations (Medium)",
+  attempts: 7,
+  words: [
+    "valence","lewis dot","bohr","negative",
+    "covalent","ionic","single","double",
+    "ion","cation","anion","neutral",
+    "reactants","products","equation","formula"
+  ],
+  groups: [
+    { label: "Bonding basics", words: ["covalent","ionic","single","double"] },
+    { label: "Charge vocabulary", words: ["ion","cation","anion","neutral"] },
+    { label: "Electron / bonding ideas", words: ["valence","lewis dot","bohr","negative"] },
+    { label: "Equation words", words: ["reactants","products","equation","formula"] }
+  ]
+},
+{
+  id: "P13",
+  name: "Element Families (Easy)",
+  attempts: 8,
+  words: [
+    "li","na","k","rb",
+    "be","mg","ca","sr",
+    "f","cl","br","i",
+    "he","ne","ar","kr"
+  ],
+  groups: [
+    { label: "Alkali metals (Group 1)", words: ["li","na","k","rb"] },
+    { label: "Alkaline earth metals (Group 2)", words: ["be","mg","ca","sr"] },
+    { label: "Halogens (Group 17)", words: ["f","cl","br","i"] },
+    { label: "Noble gases (Group 18)", words: ["he","ne","ar","kr"] }
+  ]
+}
+
+
+
+];
+
+const $ = (sel) => document.querySelector(sel);
+
+const gridEl = $("#grid");
+const msgEl = $("#message");
+
+const puzzleNameEl = $("#puzzleName");
+const attemptsEl = $("#attemptsLeft");
+const solvedCountEl = $("#solvedCount");
+
+const btnClear = $("#btnClear");
+const btnSubmit = $("#btnSubmit");
+const btnNew = $("#btnNew");
+
+
+
+const solvedRowsEl = document.querySelector("#solvedRows");
+
+
+let state = {
+  puzzleIndex: 0,
+  puzzle: null,
+  tiles: [],              // { id, word, locked, groupIndex? }
+  selectedIds: new Set(),
+  solvedOrder: [],  
+  solvedGroups: new Set(), // indices of groups solved
+  attemptsLeft: 0,
+  revealed: false,
+  lastJustSolved: null  
+};
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function normalizeWord(w){
+  return String(w).trim().toLowerCase();
+}
+
+function setMessage(text, tone=""){
+  msgEl.className = "msg" + (tone ? " " + tone : "");
+  msgEl.textContent = text;
+}
+
+function shakeGrid(){
+  gridEl.classList.remove("shake"); // reset if spam-clicked
+  // force reflow so animation restarts
+  void gridEl.offsetWidth;
+  gridEl.classList.add("shake");
+  gridEl.addEventListener("animationend", () => {
+    gridEl.classList.remove("shake");
+  }, { once: true });
+}
+
+
+function loadPuzzle(index){
+  state.puzzleIndex = (index + PUZZLES.length) % PUZZLES.length;
+  const p = PUZZLES[state.puzzleIndex];
+
+  state.puzzle = p;
+  state.attemptsLeft = p.attempts ?? 7;
+  state.solvedGroups = new Set();
+  state.selectedIds = new Set();
+  state.solvedOrder = [];
+    state.lastJustSolved = null;
+  state.revealed = false;
+
+  // Build tiles
+  const words = shuffle(p.words.map(normalizeWord));
+  state.tiles = words.map((w, i) => ({
+    id: "t" + i,
+    word: w,
+    locked: false,
+    groupIndex: null
+  }));
+
+  // Render
+  if (puzzleNameEl) puzzleNameEl.textContent = p.name;
+  attemptsEl.textContent = String(state.attemptsLeft);
+  solvedCountEl.textContent = `0/4`;
+  
+  renderGrid();
+  
+  setMessage("Select 4 tiles that share a chemistry connection.");
+  updateButtons();
+}
+
+function renderGrid(){
+  solvedRowsEl.innerHTML = "";
+  gridEl.innerHTML = "";
+
+  // 1) Solved groups (in solve order)
+  state.solvedOrder.forEach((gIdx, orderIdx) => {
+    const g = state.puzzle.groups[gIdx];
+
+    const row = document.createElement("div");
+    row.className = `solvedRow row${orderIdx}`;
+
+    // animate if this is the one that was just solved
+    if(state.lastJustSolved && state.lastJustSolved.groupIndex === gIdx){
+      row.classList.add("justSolved");
+      // clear marker so it doesn't re-animate on next render
+      const token = state.lastJustSolved.token;
+      setTimeout(() => {
+        // only clear if still the same solve event
+        if(state.lastJustSolved && state.lastJustSolved.token === token){
+          state.lastJustSolved = null;
+        }
+      }, 300);
+    }
+
+    // Category label inside the row (NYT-style)
+    const header = document.createElement("div");
+    header.className = "solvedRowHeader";
+    header.textContent = g.label;
+
+    const status = document.createElement("span");
+    status.textContent = "Solved";
+    header.appendChild(status);
+
+    row.appendChild(header);
+
+    const wordsWrap = document.createElement("div");
+    wordsWrap.className = "solvedRowWords";
+
+    g.words.forEach(word => {
+      const tile = document.createElement("div");
+      tile.className = "tile locked";
+      tile.textContent = displayWord(normalizeWord(word));
+      wordsWrap.appendChild(tile);
+    });
+
+    row.appendChild(wordsWrap);
+    solvedRowsEl.appendChild(row);
+  });
+
+  // 2) Unsolved tiles grid
+  state.tiles.forEach(t => {
+    if(t.locked) return;
+
+    const tile = document.createElement("div");
+    tile.className = "tile";
+    tile.dataset.id = t.id;
+
+    tile.textContent = displayWord(t.word);
+
+    if(state.selectedIds.has(t.id)) tile.classList.add("selected");
+
+    tile.addEventListener("click", () => onTileClick(t.id));
+    gridEl.appendChild(tile);
+  });
+}
+
+
+function displayWord(w){
+  // Preserve common classroom casing a bit
+  const map = {
+    "hg": "Hg",
+    "bohr": "Bohr",
+    "lewis dot": "Lewis Dot",
+    "periodic table": "Periodic Table",
+    "phase diagram": "Phase Diagram",
+    "atomic number": "Atomic Number",
+    "atomic mass": "Atomic Mass",
+    "alkali metals": "Alkali Metals",
+    "alkaline earth metals": "Alkaline Earth Metals",
+    "noble gases": "Noble Gases"
+  };
+  if (/\d/.test(w)) return w.toUpperCase();
+  if(map[w]) return map[w];
+  // Title-case single words lightly
+  if(!w.includes(" ")) return w.charAt(0).toUpperCase() + w.slice(1);
+  // Otherwise keep as-is but capitalize first letter
+  return w.charAt(0).toUpperCase() + w.slice(1);
+}
+
+function onTileClick(tileId){
+  const t = state.tiles.find(x => x.id === tileId);
+  if(!t || t.locked) return;
+
+  if(state.selectedIds.has(tileId)){
+    state.selectedIds.delete(tileId);
+  } else {
+    if(state.selectedIds.size >= 4){
+      setMessage("You can only select 4 tiles at a time.", "warn");
+      return;
+    }
+    state.selectedIds.add(tileId);
+  }
+  renderGrid();
+  updateButtons();
+}
+
+function clearSelection(){
+  state.selectedIds.clear();
+  renderGrid();
+  updateButtons();
+}
+
+function selectedWords(){
+  const ids = [...state.selectedIds];
+  return ids.map(id => state.tiles.find(t => t.id === id)?.word).filter(Boolean);
+}
+
+function isMatchGroup(words, groupWords){
+  const a = words.slice().sort().join("|");
+  const b = groupWords.map(normalizeWord).slice().sort().join("|");
+  return a === b;
+}
+
+function isOneAway(selectedWords){
+  // returns true if 3 of the 4 words match any unsolved group
+  return state.puzzle.groups.some((group, idx) => {
+    if(state.solvedGroups.has(idx)) return false;
+
+    const groupWords = group.words.map(normalizeWord);
+    const overlap = selectedWords.filter(w => groupWords.includes(w));
+
+    return overlap.length === 3;
+  });
+}
+
+
+function submitSelection(){
+  if(state.selectedIds.size !== 4) return;
+
+  const words = selectedWords();
+
+  // Find a group that matches exactly and is not already solved
+  const groupIndex = state.puzzle.groups.findIndex((g, idx) =>
+    !state.solvedGroups.has(idx) && isMatchGroup(words, g.words)
+  );
+
+  if(groupIndex >= 0){
+  // Lock tiles
+  for(const id of state.selectedIds){
+    const tile = state.tiles.find(t => t.id === id);
+    tile.locked = true;
+    tile.groupIndex = groupIndex;
+  }
+  state.solvedGroups.add(groupIndex);
+  state.solvedOrder.push(groupIndex); // ✅ ADD THIS
+  state.lastJustSolved = { groupIndex, token: Date.now() };
+
+  setMessage("✅ Nice! Group found.", "good");
+  state.selectedIds.clear();
+  renderGrid();
+
+  updateSolvedStats();
+  checkEndState();
+} else {
+    shakeGrid();
+  state.attemptsLeft -= 1;
+  attemptsEl.textContent = String(state.attemptsLeft);
+
+  const words = selectedWords();
+
+  if(state.attemptsLeft <= 0){
+    setMessage("❌ No attempts left.", "bad");
+    clearSelection();
+    updateButtons();
+    return;
+  }
+
+  if(isOneAway(words)){
+    setMessage("🟡 One away…", "warn");
+  } else {
+    setMessage(`❌ Not a match. Attempts left: ${state.attemptsLeft}.`, "bad");
+  }
+
+  updateButtons();
+}
+}
+
+function updateSolvedStats(){
+  solvedCountEl.textContent = `${state.solvedGroups.size}/4`;
+}
+
+function updateButtons(){
+  btnClear.disabled = state.selectedIds.size === 0;
+  btnSubmit.disabled = state.selectedIds.size !== 4 || state.attemptsLeft <= 0 || state.solvedGroups.size === 4;
+  
+}
+
+
+
+
+
+function shuffleTiles(){
+  // shuffle only unlocked tiles; keep locked ones where they are (or you can reshuffle all if you prefer)
+  const unlocked = state.tiles.filter(t => !t.locked);
+  const locked = state.tiles.filter(t => t.locked);
+
+  const shuffledUnlockedWords = shuffle(unlocked.map(t => t.word));
+  unlocked.forEach((t, i) => t.word = shuffledUnlockedWords[i]);
+
+  // Rebuild tile order: keep existing tile objects, just updated words
+  // Also clear selection (avoids confusion)
+  clearSelection();
+  setMessage("Tiles shuffled.", "");
+}
+
+function checkEndState(){
+  if(state.solvedGroups.size === 4){
+    setMessage("🎉 You solved all 4 groups! Nice work.", "good");
+    btnSubmit.disabled = true;
+  }
+}
+
+function nextPuzzle(){
+  const next = Math.floor(Math.random() * PUZZLES.length);
+  loadPuzzle(next);
+}
+
+
+btnClear.addEventListener("click", clearSelection);
+btnSubmit.addEventListener("click", submitSelection);
+btnNew.addEventListener("click", nextPuzzle);
+
+
+
+// Keyboard convenience
+document.addEventListener("keydown", (e) => {
+  if(e.key === "Escape") clearSelection();
+  if(e.key === "Enter") submitSelection();
+});
+
+// Initialize
+loadPuzzle(0);
+</script>
+</body>
+</html>
