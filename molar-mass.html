@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Molar Mass Calculator</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<style>
+:root {
+  --lavender:#e6c6ff;
+  --purple:#c58df5;
+  --deep-purple:#9a5fd1;
+  --card-bg:#faf5ff;
+  --accent-pink:#e04bd8;
+  --text:#333;
+}
+
+*{ box-sizing:border-box; }
+
+body{
+  margin:0;
+  font-family: Georgia, serif;
+  background:#fff;
+  color:var(--text);
+}
+
+header{
+  background:var(--lavender);
+  border-bottom:2px solid #999;
+  text-align:center;
+  padding:20px 10px;
+}
+
+main{
+  max-width:760px;
+  margin:28px auto;
+  padding:0 16px;
+}
+
+.card{
+  background:var(--card-bg);
+  border:2px solid var(--purple);
+  border-radius:16px;
+  padding:22px;
+  box-shadow:0 8px 20px rgba(0,0,0,.08);
+}
+
+label{
+  font-weight:bold;
+  display:block;
+  margin-bottom:6px;
+}
+
+input[type="text"]{
+  width:100%;
+  font-size:1.2rem;
+  padding:10px 12px;
+  border-radius:10px;
+  border:1px solid #aaa;
+  margin-bottom:12px;
+}
+
+.controls{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px 14px;
+  align-items:center;
+  margin: 6px 0 12px;
+  padding: 10px 12px;
+  background:#fff;
+  border:1px solid #ddd;
+  border-radius:12px;
+}
+
+.controls .hint{
+  opacity:.85;
+  font-size:.95rem;
+}
+
+.chk{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:1rem;
+  user-select:none;
+}
+
+button{
+  background:var(--deep-purple);
+  color:#fff;
+  border:none;
+  border-radius:12px;
+  padding:10px 18px;
+  font-size:1rem;
+  cursor:pointer;
+}
+
+button:hover{ opacity:.9; }
+
+.results{ margin-top:18px; }
+
+.section{
+  margin-top:18px;
+  background:#fff;
+  border:2px solid #ddd;
+  border-radius:14px;
+  padding:14px 14px 10px;
+}
+
+.section h3{
+  margin:0 0 6px;
+  font-size:1.15rem;
+  color:var(--deep-purple);
+}
+
+.section .sub{
+  margin:0 0 10px;
+  opacity:.85;
+}
+
+.tiles{
+  display:grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap:12px;
+  margin-top:12px;
+}
+
+@media (max-width: 650px){
+  .tiles{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.tile{
+  background:#fff;
+  border:2px solid var(--purple);
+  border-radius:14px;
+  padding:12px 12px 10px;
+  box-shadow:0 6px 16px rgba(0,0,0,.06);
+  position:relative;
+}
+
+.tile .z{
+  position:absolute;
+  top:8px;
+  left:10px;
+  font-weight:bold;
+  font-size:.95rem;
+  opacity:.85;
+}
+
+.tile .sym{
+  text-align:center;
+  font-weight:bold;
+  font-size:2rem;
+  margin-top:8px;
+  color:var(--deep-purple);
+}
+
+.tile .name{
+  text-align:center;
+  font-size:.95rem;
+  margin-top:2px;
+  opacity:.9;
+}
+
+.tile .massLine{
+  display:flex;
+  justify-content:center;
+  margin-top:8px;
+  font-size:.95rem;
+}
+
+.massBadge{
+  display:inline-block;
+  padding:2px 10px;
+  border-radius:999px;
+  border:2px solid var(--accent-pink);
+  background:#ffe6fb;
+  font-weight:bold;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+}
+
+th, td{
+  border-bottom:1px solid #ddd;
+  padding:8px;
+  text-align:center;
+}
+
+.mathBox{
+  background:#fff;
+  border:2px dashed var(--purple);
+  border-radius:14px;
+  padding:12px 14px;
+  margin-top:10px;
+}
+
+.eqLine{
+  font-size:1.08rem;
+  line-height:1.5;
+  margin:6px 0;
+}
+
+/* Stripe marker version (no weird pill) */
+.eqLine.elLine{
+  position: relative;
+  padding-left: 14px;
+  margin-left: 8px;
+}
+
+.eqLine.elLine::before{
+  content:"";
+  position:absolute;
+  left:-10px;
+  top:6px;
+  bottom:6px;
+  width:6px;
+  border-radius: 999px;
+  background: var(--el, var(--purple));
+}
+
+.eqBig{
+  font-size:1.15rem;
+  font-weight:bold;
+  text-align:center;
+  margin-top:8px;
+}
+
+.total{
+  font-size:1.25rem;
+  font-weight:bold;
+  text-align:center;
+  margin-top:12px;
+}
+
+.notice{
+  margin-top:10px;
+  padding:10px 12px;
+  background:#fff;
+  border:1px solid #ddd;
+  border-radius:12px;
+  opacity:.9;
+}
+
+/* Element color styling hooks */
+.elTag {
+  display:inline-block;
+  min-width: 2.2em;
+  text-align:center;
+  font-weight:bold;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--el, #eee);
+  color:#111;
+  border: 2px solid rgba(0,0,0,.10);
+}
+
+/* Tile + row tinting */
+.tile {
+  border-color: color-mix(in srgb, var(--el, var(--purple)) 70%, #000 0%);
+}
+
+.tile .sym {
+  color: color-mix(in srgb, var(--el, var(--deep-purple)) 60%, var(--deep-purple) 40%);
+}
+
+.tile::before{
+  content:"";
+  position:absolute;
+  inset:0 0 auto 0;
+  height: 14px;
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  background: color-mix(in srgb, var(--el, #f3f3f3) 35%, #fff 65%);
+}
+
+tr.elRow {
+  background: color-mix(in srgb, var(--el, #fff) 10%, #fff 90%);
+}
+
+/* ===== Non-animated parentheses help ===== */
+.helpToggleRow{
+  display:flex;
+  justify-content:flex-end;
+  margin-top:12px;
+}
+
+.helpBtn{
+  background:#fff;
+  color:var(--deep-purple);
+  border:2px solid var(--purple);
+  border-radius:12px;
+  padding:8px 12px;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+.helpBtn:hover{ background:#f7edff; }
+
+.helpBox{
+  margin-top:12px;
+  border:2px dashed var(--purple);
+  border-radius:14px;
+  padding:12px 14px;
+  background:#fff;
+}
+
+.helpSteps{
+  margin:10px 0 0;
+  padding-left:18px;
+}
+
+.helpSteps li{ margin:6px 0; }
+
+.groupPill{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 2px solid var(--purple);
+  background: #faf5ff;
+  font-weight: bold;
+}
+
+.multBadge{
+  display:inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  border: 2px solid var(--accent-pink);
+  background:#ffe6fb;
+  font-weight:bold;
+}
+
+.distGrid{
+  margin-top: 10px;
+  display:grid;
+  grid-template-columns: 1.2fr 0.6fr 0.7fr 1.2fr;
+  gap:10px;
+  align-items:center;
+}
+
+@media (max-width: 650px){
+  .distGrid{ grid-template-columns: 1fr 0.7fr 0.8fr 1fr; }
+}
+
+.distHead{
+  font-weight:bold;
+  opacity:.85;
+}
+
+.distCell{
+  padding:10px 10px;
+  border:1px solid #e3e3e3;
+  border-radius:12px;
+  background:#fff;
+}
+
+.hubLink{
+  display:inline-block;
+  margin-bottom:8px;
+  text-decoration:none;
+  font-weight:bold;
+  color:var(--deep-purple);
+}
+
+.hubLink:hover{
+  text-decoration:underline;
+}
+
+</style>
+</head>
+
+<body>
+<header>
+    <a href="index.html" class="hubLink">← Back to Hub</a>
+
+  <h1>Molar Mass Calculator</h1>
+  <p>Gather → Multiply → Add</p>
+</header>
+
+<main>
+  <div class="card">
+    <label for="formula">Chemical Formula</label>
+    <input id="formula" type="text" placeholder="e.g. H2O, CaCl2, Al2(SO4)3" />
+
+    <div class="controls">
+      <div class="hint"><b>Reveal steps:</b></div>
+      <label class="chk">
+        <input type="checkbox" id="showMultiply" checked>
+        Show Step 2 (Multiply)
+      </label>
+      <label class="chk">
+        <input type="checkbox" id="showAdd" checked>
+        Show Step 3 (Addition)
+      </label>
+    </div>
+
+    <button id="calcBtn" type="button">Calculate</button>
+
+    <div class="results" id="results"></div>
+  </div>
+</main>
+
+<script>
+/* ---------- Element data ---------- */
+const ELEMENTS = {
+  H:  { Z:1,  name:"Hydrogen",  mass:1.01 },
+  C:  { Z:6,  name:"Carbon",    mass:12.01 },
+  N:  { Z:7,  name:"Nitrogen",  mass:14.01 },
+  O:  { Z:8,  name:"Oxygen",    mass:16.00 },
+  Na: { Z:11, name:"Sodium",    mass:22.99 },
+  Mg: { Z:12, name:"Magnesium", mass:24.31 },
+  Al: { Z:13, name:"Aluminum",  mass:26.98 },
+  Si: { Z:14, name:"Silicon",   mass:28.09 },
+  P:  { Z:15, name:"Phosphorus",mass:30.97 },
+  S:  { Z:16, name:"Sulfur",    mass:32.06 },
+  Cl: { Z:17, name:"Chlorine",  mass:35.45 },
+  K:  { Z:19, name:"Potassium", mass:39.10 },
+  Ca: { Z:20, name:"Calcium",   mass:40.08 },
+  Fe: { Z:26, name:"Iron",      mass:55.85 },
+  Cu: { Z:29, name:"Copper",    mass:63.55 },
+  Zn: { Z:30, name:"Zinc",      mass:65.38 },
+  Ag: { Z:47, name:"Silver",    mass:107.87 },
+  I:  { Z:53, name:"Iodine",    mass:126.90 },
+  Ba: { Z:56, name:"Barium",    mass:137.33 }
+};
+
+/* ---------- Element color helpers ---------- */
+function baseHueFromSymbol(symbol){
+  let h = 0;
+  for (let i = 0; i < symbol.length; i++) h = (h * 31 + symbol.charCodeAt(i)) >>> 0;
+  return h % 360;
+}
+
+function distinctColor(symbol, usedHues){
+  let hue = baseHueFromSymbol(symbol);
+  const minGap = 28;
+  const step = 47;
+
+  const closeToAny = (x) =>
+    usedHues.some(h => {
+      const d = Math.abs(h - x);
+      return Math.min(d, 360 - d) < minGap;
+    });
+
+  while (closeToAny(hue)) hue = (hue + step) % 360;
+  usedHues.push(hue);
+
+  return `hsl(${hue} 75% 72%)`;
+}
+
+/* ---------- Parser with group steps (for help section) ---------- */
+function parseWithGroupSteps(formula){
+  const stack = [{ counts:{}, insideText:"" }];
+  const groups = [];
+  let i = 0;
+
+  const addCounts = (target, src, mult=1) => {
+    for (const el in src){
+      target[el] = (target[el] || 0) + src[el]*mult;
+    }
+  };
+
+  while (i < formula.length) {
+    const ch = formula[i];
+
+    if (ch === '(') {
+      stack.push({ counts:{}, insideText:"" });
+      i++;
+      continue;
+    }
+
+    if (ch === ')') {
+      i++;
+      let numStr = '';
+      while (i < formula.length && /\d/.test(formula[i])) numStr += formula[i++];
+      const mult = parseInt(numStr || '1', 10);
+
+      const group = stack.pop();
+      const top = stack[stack.length - 1];
+
+      // record for help section
+      const items = Object.keys(group.counts).map(el => ({
+        el,
+        base: group.counts[el],
+        result: group.counts[el] * mult
+      }));
+      groups.push({ inside: group.insideText || "group", mult, items });
+
+      addCounts(top.counts, group.counts, mult);
+      top.insideText += `(${group.insideText})${mult === 1 ? "" : mult}`;
+      continue;
+    }
+
+    if (!/[A-Z]/.test(ch)) throw new Error("Invalid character: " + ch);
+
+    let el = formula[i++];
+    if (i < formula.length && /[a-z]/.test(formula[i])) el += formula[i++];
+
+    let numStr = '';
+    while (i < formula.length && /\d/.test(formula[i])) numStr += formula[i++];
+    const count = parseInt(numStr || '1', 10);
+
+    const top = stack[stack.length - 1];
+    top.counts[el] = (top.counts[el] || 0) + count;
+    top.insideText += `${el}${count === 1 ? "" : count}`;
+  }
+
+  if (stack.length !== 1) throw new Error("Mismatched parentheses");
+  return { counts: stack[0].counts, groups };
+}
+
+/* ---------- Reveal toggles ---------- */
+function applyRevealToggles() {
+  const showMul = document.getElementById('showMultiply').checked;
+  const showAdd = document.getElementById('showAdd').checked;
+
+  const mulEl = document.getElementById('step2');
+  const addEl = document.getElementById('step3');
+
+  if (mulEl) mulEl.style.display = showMul ? '' : 'none';
+  if (addEl) addEl.style.display = showAdd ? '' : 'none';
+}
+
+/* ---------- Parentheses help (view/hide, NOT animated) ---------- */
+function renderParenthesesHelp(groups){
+  if (!groups || groups.length === 0) return '';
+
+  const g = groups[groups.length - 1]; // outermost group
+  const items = g.items;
+
+  const localUsed = [];
+  const colorMap = {};
+  items.forEach(it => { colorMap[it.el] = distinctColor(it.el, localUsed); });
+
+  return `
+    <div class="section" id="parenHelpSection">
+      <h3>Parentheses help</h3>
+      <p class="sub">If a formula has parentheses, the number outside multiplies <b>everything inside</b>.</p>
+
+      <div class="helpToggleRow">
+        <button class="helpBtn" type="button" onclick="toggleParenHelp()">
+          Show / Hide Parentheses Walkthrough
+        </button>
+      </div>
+
+      <div class="helpBox" id="parenHelpBox" style="display:none;">
+        <div class="eqLine">
+          Example from your formula:
+          <span class="groupPill">(${g.inside}) <span class="multBadge">× ${g.mult}</span></span>
+        </div>
+
+        <ol class="helpSteps">
+          <li><b>Count atoms inside the parentheses</b> (pretend the outside number isn’t there yet).</li>
+          <li><b>Multiply each inside count</b> by the number outside the parentheses.</li>
+          <li><b>Use the new totals</b> for the rest of the molar mass calculation.</li>
+        </ol>
+
+        <div class="distGrid">
+          <div class="distHead">Element</div>
+          <div class="distHead">Inside</div>
+          <div class="distHead">×</div>
+          <div class="distHead">New total</div>
+
+          ${items.map(it => `
+            <div class="distCell">
+              <span class="elTag" style="--el:${colorMap[it.el]}">${it.el}</span>
+            </div>
+            <div class="distCell"><b>${it.base}</b></div>
+            <div class="distCell"><span class="multBadge">× ${g.mult}</span></div>
+            <div class="distCell">${it.base} × ${g.mult} = <b>${it.result}</b></div>
+          `).join('')}
+        </div>
+
+        <div class="notice" style="margin-top:12px;">
+          This is why something like <b>Ca(NO<sub>3</sub>)<sub>2</sub></b> ends up with
+          <b>N = 2</b> and <b>O = 6</b> (because inside is N=1, O=3, then multiply both by 2).
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function toggleParenHelp(){
+  const box = document.getElementById('parenHelpBox');
+  if (!box) return;
+  box.style.display = (box.style.display === 'none' || box.style.display === '') ? 'block' : 'none';
+}
+
+/* ---------- Main calculation ---------- */
+function calculate() {
+  const formula = document.getElementById('formula').value.trim();
+  const results = document.getElementById('results');
+  results.innerHTML = '';
+  if (!formula) return;
+
+  let breakdown = {};
+  let groupSteps = [];
+
+  try {
+    const parsed = parseWithGroupSteps(formula);
+    breakdown = parsed.counts;
+    groupSteps = parsed.groups;
+  } catch {
+    results.innerHTML = `<div class="notice">That formula didn’t parse. Check capitalization and parentheses.</div>`;
+    return;
+  }
+
+  const elements = Object.keys(breakdown).sort((a,b)=>a.localeCompare(b));
+  const usedHues = [];
+
+  let tilesHTML = '';
+  let gatherRows = '';
+  let multiplyLines = '';
+  const contributions = [];
+  const addParts = [];
+
+  for (const el of elements) {
+    const info = ELEMENTS[el];
+    if (!info) {
+      results.innerHTML = `<div class="notice">Unknown element: <b>${el}</b> (not in the element list yet).</div>`;
+      return;
+    }
+
+    const color = distinctColor(el, usedHues);
+    const atoms = breakdown[el];
+    const mass = info.mass;
+    const contribution = atoms * mass;
+
+    tilesHTML += `
+      <div class="tile" style="--el:${color}">
+        <div class="z">${info.Z}</div>
+        <div class="sym">${el}</div>
+        <div class="name">${info.name}</div>
+        <div class="massLine"><span class="massBadge">${mass.toFixed(2)} g/mol</span></div>
+      </div>
+    `;
+
+    gatherRows += `
+      <tr class="elRow" style="--el:${color}">
+        <td><span class="elTag" style="--el:${color}">${el}</span></td>
+        <td>${atoms}</td>
+        <td>${mass.toFixed(2)}</td>
+      </tr>
+    `;
+
+    multiplyLines += `
+      <div class="eqLine elLine" style="--el:${color}">
+        <span class="elTag" style="--el:${color}">${el}</span>
+        &nbsp; ${atoms} × ${mass.toFixed(2)} = <b>${contribution.toFixed(2)} g/mol</b>
+      </div>
+    `;
+
+    contributions.push(contribution);
+    addParts.push(contribution.toFixed(2));
+  }
+
+  const total = contributions.reduce((a,b)=>a+b, 0);
+  const additionExpression = addParts.join(" + ");
+  const parenHelpHTML = renderParenthesesHelp(groupSteps);
+
+  results.innerHTML = `
+    <div class="section" id="step1">
+      <h3>1) Gather information</h3>
+      <p class="sub">(This part is just pulling info from the periodic table + the formula.)</p>
+
+      <div class="tiles">${tilesHTML}</div>
+
+      <table>
+        <tr>
+          <th>Element</th>
+          <th>Atoms</th>
+          <th>Atomic Mass (g/mol)</th>
+        </tr>
+        ${gatherRows}
+      </table>
+    </div>
+
+    ${parenHelpHTML}
+
+    <div class="section" id="step2">
+      <h3>2) Multiply</h3>
+      <p class="sub">To find each element’s contribution, multiply the number of atoms times the atomic mass.</p>
+      <div class="mathBox">${multiplyLines}</div>
+    </div>
+
+    <div class="section" id="step3">
+      <h3>3) Addition</h3>
+      <p class="sub">To find the total molar mass, add the individual contributions together.</p>
+      <div class="mathBox">
+        <div class="eqLine">${additionExpression}</div>
+        <div class="eqBig">= ${total.toFixed(2)} g/mol</div>
+      </div>
+
+      <div class="total">Total Molar Mass = ${total.toFixed(2)} g/mol</div>
+    </div>
+  `;
+
+  applyRevealToggles();
+}
+
+/* ---------- Wiring ---------- */
+document.getElementById('calcBtn').addEventListener('click', calculate);
+document.getElementById('showMultiply').addEventListener('change', applyRevealToggles);
+document.getElementById('showAdd').addEventListener('change', applyRevealToggles);
+
+document.getElementById('formula').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') calculate();
+});
+</script>
+</body>
+</html>
