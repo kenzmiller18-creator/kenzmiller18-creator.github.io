@@ -552,6 +552,72 @@
     #centerZone{ bottom:230px; }
     #youZone{ height:210px; }
   }
+
+  /* ========= CHROMEBOOK SAFE LAYOUT: 3-row grid table ========= */
+/* Put this at the END of your CSS so it overrides earlier rules. */
+
+/* Allow scrolling if the whole game is taller than the screen */
+#workspace{
+  overflow:auto;                 /* instead of hidden */
+  height: calc(100vh - 64px);    /* keep toolbar reserved */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Make the table a real layout container (not an absolute-position stage) */
+#table{
+  display:grid;
+  grid-template-rows: auto 1fr auto; /* Computer | Center | You */
+  gap:12px;
+  padding:10px;
+
+  height: calc(100vh - 92px);    /* fits under toolbar */
+  max-height: calc(100vh - 92px);
+  overflow:auto;                  /* if needed, scroll inside the table */
+}
+
+/* IMPORTANT: turn off absolute positioning for just these 3 zones */
+#oppZone, #centerZone, #youZone{
+  position: relative !important;
+  inset: auto !important;         /* cancels top/left/right/bottom */
+  height: auto !important;
+  width: auto !important;
+  margin: 0 !important;           /* grid gap handles spacing */
+}
+
+/* Your “You” area: give it a predictable height but allow its own scroll */
+:root{
+  --youH: clamp(210px, 30vh, 290px);
+}
+#youZone{
+  height: var(--youH) !important;
+  overflow: hidden;               /* keep it clean; internal panels scroll */
+}
+
+/* Let the center section actually shrink/grow cleanly */
+#centerGrid{
+  min-height: 0;
+}
+#meldArea{
+  min-height: 0;
+  overflow:auto;
+}
+#promptBox{
+  min-height: 0;
+  overflow:auto;
+}
+
+/* Your right controls already scroll; keep that behavior */
+#youRight{
+  min-height: 0;
+  overflow:auto;
+}
+
+/* When narrow, stack center content (you already do this elsewhere, but reinforce) */
+@media (max-width: 980px){
+  #centerGrid{ grid-template-columns: 1fr; }
+  #rightStack{ grid-template-columns: 1fr; }
+}
+/* ========= end ========= */
 </style>
 </head>
 
