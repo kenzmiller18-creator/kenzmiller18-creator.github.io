@@ -1,0 +1,1140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Class Jeopardy Review</title>
+  <style>
+    :root{
+      --bg:#ffffff;
+      --panel:#ffffff;
+      --ink:#1f1f1f;
+      --muted:#5b5870;
+      --accent:#6a4cff;
+      --accent2:#f04bd8;
+      --tile:#4e34ab;
+      --tile2:#724ede;
+      --good:#2ecc71;
+      --bad:#ff6b6b;
+      --warn:#f5c04c;
+      --shadow: 0 10px 30px rgba(0,0,0,.08);
+      --radius:18px;
+    }
+
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background: var(--bg);
+      color: var(--ink);
+    }
+
+    header{
+      padding: 18px 16px 8px;
+      text-align:center;
+    }
+    header h1{ margin: 4px 0 6px; font-size: 26px; }
+    header p{ margin:0; color: var(--muted); font-size: 14px; }
+
+    .wrap{
+      max-width: 1180px;
+      margin: 14px auto 34px;
+      padding: 0 14px;
+    }
+
+    .layout{
+      display:grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 14px;
+      align-items:start;
+    }
+
+    @media (max-width: 980px){
+      .layout{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      background: var(--panel);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(0,0,0,.08);
+      overflow:hidden;
+    }
+
+    .cardHeader{
+      padding: 12px 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      flex-wrap:wrap;
+      background: rgba(198, 76, 255, 0.1);
+      border-bottom: 1px solid rgba(0,0,0,.08);
+    }
+    .cardHeader h2{
+      margin:0;
+      font-size: 14px;
+      letter-spacing:.2px;
+      text-transform: uppercase;
+      color: #2b2470;
+    }
+
+    .cardBody{ padding: 12px 14px; }
+
+    .topbar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+      margin: 0 0 10px;
+    }
+
+    .controls{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+
+    .btn{
+      border:none;
+      background: var(--accent);
+      color:white;
+      padding: 10px 12px;
+      border-radius: 12px;
+      cursor:pointer;
+      box-shadow: var(--shadow);
+      font-weight: 650;
+    }
+    .btn.secondary{ background: #ffffff; color: var(--ink); border: 1px solid rgba(0,0,0,.12); box-shadow:none;}
+    .btn.danger{ background: var(--bad); }
+    .btn.good{ background: var(--good); }
+    .btn.warn{ background: var(--warn); color:#2a1c00; }
+    .btn:active{ transform: translateY(1px); }
+
+    .pill{
+      background: rgba(106, 76, 255, .12);
+      color: #130313;
+      padding: 8px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .pill input[type="number"]{
+      width: 62px;
+      border-radius: 10px;
+      border: 1px solid rgba(0,0,0,.18);
+      padding: 6px 8px;
+      background:white;
+    }
+    .pill input[type="checkbox"]{
+      transform: translateY(1px);
+    }
+
+    /* Board */
+    .board{
+      padding: 12px;
+      overflow:visible;
+    }
+    .grid{
+      display:grid;
+      gap: 10px;
+      min-width: 100%;
+      min-width: 0;
+    }
+    .cell{
+      border-radius: 16px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding: 10px;
+      user-select:none;
+      min-width: 0;
+    }
+    .cat{
+      background: linear-gradient(180deg, var(--tile2), var(--tile));
+      color: white;
+      font-weight: 800;
+      letter-spacing: .4px;
+      text-transform: uppercase;
+      font-size: 12px;
+      min-height: 62px;
+      word-break: break-word;
+    }
+    .qbtn{
+      background: #eba4ff;
+      color: #3d0c6c;
+      font-weight: 900;
+      font-size: 20px;
+      cursor:pointer;
+      min-height: 70px;
+      border: 2px solid rgba(255,255,255,.10);
+      transition: transform .06s ease;
+    }
+    .qbtn:hover{ transform: translateY(-1px); }
+    .qbtn.used{
+      background: #d8d8e8;
+      color: #7b7b92;
+      cursor:not-allowed;
+      text-decoration: line-through;
+      border-color: rgba(0,0,0,.08);
+    }
+
+    /* Setup */
+    .setupRow{
+      display:grid;
+      gap:10px;
+    }
+    .setupRow label{
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 650;
+      display:block;
+      margin-bottom: 6px;
+    }
+    .setupRow input[type="text"], .setupRow input[type="number"]{
+      width: 100%;
+      padding: 10px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(0,0,0,.14);
+      font-size: 14px;
+      background: white;
+      box-sizing: border-box;
+    }
+    .teamInputs{
+      display:grid;
+      gap:8px;
+      margin-top: 6px;
+    }
+
+    /* Scoreboard */
+    .scoreList{
+      display:grid;
+      gap:10px;
+    }
+    .teamCard{
+      border: 1px solid rgba(0,0,0,.10);
+      border-radius: 16px;
+      padding: 10px 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      background: #fafafe;
+    }
+    .teamName{
+      font-weight: 850;
+      font-size: 14px;
+    }
+    .teamScore{
+      font-weight: 950;
+      font-size: 18px;
+      padding: 6px 10px;
+      border-radius: 12px;
+      background: rgba(0,0,0,.06);
+      min-width: 72px;
+      text-align:right;
+    }
+    .teamMiniBtns{
+      display:flex;
+      gap:6px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .mini{
+      padding: 7px 9px;
+      border-radius: 10px;
+      font-weight: 800;
+      box-shadow:none;
+    }
+
+    /* Modal */
+    .overlay{
+      position:fixed;
+      inset:0;
+      background: rgba(0,0,0,.55);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding: 16px;
+      z-index: 1000;
+    }
+    .overlay.show{ display:flex; }
+    .modal{
+      width: min(960px, 100%);
+      background: white;
+      border-radius: 22px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.25);
+      overflow:hidden;
+      border: 1px solid rgba(0,0,0,.12);
+    }
+    .modalTop{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding: 14px 16px;
+      background: rgba(106, 76, 255, .10);
+      border-bottom: 1px solid rgba(0,0,0,.08);
+      gap: 10px;
+      flex-wrap:wrap;
+    }
+    .modalTop .meta{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .badge{
+      background: rgba(240, 75, 216, .12);
+      color: #7a145f;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: 900;
+      letter-spacing:.2px;
+      font-size: 12px;
+    }
+    .modalBody{
+      padding: 18px 16px 14px;
+      display:grid;
+      gap: 12px;
+    }
+    .prompt{
+      font-size: clamp(18px, 2.2vw, 28px);
+      font-weight: 900;
+      line-height: 1.2;
+    }
+    .answer{
+      display:none;
+      padding: 14px 14px;
+      border-radius: 16px;
+      background: rgba(46, 204, 113, .10);
+      border: 1px solid rgba(46, 204, 113, .25);
+      font-size: clamp(16px, 2vw, 22px);
+      font-weight: 800;
+    }
+    .answer.show{ display:block; }
+
+    /* NEW: keep images from overflowing the modal */
+    .modalBody img{
+      max-width: 100%;
+      height: auto;
+    }
+
+    .hint{
+      color: var(--muted);
+      font-size: 13px;
+      line-height:1.35;
+    }
+
+    .modalActions{
+      display:grid;
+      gap: 10px;
+      padding: 14px 16px 16px;
+      border-top: 1px solid rgba(0,0,0,.08);
+      background: #fafafe;
+    }
+    .actionRow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .teamAwardRow{
+      display:grid;
+      gap:10px;
+    }
+    .awardGrid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+    @media (max-width: 720px){
+      .awardGrid{ grid-template-columns: 1fr; }
+    }
+    .awardBox{
+      border: 1px solid rgba(0,0,0,.10);
+      border-radius: 16px;
+      padding: 10px 12px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      background:white;
+    }
+    .awardBox .name{ font-weight: 900; }
+    .awardBox .btns{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+
+    .timer{
+      font-weight: 900;
+      font-size: 16px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.06);
+    }
+    .kbd{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      background: rgba(0,0,0,.06);
+      border: 1px solid rgba(0,0,0,.10);
+      padding: 2px 6px;
+      border-radius: 7px;
+      font-size: 12px;
+    }
+    footer{
+      text-align:center;
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1 id="title">Jeopardy Review</h1>
+    <p id="subtitle">Click a point value to open a question.</p>
+  </header>
+
+  <div class="wrap">
+    <div class="layout">
+
+      <!-- LEFT: Board -->
+      <div class="card">
+        <div class="cardHeader">
+          <h2>Board</h2>
+          <div class="controls">
+            <button class="btn secondary" id="toggleModeBtn">Mode: Question → Answer</button>
+
+            <div class="pill" title="Optional: set a timer for each question">
+              ⏱️ Timer (sec):
+              <input type="number" id="timerSeconds" min="0" step="5" value="0" />
+            </div>
+
+            <div class="pill" title="If checked, incorrect answers do NOT subtract points">
+              <input type="checkbox" id="noPenaltyToggle" checked />
+              <span>No penalty for incorrect</span>
+            </div>
+
+            <button class="btn secondary" id="resetUsedBtn">Reset Board</button>
+            <button class="btn danger" id="hardResetBtn" title="Clears saved progress + teams">Clear Saved</button>
+          </div>
+        </div>
+
+        <div class="board">
+          <div class="grid" id="grid"></div>
+        </div>
+
+        <footer style="padding:0 14px 14px;">
+          Keyboard: <span class="kbd">Esc</span> close • <span class="kbd">A</span> show answer • <span class="kbd">Space</span> start/pause timer
+        </footer>
+      </div>
+
+      <!-- RIGHT: Setup + Scoreboard -->
+      <div class="card">
+        <div class="cardHeader">
+          <h2>Teams & Scores</h2>
+          <div class="controls">
+            <button class="btn secondary" id="editTeamsBtn">Edit Teams</button>
+            <button class="btn secondary" id="resetScoresBtn">Reset Scores</button>
+          </div>
+        </div>
+
+        <div class="cardBody">
+          <div id="setupPanel">
+            <div class="setupRow">
+              <div>
+                <label for="teamCount">Number of teams</label>
+                <input type="number" id="teamCount" min="1" max="12" value="4" />
+              </div>
+              <div>
+                <label>Team names</label>
+                <div class="teamInputs" id="teamInputs"></div>
+              </div>
+              <button class="btn" id="startGameBtn">Start Game</button>
+              <div style="color:var(--muted); font-size:12px; line-height:1.35;">
+                Tip: Use short names (e.g., “Team 1”, “Blue”, “Atoms”). You can edit anytime.
+              </div>
+            </div>
+          </div>
+
+          <div id="scorePanel" style="display:none;">
+            <div class="scoreList" id="scoreList"></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- NEW: Audio element (put jeopardy-theme.mp3 next to this html, or change the src path) -->
+  <audio id="jeopardyAudio" preload="auto" loop>
+    <source src="jeopardy-theme.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- Modal -->
+  <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-label="Question dialog">
+    <div class="modal">
+      <div class="modalTop">
+        <div class="meta">
+          <span class="badge" id="modalValue">$0</span>
+          <span id="modalCat">Category</span>
+        </div>
+        <button class="btn secondary" id="closeBtn">Close</button>
+      </div>
+
+      <div class="modalBody">
+        <div class="prompt" id="modalPrompt">Prompt</div>
+        <div class="answer" id="modalAnswer">Answer</div>
+        <div class="hint" id="modalHint"></div>
+      </div>
+
+      <div class="modalActions">
+        <div class="actionRow">
+          <div class="controls">
+            <button class="btn" id="showAnswerBtn">Show Answer</button>
+            <button class="btn secondary" id="markUsedBtn" title="Mark as used without awarding points">Mark Used</button>
+          </div>
+
+          <div class="controls">
+            <div class="timer" id="timerDisplay" style="display:none;">⏳ 0</div>
+            <button class="btn secondary" id="timerToggleBtn" style="display:none;">Start Timer</button>
+          </div>
+        </div>
+
+        <div class="teamAwardRow">
+          <div style="font-weight:900; color:#2b2470;">Award points</div>
+          <div class="awardGrid" id="awardGrid"></div>
+          <div class="hint" style="margin-top:-4px;">
+            “Correct” awards points and automatically marks the clue used.
+            “Incorrect” can subtract points (unless “No penalty” is checked) and keeps the clue available.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* ============================================================
+ 
+============================================================ */
+const GAME = {
+  id: "chem-review-01",
+  title: "Chemistry Jeopardy Review",
+  subtitle: "Choose a clue. Discuss as a team.",
+  jeopardyStyle: false,
+
+  categories: [
+    {
+      name: "Atomic Structure",
+      clues: [
+        { value: 100, q: "What is the charge of a proton?", a: "+1", hint: "Neutral, negative, or positive?" },
+        { value: 200, q: "Where are electrons found?", a: "In the energy levels/rings around the nucleus." },
+        { value: 300, q: "What does the atomic number tell you?", a: "The number of protons (and electrons if neutral)." },
+        { value: 400, q: "What two subatomic particles are similar is size?", a: "Protons and Neutrons" },
+        { value: 500, q: "What happens to the overall charge when an atom GAINS electrons?", a: "It becomes negatively charged." }
+      ]
+    },
+    {
+      name: "Periodic Trends",
+      clues: [
+        { value: 100, q: "Metals are generally on which side of the periodic table?", a: "Left side (and center)." },
+        { value: 200, q: "What group are the noble gases?", a: "Group 18." },
+        { value: 300, q: "Alkali metals have ___ valence electron(s).", a: "1" },
+        { value: 400, q: "The only elements that follow the Duet Rule are...?", a: "Hydrogen and Helium." },
+        { value: 500, q: "As you move DOWN a group, the number of valence electrons __________", a: "Stays the same.", hint: "increases, decreases, stays the same" }
+      ]
+    },
+    {
+      name: "Ionic Bonding",
+      clues: [
+        { value: 100, q: "True or False: Ionic bonds only occur between 2 metals.", a: "False. Ionic bonds occur between a metal and a nonmetal." },
+        { value: 200, q: "What is a cation?", a: "A positively charged ion (an atom that lost electrons)." },
+        { value: 300, q: "Why do atoms form ions?", a: "To achieve a full valence shell (to become more stable)." },
+        { value: 400, q: "True or False: If a cation and anion don't gain/lose the exact same number of electrons, they CAN'T form an ionic bond.", a: "False." },
+        { value: 500, q: "When aluminum and sulfur combine to form an ionic compound, how many copies of each ion are required to create a NEUTRAL compound?", a: "2 Aluminum cations, 3 Sulfur anions." }
+      ]
+    },
+    {
+      name: "Lewis Dot Diagrams",
+      clues: [
+        // Example of image in the ANSWER:
+        // Put image file in images/ (e.g., images/mg-ldd.png) and use a_html.
+        { value: 100, q: "Draw the Lewis Dot Diagram for Magnesium. What will the charge of a Magnesium ion be?", a: "Mg: , +2"},
+        { value: 200, q: "Draw the Lewis Dot Diagram for Aluminum. What will the charge of an Aluminum ion be?", a: "See board for diagram. +3" },
+        { value: 300, q: "Draw the Lewis Dot Diagram for an atom with 5 valence electrons. When this atom forms an ion, what will the charge be?", a: "See board for diagram. -3" },
+        { value: 400, q: "Consider a Lewis Dot Diagram that looks like this...  [ :C: ]. What is wrong with this diagram?", a: "The dots should be placed on each side before doubling up on a side." },
+        { value: 500, q: "Draw the Lewis Dot Diagrams for an ionic compound containing Caclium and Nitrogen. How many copies of each ion are required to create a NEUTRAL compound?", a: "See board for diagram. 3 Caclium cations, 2 Nitrogen anions." }
+      ]
+    },
+    {
+      name: "Misc",
+      clues: [
+        { value: 100, q: "How many valence electrons does Fluorine have?", a: "7" },
+        { value: 200, q: "Will Be and I form an ionic bond?", a: "Yes. Be is a metal and I is a nonmetal." },
+        { value: 300, q: "What will the charge of an oxygen ion be?", a: "-2" },
+        { value: 400, q: "How many neutrons does Phosphorus have?", a: "16. 31 (atomic mass) - 15 (atomic #) = 16." },
+        { value: 500, q: "When Lithium and Nitrogen combine to form an ionic compound, how many copies of each ion are required to create a NEUTRAL compound?", a: "3 Lithium cations, 1 Nitrogen anion." }
+      ]
+    }
+  ]
+};
+/* ===================== END EDIT SECTION ===================== */
+
+const $ = (sel) => document.querySelector(sel);
+
+const KEYS = {
+  used: () => `jeopardy_used_${GAME.id}`,
+  teams: () => `jeopardy_teams_${GAME.id}`,
+  scores: () => `jeopardy_scores_${GAME.id}`,
+};
+
+const state = {
+  modeJeopardy: GAME.jeopardyStyle,
+  used: new Set(),
+  activeKey: null,
+  activeValue: 0,
+  teams: [], // [{name}]
+  scores: [], // [number]
+  timer: { seconds: 0, remaining: 0, running: false, interval: null }
+};
+
+/* NEW: helper to render either plain text OR html (for images / formatting) */
+function setClueContent(el, htmlOrText){
+  el.innerHTML = htmlOrText ?? "";
+}
+
+/* NEW: music helpers (requires the <audio id="jeopardyAudio"> element above) */
+function playJeopardyMusic(){
+  const audio = $("#jeopardyAudio");
+  if(!audio) return;
+  // reset so it feels like "think music" each time
+  audio.currentTime = 0;
+  audio.play().catch(() => {
+    // Autoplay may be blocked until a user gesture; ignore quietly.
+  });
+}
+function stopJeopardyMusic(){
+  const audio = $("#jeopardyAudio");
+  if(!audio) return;
+  audio.pause();
+  audio.currentTime = 0;
+}
+
+/* -------- Storage -------- */
+function loadUsed(){
+  try{
+    const raw = localStorage.getItem(KEYS.used());
+    if(!raw) return;
+    state.used = new Set(JSON.parse(raw));
+  }catch(e){}
+}
+function saveUsed(){ localStorage.setItem(KEYS.used(), JSON.stringify([...state.used])); }
+
+function loadTeams(){
+  try{
+    const rawTeams = localStorage.getItem(KEYS.teams());
+    const rawScores = localStorage.getItem(KEYS.scores());
+    if(rawTeams){
+      state.teams = JSON.parse(rawTeams) || [];
+    }
+    if(rawScores){
+      state.scores = JSON.parse(rawScores) || [];
+    }
+    // sanity: keep scores aligned
+    if(state.teams.length && state.scores.length !== state.teams.length){
+      state.scores = Array(state.teams.length).fill(0);
+      saveTeams();
+    }
+  }catch(e){}
+}
+function saveTeams(){
+  localStorage.setItem(KEYS.teams(), JSON.stringify(state.teams));
+  localStorage.setItem(KEYS.scores(), JSON.stringify(state.scores));
+}
+function clearAllSaved(){
+  localStorage.removeItem(KEYS.used());
+  localStorage.removeItem(KEYS.teams());
+  localStorage.removeItem(KEYS.scores());
+  state.used = new Set();
+  state.teams = [];
+  state.scores = [];
+}
+
+/* -------- Header & Board -------- */
+function setHeader(){
+  $("#title").textContent = GAME.title || "Jeopardy Review";
+  $("#subtitle").textContent = GAME.subtitle || "";
+}
+
+function buildGrid(){
+  const grid = $("#grid");
+  grid.innerHTML = "";
+
+  const cats = GAME.categories;
+  const rows = Math.max(...cats.map(c => c.clues.length));
+  const cols = cats.length;
+
+  grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
+
+  // Category row
+  cats.forEach((c) => {
+    const cell = document.createElement("div");
+    cell.className = "cell cat";
+    cell.textContent = c.name;
+    grid.appendChild(cell);
+  });
+
+  // Clue rows
+  for(let r=0; r<rows; r++){
+    cats.forEach((c, ci) => {
+      const clue = c.clues[r];
+      const cell = document.createElement("div");
+
+      if(!clue){
+        cell.className = "cell";
+        cell.style.opacity = "0";
+        grid.appendChild(cell);
+        return;
+      }
+
+      const key = `${ci}-${r}`;
+      cell.className = "cell qbtn";
+      cell.textContent = `$${clue.value}`;
+
+      if(state.used.has(key)){
+        cell.classList.add("used");
+      }else{
+        cell.addEventListener("click", () => openClue(ci, r));
+      }
+
+      grid.appendChild(cell);
+    });
+  }
+}
+
+/* -------- Modal / Clues -------- */
+function openClue(ci, r){
+  const cat = GAME.categories[ci];
+  const clue = cat.clues[r];
+  const key = `${ci}-${r}`;
+
+  state.activeKey = key;
+  state.activeValue = clue.value;
+
+  $("#modalValue").textContent = `$${clue.value}`;
+  $("#modalCat").textContent = cat.name;
+
+  $("#toggleModeBtn").textContent = state.modeJeopardy
+    ? "Mode: Jeopardy (Answer → Question)"
+    : "Mode: Question → Answer";
+
+  // NEW: choose html if provided, otherwise fall back to text
+  const promptHTML = state.modeJeopardy
+    ? (clue.a_html ?? clue.a)
+    : (clue.q_html ?? clue.q);
+
+  const answerHTML = state.modeJeopardy
+    ? (clue.q_html ?? clue.q)
+    : (clue.a_html ?? clue.a);
+
+  setClueContent($("#modalPrompt"), promptHTML);
+  setClueContent($("#modalAnswer"), answerHTML);
+
+  $("#modalHint").textContent = clue.hint ? `Hint: ${clue.hint}` : "";
+
+  $("#modalAnswer").classList.remove("show");
+  $("#showAnswerBtn").textContent = "Show Answer";
+
+  setupTimerFromInput();
+  resetTimer();
+
+  renderAwardButtons();
+
+  $("#overlay").classList.add("show");
+
+  // NEW: auto-start timer (and music) when clue opens (only if timerSeconds > 0)
+  startTimer();
+}
+
+function closeModal(){
+  stopTimer(); // will also stop music
+  $("#overlay").classList.remove("show");
+  state.activeKey = null;
+  state.activeValue = 0;
+}
+
+function markUsedOnly(){
+  if(!state.activeKey) return;
+  state.used.add(state.activeKey);
+  saveUsed();
+  buildGrid();
+  closeModal();
+}
+
+function showAnswer(){
+  const el = $("#modalAnswer");
+  const isShown = el.classList.toggle("show");
+  $("#showAnswerBtn").textContent = isShown ? "Hide Answer" : "Show Answer";
+}
+
+function toggleMode(){
+  state.modeJeopardy = !state.modeJeopardy;
+  $("#toggleModeBtn").textContent = state.modeJeopardy
+    ? "Mode: Jeopardy (Answer → Question)"
+    : "Mode: Question → Answer";
+  if(state.activeKey){
+    const [ci, r] = state.activeKey.split("-").map(Number);
+    openClue(ci, r);
+  }
+}
+
+/* -------- Awarding points -------- */
+function renderAwardButtons(){
+  const wrap = $("#awardGrid");
+  wrap.innerHTML = "";
+
+  if(!state.teams.length){
+    wrap.innerHTML = `<div class="hint">No teams yet. Click <b>Edit Teams</b> to set up.</div>`;
+    return;
+  }
+
+  state.teams.forEach((t, i) => {
+    const box = document.createElement("div");
+    box.className = "awardBox";
+
+    const name = document.createElement("div");
+    name.className = "name";
+    name.textContent = t.name;
+
+    const btns = document.createElement("div");
+    btns.className = "btns";
+
+    const correct = document.createElement("button");
+    correct.className = "btn good";
+    correct.textContent = `Correct (+${state.activeValue})`;
+    correct.addEventListener("click", () => awardCorrect(i));
+
+    const incorrect = document.createElement("button");
+    incorrect.className = "btn danger";
+    incorrect.textContent = `Incorrect (${getNoPenalty() ? "0" : "-" + state.activeValue})`;
+    incorrect.addEventListener("click", () => awardIncorrect(i));
+
+    btns.appendChild(correct);
+    btns.appendChild(incorrect);
+
+    box.appendChild(name);
+    box.appendChild(btns);
+    wrap.appendChild(box);
+  });
+}
+
+function getNoPenalty(){
+  return $("#noPenaltyToggle").checked;
+}
+
+function awardCorrect(teamIndex){
+  if(state.activeKey == null) return;
+  state.scores[teamIndex] = (state.scores[teamIndex] || 0) + state.activeValue;
+
+  // mark clue used
+  state.used.add(state.activeKey);
+  saveUsed();
+  saveTeams();
+
+  renderScoreboard();
+  buildGrid();
+  closeModal();
+}
+
+function awardIncorrect(teamIndex){
+  if(state.activeKey == null) return;
+
+  if(!getNoPenalty()){
+    state.scores[teamIndex] = (state.scores[teamIndex] || 0) - state.activeValue;
+    saveTeams();
+    renderScoreboard();
+  }
+
+  // keep clue open for other teams to try, but update button label
+  renderAwardButtons();
+}
+
+/* -------- Teams UI -------- */
+function buildTeamInputs(count){
+  const wrap = $("#teamInputs");
+  wrap.innerHTML = "";
+  for(let i=0;i<count;i++){
+    const inp = document.createElement("input");
+    inp.type = "text";
+    inp.placeholder = `Team ${i+1} name`;
+    inp.value = (state.teams[i] && state.teams[i].name) ? state.teams[i].name : `Team ${i+1}`;
+    wrap.appendChild(inp);
+  }
+}
+
+function openTeamSetup(){
+  $("#setupPanel").style.display = "block";
+  $("#scorePanel").style.display = "none";
+
+  const existing = state.teams.length ? state.teams.length : parseInt($("#teamCount").value,10) || 4;
+  $("#teamCount").value = existing;
+  buildTeamInputs(existing);
+}
+
+function startGameFromSetup(){
+  const count = Math.max(1, Math.min(12, parseInt($("#teamCount").value, 10) || 1));
+  const inputs = Array.from($("#teamInputs").querySelectorAll("input"));
+
+  const names = inputs.slice(0,count).map((el, idx) => {
+    const name = (el.value || "").trim();
+    return name ? name : `Team ${idx+1}`;
+  });
+
+  state.teams = names.map(n => ({ name: n }));
+  state.scores = Array(state.teams.length).fill(0);
+
+  saveTeams();
+  renderScoreboard();
+
+  $("#setupPanel").style.display = "none";
+  $("#scorePanel").style.display = "block";
+}
+
+function renderScoreboard(){
+  const list = $("#scoreList");
+  list.innerHTML = "";
+
+  if(!state.teams.length){
+    list.innerHTML = `<div class="hint">No teams set up yet. Click <b>Edit Teams</b> to begin.</div>`;
+    return;
+  }
+
+  // show in descending score order, but keep indexes for score edits
+  const order = state.teams.map((t, i) => ({
+    i,
+    name: t.name,
+    score: state.scores[i] || 0
+  })).sort((a,b) => b.score - a.score);
+
+  order.forEach((t) => {
+    const row = document.createElement("div");
+    row.className = "teamCard";
+
+    const left = document.createElement("div");
+    left.innerHTML = `<div class="teamName">${escapeHtml(t.name)}</div>
+                      <div style="color:var(--muted); font-size:12px;">Team ${t.i + 1}</div>`;
+
+    const right = document.createElement("div");
+    right.style.display = "flex";
+    right.style.gap = "10px";
+    right.style.alignItems = "center";
+
+    const score = document.createElement("div");
+    score.className = "teamScore";
+    score.textContent = t.score;
+
+    const miniBtns = document.createElement("div");
+    miniBtns.className = "teamMiniBtns";
+
+    const plus50 = document.createElement("button");
+    plus50.className = "btn secondary mini";
+    plus50.textContent = "+50";
+    plus50.title = "Quick adjust";
+    plus50.addEventListener("click", () => adjustScore(t.i, 50));
+
+    const minus50 = document.createElement("button");
+    minus50.className = "btn secondary mini";
+    minus50.textContent = "-50";
+    minus50.title = "Quick adjust";
+    minus50.addEventListener("click", () => adjustScore(t.i, -50));
+
+    miniBtns.appendChild(plus50);
+    miniBtns.appendChild(minus50);
+
+    right.appendChild(miniBtns);
+    right.appendChild(score);
+
+    row.appendChild(left);
+    row.appendChild(right);
+    list.appendChild(row);
+  });
+
+  // If a clue is open, keep award buttons consistent with penalty toggle
+  if($("#overlay").classList.contains("show")){
+    renderAwardButtons();
+  }
+}
+
+function adjustScore(teamIndex, delta){
+  state.scores[teamIndex] = (state.scores[teamIndex] || 0) + delta;
+  saveTeams();
+  renderScoreboard();
+}
+
+function resetScores(){
+  if(!state.teams.length) return;
+  state.scores = Array(state.teams.length).fill(0);
+  saveTeams();
+  renderScoreboard();
+}
+
+/* -------- Timer -------- */
+function setupTimerFromInput(){
+  const secs = parseInt($("#timerSeconds").value, 10);
+  state.timer.seconds = Number.isFinite(secs) ? Math.max(0, secs) : 0;
+
+  const show = state.timer.seconds > 0;
+  $("#timerDisplay").style.display = show ? "inline-flex" : "none";
+  $("#timerToggleBtn").style.display = show ? "inline-flex" : "none";
+  $("#timerToggleBtn").textContent = "Start Timer";
+}
+
+function renderTimer(){ $("#timerDisplay").textContent = `⏳ ${state.timer.remaining}s`; }
+
+function resetTimer(){
+  stopTimer();
+  state.timer.remaining = state.timer.seconds;
+  renderTimer();
+  $("#timerToggleBtn").textContent = "Start Timer";
+}
+
+function tick(){
+  if(state.timer.remaining <= 0){
+    stopTimer(); // will also stop music
+    const badge = $("#modalValue");
+    badge.style.background = "rgba(255,107,107,.22)";
+    setTimeout(()=> badge.style.background = "rgba(240, 75, 216, .12)", 600);
+    return;
+  }
+  state.timer.remaining -= 1;
+  renderTimer();
+}
+
+function startTimer(){
+  if(state.timer.seconds <= 0) return;
+  if(state.timer.running) return;
+  state.timer.running = true;
+  $("#timerToggleBtn").textContent = "Pause Timer";
+  state.timer.interval = setInterval(tick, 1000);
+
+  // NEW: start music when timer starts
+  playJeopardyMusic();
+}
+
+function stopTimer(){
+  state.timer.running = false;
+  if(state.timer.interval){
+    clearInterval(state.timer.interval);
+    state.timer.interval = null;
+  }
+  if($("#timerToggleBtn")) $("#timerToggleBtn").textContent = "Start Timer";
+
+  // NEW: stop music when timer stops/pauses
+  stopJeopardyMusic();
+}
+
+function toggleTimer(){
+  if(state.timer.seconds <= 0) return;
+  if(state.timer.running) stopTimer();
+  else startTimer();
+}
+
+/* -------- Reset Board -------- */
+function resetBoard(){
+  state.used.clear();
+  saveUsed();
+  buildGrid();
+}
+
+function escapeHtml(s){
+  return String(s)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+/* -------- Init -------- */
+function init(){
+  setHeader();
+
+  loadUsed();
+  loadTeams();
+
+  // setup panel defaults
+  const initialCount = state.teams.length ? state.teams.length : 4;
+  $("#teamCount").value = initialCount;
+  buildTeamInputs(initialCount);
+
+  // show correct panel
+  if(state.teams.length){
+    $("#setupPanel").style.display = "none";
+    $("#scorePanel").style.display = "block";
+    renderScoreboard();
+  }else{
+    openTeamSetup();
+  }
+
+  buildGrid();
+
+  // Board controls
+  $("#toggleModeBtn").addEventListener("click", toggleMode);
+  $("#resetUsedBtn").addEventListener("click", resetBoard);
+  $("#hardResetBtn").addEventListener("click", () => {
+    clearAllSaved();
+    buildGrid();
+    openTeamSetup();
+    renderScoreboard();
+  });
+
+  $("#noPenaltyToggle").addEventListener("change", () => {
+    if($("#overlay").classList.contains("show")) renderAwardButtons();
+  });
+
+  // Setup controls
+  $("#teamCount").addEventListener("change", () => {
+    const count = Math.max(1, Math.min(12, parseInt($("#teamCount").value, 10) || 1));
+    buildTeamInputs(count);
+  });
+
+  $("#startGameBtn").addEventListener("click", startGameFromSetup);
+  $("#editTeamsBtn").addEventListener("click", openTeamSetup);
+  $("#resetScoresBtn").addEventListener("click", resetScores);
+
+  // Modal controls
+  $("#closeBtn").addEventListener("click", closeModal);
+  $("#overlay").addEventListener("click", (e) => { if(e.target.id === "overlay") closeModal(); });
+  $("#showAnswerBtn").addEventListener("click", showAnswer);
+  $("#markUsedBtn").addEventListener("click", markUsedOnly);
+
+  $("#timerSeconds").addEventListener("change", () => {
+    setupTimerFromInput();
+    if(state.activeKey) resetTimer();
+  });
+  $("#timerToggleBtn").addEventListener("click", toggleTimer);
+
+  // Keyboard shortcuts
+  window.addEventListener("keydown", (e) => {
+    if(!$("#overlay").classList.contains("show")) return;
+    if(e.key === "Escape") closeModal();
+    if(e.key.toLowerCase() === "a") showAnswer();
+    if(e.key === " "){
+      e.preventDefault();
+      toggleTimer();
+    }
+  });
+
+  $("#toggleModeBtn").textContent = state.modeJeopardy
+    ? "Mode: Jeopardy (Answer → Question)"
+    : "Mode: Question → Answer";
+}
+init();
+</script>
+</body>
+</html>
