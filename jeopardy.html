@@ -80,15 +80,6 @@
 
     .cardBody{ padding: 12px 14px; }
 
-    .topbar{
-      display:flex;
-      gap:10px;
-      flex-wrap:wrap;
-      align-items:center;
-      justify-content:space-between;
-      margin: 0 0 10px;
-    }
-
     .controls{
       display:flex;
       gap:10px;
@@ -141,8 +132,8 @@
     .grid{
       display:grid;
       gap: 10px;
-      min-width: 100%;
       min-width: 0;
+      width: 100%;
     }
     .cell{
       border-radius: 16px;
@@ -195,7 +186,7 @@
       display:block;
       margin-bottom: 6px;
     }
-    .setupRow input[type="text"], .setupRow input[type="number"]{
+    .setupRow input[type="text"], .setupRow input[type="number"], .setupRow textarea{
       width: 100%;
       padding: 10px 10px;
       border-radius: 12px;
@@ -203,6 +194,7 @@
       font-size: 14px;
       background: white;
       box-sizing: border-box;
+      font: inherit;
     }
     .teamInputs{
       display:grid;
@@ -319,7 +311,7 @@
     }
     .answer.show{ display:block; }
 
-    /* NEW: keep images from overflowing the modal */
+    /* keep images from overflowing */
     .modalBody img{
       max-width: 100%;
       height: auto;
@@ -391,6 +383,16 @@
       font-size: 12px;
       margin-top: 12px;
     }
+
+    details summary{
+      cursor:pointer;
+      user-select:none;
+      color:var(--muted);
+      font-weight:700;
+    }
+    details[open] summary{ color: var(--ink); }
+
+    textarea{ resize: vertical; }
   </style>
 </head>
 
@@ -471,7 +473,7 @@
     </div>
   </div>
 
-  <!-- NEW: Audio element (put jeopardy-theme.mp3 next to this html, or change the src path) -->
+  <!-- Audio element (put jeopardy-theme.mp3 next to this html, or change the src path in Admin) -->
   <audio id="jeopardyAudio" preload="auto" loop>
     <source src="jeopardy-theme.mp3" type="audio/mpeg">
   </audio>
@@ -518,13 +520,144 @@
     </div>
   </div>
 
+  <!-- ADMIN PANEL (HIDDEN) — Attendance-style -->
+  <div class="wrap" style="margin-top:-18px; margin-bottom:26px;">
+    <div class="card">
+      <div class="cardBody">
+        <details id="adminDetails">
+          <summary>Admin (hidden)</summary>
+          <div class="hint" style="margin:8px 0 10px;">
+            Enter code to unlock Admin. Passcode is stored in localStorage on this computer (not shared online).
+          </div>
+
+          <div id="adminLocked">
+            <div class="setupRow">
+              <div>
+                <label>Admin passcode</label>
+                <input id="adminPasscode" type="password" placeholder="Set once / enter to unlock" />
+              </div>
+              <div class="controls">
+                <button class="btn" id="adminUnlockBtn" type="button">Unlock Admin</button>
+                <button class="btn secondary" id="adminSetBtn" type="button">Set / Change Passcode</button>
+              </div>
+            </div>
+          </div>
+
+          <div id="adminTools" style="display:none;">
+            <div class="controls" style="justify-content:space-between; width:100%;">
+              <div class="pill"><span>🔓</span><span id="adminState">Admin unlocked</span></div>
+              <button class="btn secondary" id="adminLockBtn" type="button">Lock Admin</button>
+            </div>
+
+            <div style="height:1px;background:rgba(0,0,0,.08);margin:12px 0;"></div>
+
+            <div class="setupRow">
+              <div class="controls" style="gap:10px;">
+                <label class="pill" style="cursor:pointer;">
+                  <input type="checkbox" id="cfgAutoStartTimer" />
+                  <span>Auto-start timer when clue opens</span>
+                </label>
+
+                <label class="pill" style="cursor:pointer;">
+                  <input type="checkbox" id="cfgMusicOnTimer" />
+                  <span>Play music during timer</span>
+                </label>
+
+                <div class="pill" title="Sets the Timer (sec) box above">
+                  Default timer:
+                  <input type="number" id="cfgDefaultTimer" min="0" step="5" value="0" />
+                </div>
+
+                <div class="pill" title="0.0 to 1.0">
+                  🔊 Volume
+                  <input type="number" id="cfgMusicVol" min="0" max="1" step="0.05" value="0.35" />
+                </div>
+
+                <div class="pill" title="Example: jeopardy-theme.mp3 or audio/jeopardy-theme.mp3">
+                  🎵 Music file
+                  <input type="text" id="cfgMusicFile" value="jeopardy-theme.mp3" style="width:220px;" />
+                </div>
+              </div>
+
+              <div class="hint">
+                Tip: Put the MP3 in the same folder as this HTML, or in an <b>audio/</b> folder and set the path.
+              </div>
+            </div>
+
+            <div style="height:1px;background:rgba(0,0,0,.08);margin:12px 0;"></div>
+            <details id="clueBuilderDetails">
+  <summary>Clue Builder (no HTML)</summary>
+
+  <div class="hint" style="margin:8px 0 10px;">
+    Enter clues in a table. Categories are created automatically. Optional: add an image filename like <b>images/q1.png</b>.
+  </div>
+
+  <div class="setupRow">
+    <div class="controls" style="justify-content:space-between; align-items:center;">
+      <div class="hint">One row = one clue.</div>
+      <div class="controls">
+        <button class="btn secondary" id="cbLoadBtn" type="button">Load from Current Game</button>
+        <button class="btn" id="cbAddBtn" type="button">Add Clue</button>
+        <button class="btn good" id="cbSaveBtn" type="button">Save to Game</button>
+      </div>
+    </div>
+
+    <div style="overflow:auto; border:1px solid rgba(0,0,0,.10); border-radius:14px; padding:10px;">
+      <table style="width:100%; border-collapse:collapse; min-width:920px;">
+        <thead>
+          <tr style="text-align:left; font-size:12px; color:var(--muted);">
+            <th style="padding:8px 6px; width:14%;">Category</th>
+            <th style="padding:8px 6px; width:8%;">Value</th>
+            <th style="padding:8px 6px; width:26%;">Question</th>
+            <th style="padding:8px 6px; width:26%;">Answer</th>
+            <th style="padding:8px 6px; width:14%;">Hint (opt)</th>
+            <th style="padding:8px 6px; width:10%;">Image (opt)</th>
+            <th style="padding:8px 6px; width:2%;"></th>
+          </tr>
+        </thead>
+        <tbody id="cbTbody"></tbody>
+      </table>
+    </div>
+
+    <div class="hint" id="cbMsg" style="margin-top:8px;"></div>
+  </div>
+</details>
+
+            <details>
+              <summary>Game editor (JSON)</summary>
+              <div class="hint" style="margin:8px 0 10px;">
+                For images you can use either:
+                <br>• <b>a_html / q_html</b> (you already support this), OR
+                <br>• <b>img</b>: "images/mg.png" (auto-appended under the answer)
+              </div>
+
+              <textarea id="gameJson"
+                style="width:100%;min-height:320px;box-sizing:border-box;border-radius:14px;border:1px solid rgba(0,0,0,.14);padding:12px;
+                       font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;font-size:12.5px;line-height:1.35;"></textarea>
+
+              <div class="controls" style="margin-top:10px; flex-wrap:wrap;">
+                <button class="btn good" id="saveGameBtn" type="button">Save Game</button>
+                <button class="btn secondary" id="exportGameBtn" type="button">Export JSON</button>
+                <label class="btn secondary" style="cursor:pointer;">
+                  Import JSON <input id="importGameFile" type="file" accept=".json,application/json" style="display:none;">
+                </label>
+                <button class="btn danger" id="resetGameBtn" type="button" title="Revert to built-in default">Reset to Default</button>
+                <span class="hint" id="adminMsg" style="margin-left:auto;"></span>
+              </div>
+            </details>
+
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
+
 <script>
-/* ============================================================
- 
-============================================================ */
-const GAME = {
+/* ===================== EDIT SECTION ===================== */
+// IMPORTANT: GAME is now let (so Admin can override it)
+let GAME = {
   id: "chem-review-01",
-  title: "Chemistry Jeopardy Review",
+  title: "Jeopardy Review Game",
   subtitle: "Choose a clue. Discuss as a team.",
   jeopardyStyle: false,
 
@@ -532,7 +665,7 @@ const GAME = {
     {
       name: "Atomic Structure",
       clues: [
-        { value: 100, q: "What is the charge of a proton?", a: "+1", hint: "Neutral, negative, or positive?" },
+        { value: 100, q: "What is the charge of an electron?", a: "Negative.", hint: "Neutral, negative, or positive?" },
         { value: 200, q: "Where are electrons found?", a: "In the energy levels/rings around the nucleus." },
         { value: 300, q: "What does the atomic number tell you?", a: "The number of protons (and electrons if neutral)." },
         { value: 400, q: "What two subatomic particles are similar is size?", a: "Protons and Neutrons" },
@@ -562,13 +695,12 @@ const GAME = {
     {
       name: "Lewis Dot Diagrams",
       clues: [
-        // Example of image in the ANSWER:
-        // Put image file in images/ (e.g., images/mg-ldd.png) and use a_html.
-        { value: 100, q: "Draw the Lewis Dot Diagram for Magnesium. What will the charge of a Magnesium ion be?", a: "Mg: , +2"},
-        { value: 200, q: "Draw the Lewis Dot Diagram for Aluminum. What will the charge of an Aluminum ion be?", a: "See board for diagram. +3" },
-        { value: 300, q: "Draw the Lewis Dot Diagram for an atom with 5 valence electrons. When this atom forms an ion, what will the charge be?", a: "See board for diagram. -3" },
-        { value: 400, q: "Consider a Lewis Dot Diagram that looks like this...  [ :C: ]. What is wrong with this diagram?", a: "The dots should be placed on each side before doubling up on a side." },
-        { value: 500, q: "Draw the Lewis Dot Diagrams for an ionic compound containing Caclium and Nitrogen. How many copies of each ion are required to create a NEUTRAL compound?", a: "See board for diagram. 3 Caclium cations, 2 Nitrogen anions." }
+        { value: 100, q: "Draw the Lewis Dot Diagram for Magnesium. What will the charge of a Magnesium ion be?", a: "Mg ion charge is +2." },
+        { value: 200, q: "Draw the Lewis Dot Diagram for Aluminum. What will the charge of an Aluminum ion be?", a: "Al ion charge is +3." },
+        { value: 300, q: "Draw the Lewis Dot Diagram for an atom with 5 valence electrons. When this atom forms an ion, what will the charge be?", a: "Ion charge is -3." },
+        { value: 400, q: "Consider a Lewis Dot Diagram that looks like this...  [ :C: ]. What is wrong with this diagram?", a: "Dots should be placed one on each side before pairing." },
+        { value: 500, q: "Draw the Lewis Dot Diagrams for an ionic compound containing Calcium and Nitrogen. How many copies of each ion are required to create a NEUTRAL compound?",
+          a: "3 Calcium cations, 2 Nitrogen anions." }
       ]
     },
     {
@@ -577,46 +709,526 @@ const GAME = {
         { value: 100, q: "How many valence electrons does Fluorine have?", a: "7" },
         { value: 200, q: "Will Be and I form an ionic bond?", a: "Yes. Be is a metal and I is a nonmetal." },
         { value: 300, q: "What will the charge of an oxygen ion be?", a: "-2" },
-        { value: 400, q: "How many neutrons does Phosphorus have?", a: "16. 31 (atomic mass) - 15 (atomic #) = 16." },
+        { value: 400, q: "How many neutrons does Phosphorus have?", a: "16. 31 - 15 = 16." },
         { value: 500, q: "When Lithium and Nitrogen combine to form an ionic compound, how many copies of each ion are required to create a NEUTRAL compound?", a: "3 Lithium cations, 1 Nitrogen anion." }
       ]
     }
   ]
 };
-/* ===================== END EDIT SECTION ===================== */
 
+const DEFAULT_GAME = JSON.parse(JSON.stringify(GAME));
+
+/* ===================== UTILITIES ===================== */
 const $ = (sel) => document.querySelector(sel);
 
+function escapeHtml(s){
+  return String(s)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+/* Render either text or html (for images/formatting). */
+function setClueContent(el, htmlOrText){
+  el.innerHTML = htmlOrText ?? "";
+}
+
+/* ===================== STORAGE KEYS ===================== */
 const KEYS = {
   used: () => `jeopardy_used_${GAME.id}`,
   teams: () => `jeopardy_teams_${GAME.id}`,
   scores: () => `jeopardy_scores_${GAME.id}`,
 };
 
-const state = {
-  modeJeopardy: GAME.jeopardyStyle,
-  used: new Set(),
-  activeKey: null,
-  activeValue: 0,
-  teams: [], // [{name}]
-  scores: [], // [number]
-  timer: { seconds: 0, remaining: 0, running: false, interval: null }
+const LS_ADMIN = {
+  cfg:        () => `jeop_cfg_${GAME.id}`,
+  game:       () => `jeop_game_${GAME.id}`,
+  adminHash:  () => `jeop_admin_hash_${GAME.id}`,
 };
 
-/* NEW: helper to render either plain text OR html (for images / formatting) */
-function setClueContent(el, htmlOrText){
-  el.innerHTML = htmlOrText ?? "";
+/* ===================== CONFIG (ADMIN) ===================== */
+const DEFAULT_CFG = {
+  autoStartTimer: true,
+  musicOnTimer: true,
+  musicFile: "jeopardy-theme.mp3",
+  musicVol: 0.35,
+  defaultTimer: 0
+};
+
+function loadCfg(){
+  try{
+    const raw = localStorage.getItem(LS_ADMIN.cfg());
+    return raw ? { ...DEFAULT_CFG, ...JSON.parse(raw) } : { ...DEFAULT_CFG };
+  }catch{
+    return { ...DEFAULT_CFG };
+  }
+}
+function saveCfg(cfg){
+  localStorage.setItem(LS_ADMIN.cfg(), JSON.stringify(cfg));
 }
 
-/* NEW: music helpers (requires the <audio id="jeopardyAudio"> element above) */
-function playJeopardyMusic(){
+/* ===================== ADMIN: PASSCODE (SHA-256) ===================== */
+let adminUnlocked = false;
+
+async function sha256(str){
+  const enc = new TextEncoder().encode(str);
+  const buf = await crypto.subtle.digest("SHA-256", enc);
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+async function setAdminPasscode(pass){
+  const h = await sha256(pass);
+  localStorage.setItem(LS_ADMIN.adminHash(), h);
+}
+async function checkAdminPasscode(pass){
+  const saved = localStorage.getItem(LS_ADMIN.adminHash());
+  if(!saved) return false;
+  const h = await sha256(pass);
+  return h === saved;
+}
+function showAdmin(unlocked){
+  adminUnlocked = unlocked;
+  $("#adminTools").style.display = unlocked ? "block" : "none";
+  $("#adminLocked").style.display = unlocked ? "none" : "block";
+  $("#adminState").textContent = unlocked ? "Admin unlocked" : "Admin locked";
+}
+async function unlockAdmin(){
+  const pass = ($("#adminPasscode").value || "");
+  if(await checkAdminPasscode(pass)){
+    showAdmin(true);
+    adminLoadUI();
+  }else{
+    alert("Incorrect passcode.");
+  }
+}
+async function setPasscode(){
+  const pass = ($("#adminPasscode").value || "");
+  if(pass.length < 4){
+    alert("Use a passcode of at least 4 characters.");
+    return;
+  }
+  await setAdminPasscode(pass);
+  alert("Passcode set on this computer.");
+}
+/* ===================== CLUE BUILDER ===================== */
+function cbEl(id){ return document.getElementById(id); }
+
+function cbClearMsg(){
+  const m = cbEl("cbMsg");
+  if(!m) return;
+  m.textContent = "";
+}
+
+function cbMsg(text, ok=true){
+  const m = cbEl("cbMsg");
+  if(!m) return;
+  m.style.color = ok ? "#146c2e" : "#8b1a1a";
+  m.textContent = text;
+  setTimeout(cbClearMsg, 1600);
+}
+
+function cbGetCategoryNames(){
+  // current categories in GAME (unique, in order)
+  const names = [];
+  const seen = new Set();
+  for(const c of (GAME.categories || [])){
+    const n = String(c.name || "").trim();
+    if(!n) continue;
+    const key = n.toLowerCase();
+    if(seen.has(key)) continue;
+    seen.add(key);
+    names.push(n);
+  }
+  return names;
+}
+
+function cbMakeCategorySelect(value=""){
+  const sel = document.createElement("select");
+  sel.style.width = "100%";
+  sel.style.borderRadius = "10px";
+  sel.style.border = "1px solid rgba(0,0,0,.14)";
+  sel.style.padding = "8px 8px";
+  sel.style.background = "#fff";
+
+  const cats = cbGetCategoryNames();
+  const opt0 = document.createElement("option");
+  opt0.value = "";
+  opt0.textContent = "Select…";
+  sel.appendChild(opt0);
+
+  for(const c of cats){
+    const o = document.createElement("option");
+    o.value = c;
+    o.textContent = c;
+    sel.appendChild(o);
+  }
+
+  const oNew = document.createElement("option");
+  oNew.value = "__new__";
+  oNew.textContent = "➕ New category…";
+  sel.appendChild(oNew);
+
+  sel.value = cats.includes(value) ? value : "";
+
+  return sel;
+}
+
+function cbMakeInput(type="text", placeholder=""){
+  const inp = document.createElement(type === "textarea" ? "textarea" : "input");
+  if(type !== "textarea") inp.type = type;
+
+  inp.placeholder = placeholder;
+  inp.style.width = "100%";
+  inp.style.borderRadius = "10px";
+  inp.style.border = "1px solid rgba(0,0,0,.14)";
+  inp.style.padding = "8px 8px";
+  inp.style.background = "#fff";
+  inp.style.boxSizing = "border-box";
+  inp.style.font = "inherit";
+
+  if(type === "textarea"){
+    inp.rows = 2;
+    inp.style.resize = "vertical";
+    inp.style.minHeight = "52px";
+  }
+  return inp;
+}
+
+function cbAddRow(rowData={}){
+  const tb = cbEl("cbTbody");
+  if(!tb) return;
+
+  const tr = document.createElement("tr");
+  tr.style.borderTop = "1px solid rgba(0,0,0,.08)";
+
+  // CATEGORY cell: select + optional new-name input
+  const tdCat = document.createElement("td");
+  tdCat.style.padding = "6px";
+
+  const catSel = cbMakeCategorySelect(rowData.category || "");
+  const catNew = cbMakeInput("text", "New category name…");
+  catNew.style.display = "none";
+
+  catSel.addEventListener("change", ()=>{
+    if(catSel.value === "__new__"){
+      catNew.style.display = "block";
+      catNew.focus();
+    }else{
+      catNew.style.display = "none";
+      catNew.value = "";
+    }
+  });
+
+  tdCat.appendChild(catSel);
+  tdCat.appendChild(catNew);
+
+  // VALUE
+  const tdVal = document.createElement("td");
+  tdVal.style.padding = "6px";
+  const valInp = cbMakeInput("number", "100");
+  valInp.min = "0";
+  valInp.step = "100";
+  valInp.value = String(rowData.value ?? 100);
+  tdVal.appendChild(valInp);
+
+  // QUESTION
+  const tdQ = document.createElement("td");
+  tdQ.style.padding = "6px";
+  const qInp = cbMakeInput("textarea", "Question…");
+  qInp.value = rowData.q ?? "";
+  tdQ.appendChild(qInp);
+
+  // ANSWER
+  const tdA = document.createElement("td");
+  tdA.style.padding = "6px";
+  const aInp = cbMakeInput("textarea", "Answer…");
+  aInp.value = rowData.a ?? "";
+  tdA.appendChild(aInp);
+
+  // HINT
+  const tdH = document.createElement("td");
+  tdH.style.padding = "6px";
+  const hInp = cbMakeInput("textarea", "Hint (optional)…");
+  hInp.rows = 2;
+  hInp.value = rowData.hint ?? "";
+  tdH.appendChild(hInp);
+
+  // IMAGE
+  const tdImg = document.createElement("td");
+  tdImg.style.padding = "6px";
+  const imgInp = cbMakeInput("text", "images/pic.png");
+  imgInp.value = rowData.img ?? "";
+  tdImg.appendChild(imgInp);
+
+  // DELETE
+  const tdDel = document.createElement("td");
+  tdDel.style.padding = "6px";
+  const delBtn = document.createElement("button");
+  delBtn.type = "button";
+  delBtn.className = "btn secondary";
+  delBtn.textContent = "✕";
+  delBtn.style.padding = "8px 10px";
+  delBtn.addEventListener("click", ()=> tr.remove());
+  tdDel.appendChild(delBtn);
+
+  tr.appendChild(tdCat);
+  tr.appendChild(tdVal);
+  tr.appendChild(tdQ);
+  tr.appendChild(tdA);
+  tr.appendChild(tdH);
+  tr.appendChild(tdImg);
+  tr.appendChild(tdDel);
+
+  tb.appendChild(tr);
+}
+
+function cbLoadFromGame(){
+  const tb = cbEl("cbTbody");
+  if(!tb) return;
+  tb.innerHTML = "";
+
+  // flatten GAME into rows
+  const cats = GAME.categories || [];
+  for(const c of cats){
+    const catName = String(c.name || "").trim();
+    for(const clue of (c.clues || [])){
+      cbAddRow({
+        category: catName,
+        value: clue.value ?? 100,
+        q: clue.q ?? "",
+        a: clue.a ?? "",
+        hint: clue.hint ?? "",
+        img: clue.img ?? ""
+      });
+    }
+  }
+
+  if(!tb.children.length){
+    // starter row
+    cbAddRow({ category: "", value: 100, q: "", a: "" });
+  }
+
+  cbMsg("Loaded ✓", true);
+}
+
+function cbExtractRows(){
+  const tb = cbEl("cbTbody");
+  const rows = [...tb.querySelectorAll("tr")];
+
+  const out = [];
+  for(const tr of rows){
+    const tds = tr.querySelectorAll("td");
+
+    const sel = tds[0].querySelector("select");
+    const newInp = tds[0].querySelector("input");
+
+    let category = (sel?.value || "").trim();
+    if(category === "__new__") category = (newInp?.value || "").trim();
+
+    const value = Number(tds[1].querySelector("input")?.value || 0);
+    const q = (tds[2].querySelector("textarea")?.value || "").trim();
+    const a = (tds[3].querySelector("textarea")?.value || "").trim();
+    const hint = (tds[4].querySelector("textarea")?.value || "").trim();
+    const img = (tds[5].querySelector("input")?.value || "").trim();
+
+    // ignore blank rows
+    if(!category && !q && !a) continue;
+
+    out.push({
+      category,
+      value: Number.isFinite(value) ? value : 0,
+      q,
+      a,
+      hint: hint || undefined,
+      img: img || undefined
+    });
+  }
+  return out;
+}
+
+function cbBuildGameFromRows(rows){
+  // group by category, preserve first-seen order
+  const map = new Map(); // cat -> clues[]
+  const order = [];
+
+  for(const r of rows){
+    const cat = (r.category || "").trim();
+    if(!cat) continue;
+    const key = cat.toLowerCase();
+    if(!map.has(key)){
+      map.set(key, { name: cat, clues: [] });
+      order.push(key);
+    }
+
+    const clue = {
+      value: r.value,
+      q: r.q,
+      a: r.a
+    };
+    if(r.hint) clue.hint = r.hint;
+    if(r.img) clue.img = r.img;
+
+    map.get(key).clues.push(clue);
+  }
+
+  // sort clues inside each category by value ascending
+  const categories = order.map(k => {
+    const c = map.get(k);
+    c.clues.sort((a,b)=>(a.value??0)-(b.value??0));
+    return c;
+  });
+
+  // return new GAME object, preserving title/subtitle/id and jeopardyStyle
+  return {
+    id: GAME.id || "jeop",
+    title: GAME.title || "Jeopardy Review",
+    subtitle: GAME.subtitle || "",
+    jeopardyStyle: !!GAME.jeopardyStyle,
+    categories
+  };
+}
+
+function cbSaveToGame(){
+  const rows = cbExtractRows();
+
+  // quick validation
+  if(!rows.length){
+    cbMsg("Nothing to save.", false);
+    return;
+  }
+  for(const r of rows){
+    if(!r.category){
+      cbMsg("Missing category on a row.", false);
+      return;
+    }
+    if(!r.q){
+      cbMsg("Missing question on a row.", false);
+      return;
+    }
+    if(!r.a){
+      cbMsg("Missing answer on a row.", false);
+      return;
+    }
+  }
+
+  const newGame = cbBuildGameFromRows(rows);
+
+  // save + apply
+  saveGameOverride(newGame);
+  GAME = newGame;
+
+  // refresh app
+  state.modeJeopardy = !!GAME.jeopardyStyle;
+  setHeader();
+  buildGrid();
+
+  // IMPORTANT: used/teams keys depend on GAME.id.
+  // If user changed id in JSON earlier, this keeps things consistent.
+  // Here we do NOT auto-migrate older used/teams for simplicity.
+
+  // also refresh JSON editor view if present
+  const j = document.getElementById("gameJson");
+  if(j) j.value = JSON.stringify(GAME, null, 2);
+
+  cbMsg("Saved to Game ✓", true);
+}
+
+function cbRefreshCategoryDropdowns(){
+  // After you change the game (new categories), update existing category selects.
+  const tb = cbEl("cbTbody");
+  if(!tb) return;
+  const rows = [...tb.querySelectorAll("tr")];
+
+  for(const tr of rows){
+    const td = tr.querySelector("td");
+    if(!td) continue;
+    const oldSel = td.querySelector("select");
+    const oldNew = td.querySelector("input");
+    if(!oldSel) continue;
+
+    const currentValue = oldSel.value;
+    const newSel = cbMakeCategorySelect(currentValue);
+    newSel.addEventListener("change", ()=>{
+      if(newSel.value === "__new__"){
+        oldNew.style.display = "block";
+        oldNew.focus();
+      }else{
+        oldNew.value = "";
+        oldNew.style.display = "none";
+      }
+    });
+
+    td.replaceChild(newSel, oldSel);
+  }
+}
+
+/* Wire buttons once (call inside init after admin wiring exists) */
+function cbInit(){
+  const add = cbEl("cbAddBtn");
+  const load = cbEl("cbLoadBtn");
+  const save = cbEl("cbSaveBtn");
+  if(!add || !load || !save) return;
+
+  add.addEventListener("click", ()=> cbAddRow({ category:"", value:100, q:"", a:"" }));
+  load.addEventListener("click", cbLoadFromGame);
+  save.addEventListener("click", ()=>{
+    cbSaveToGame();
+    cbRefreshCategoryDropdowns();
+  });
+
+  // starter rows if empty
+  cbLoadFromGame();
+
+  // Optional: auto-open the Clue Builder panel so it's obvious
+  const details = cbEl("clueBuilderDetails");
+  if(details) details.open = true;
+}
+
+/* ===================== GAME OVERRIDE (ADMIN) ===================== */
+function loadGameOverride(){
+  try{
+    const raw = localStorage.getItem(LS_ADMIN.game());
+    if(!raw) return;
+    const parsed = JSON.parse(raw);
+    if(parsed && Array.isArray(parsed.categories)){
+      GAME = parsed;
+    }
+  }catch{}
+}
+function saveGameOverride(obj){
+  localStorage.setItem(LS_ADMIN.game(), JSON.stringify(obj));
+}
+function resetGameOverride(){
+  localStorage.removeItem(LS_ADMIN.game());
+  GAME = JSON.parse(JSON.stringify(DEFAULT_GAME));
+}
+
+/* ===================== AUDIO HELPERS ===================== */
+function applyAudioCfg(){
+  const cfg = loadCfg();
   const audio = $("#jeopardyAudio");
   if(!audio) return;
-  // reset so it feels like "think music" each time
+
+  const vol = Math.max(0, Math.min(1, Number(cfg.musicVol ?? 0.35)));
+  audio.volume = vol;
+
+  const srcEl = audio.querySelector("source");
+  const file = String(cfg.musicFile || "jeopardy-theme.mp3").trim();
+  if(srcEl && srcEl.getAttribute("src") !== file){
+    srcEl.setAttribute("src", file);
+    audio.load();
+  }
+}
+
+function playJeopardyMusic(){
+  const cfg = loadCfg();
+  if(!cfg.musicOnTimer) return;
+
+  const audio = $("#jeopardyAudio");
+  if(!audio) return;
   audio.currentTime = 0;
-  audio.play().catch(() => {
-    // Autoplay may be blocked until a user gesture; ignore quietly.
-  });
+  audio.play().catch(() => {});
 }
 function stopJeopardyMusic(){
   const audio = $("#jeopardyAudio");
@@ -625,7 +1237,108 @@ function stopJeopardyMusic(){
   audio.currentTime = 0;
 }
 
-/* -------- Storage -------- */
+/* ===================== ADMIN UI WIRING ===================== */
+function adminLoadUI(){
+  const cfg = loadCfg();
+
+  $("#cfgAutoStartTimer").checked = !!cfg.autoStartTimer;
+  $("#cfgMusicOnTimer").checked = !!cfg.musicOnTimer;
+  $("#cfgMusicFile").value = cfg.musicFile || "jeopardy-theme.mp3";
+  $("#cfgMusicVol").value = cfg.musicVol ?? 0.35;
+  $("#cfgDefaultTimer").value = cfg.defaultTimer ?? 0;
+
+  // apply default timer to main timer box too
+  $("#timerSeconds").value = cfg.defaultTimer ?? 0;
+
+  applyAudioCfg();
+
+  $("#gameJson").value = JSON.stringify(GAME, null, 2);
+  $("#adminMsg").textContent = "";
+}
+
+function adminSaveCfgFromUI(){
+  const cfg = loadCfg();
+  cfg.autoStartTimer = $("#cfgAutoStartTimer").checked;
+  cfg.musicOnTimer   = $("#cfgMusicOnTimer").checked;
+  cfg.musicFile      = ($("#cfgMusicFile").value || "").trim() || "jeopardy-theme.mp3";
+  cfg.musicVol       = Number($("#cfgMusicVol").value ?? 0.35);
+  cfg.defaultTimer   = Number($("#cfgDefaultTimer").value ?? 0);
+
+  // keep timer box synced
+  $("#timerSeconds").value = cfg.defaultTimer;
+
+  saveCfg(cfg);
+  applyAudioCfg();
+}
+
+function adminSaveGame(){
+  const msg = $("#adminMsg");
+  try{
+    const parsed = JSON.parse($("#gameJson").value);
+    if(!parsed || !Array.isArray(parsed.categories)) throw new Error("Missing categories[]");
+
+    saveGameOverride(parsed);
+    GAME = parsed;
+
+    // Update page
+    setHeader();
+    buildGrid();
+
+    msg.style.color = "#146c2e";
+    msg.textContent = "Saved ✓";
+  }catch(e){
+    msg.style.color = "#8b1a1a";
+    msg.textContent = "Invalid JSON ✗";
+  }
+}
+
+function adminExportGame(){
+  const blob = new Blob([JSON.stringify(GAME, null, 2)], { type:"application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `${GAME.id || "jeopardy"}-game.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function adminImportGame(file){
+  const msg = $("#adminMsg");
+  const reader = new FileReader();
+  reader.onload = () => {
+    try{
+      const parsed = JSON.parse(reader.result);
+      $("#gameJson").value = JSON.stringify(parsed, null, 2);
+      msg.style.color = "#2b2470";
+      msg.textContent = "Loaded. Click Save Game.";
+    }catch{
+      msg.style.color = "#8b1a1a";
+      msg.textContent = "Could not parse file.";
+    }
+  };
+  reader.readAsText(file);
+}
+
+function adminResetGame(){
+  resetGameOverride();
+  setHeader();
+  buildGrid();
+  $("#gameJson").value = JSON.stringify(GAME, null, 2);
+  $("#adminMsg").style.color = "#2b2470";
+  $("#adminMsg").textContent = "Reset ✓";
+}
+
+/* ===================== GAME STATE ===================== */
+const state = {
+  modeJeopardy: GAME.jeopardyStyle,
+  used: new Set(),
+  activeKey: null,
+  activeValue: 0,
+  teams: [],
+  scores: [],
+  timer: { seconds: 0, remaining: 0, running: false, interval: null }
+};
+
+/* -------- Storage (board/teams) -------- */
 function loadUsed(){
   try{
     const raw = localStorage.getItem(KEYS.used());
@@ -639,13 +1352,8 @@ function loadTeams(){
   try{
     const rawTeams = localStorage.getItem(KEYS.teams());
     const rawScores = localStorage.getItem(KEYS.scores());
-    if(rawTeams){
-      state.teams = JSON.parse(rawTeams) || [];
-    }
-    if(rawScores){
-      state.scores = JSON.parse(rawScores) || [];
-    }
-    // sanity: keep scores aligned
+    if(rawTeams) state.teams = JSON.parse(rawTeams) || [];
+    if(rawScores) state.scores = JSON.parse(rawScores) || [];
     if(state.teams.length && state.scores.length !== state.teams.length){
       state.scores = Array(state.teams.length).fill(0);
       saveTeams();
@@ -681,7 +1389,6 @@ function buildGrid(){
 
   grid.style.gridTemplateColumns = `repeat(${cols}, minmax(0, 1fr))`;
 
-  // Category row
   cats.forEach((c) => {
     const cell = document.createElement("div");
     cell.className = "cell cat";
@@ -689,7 +1396,6 @@ function buildGrid(){
     grid.appendChild(cell);
   });
 
-  // Clue rows
   for(let r=0; r<rows; r++){
     cats.forEach((c, ci) => {
       const clue = c.clues[r];
@@ -733,14 +1439,26 @@ function openClue(ci, r){
     ? "Mode: Jeopardy (Answer → Question)"
     : "Mode: Question → Answer";
 
-  // NEW: choose html if provided, otherwise fall back to text
+  // choose html if provided, otherwise fall back to text
   const promptHTML = state.modeJeopardy
-    ? (clue.a_html ?? clue.a)
-    : (clue.q_html ?? clue.q);
+    ? (clue.a_html ?? escapeHtml(clue.a ?? ""))
+    : (clue.q_html ?? escapeHtml(clue.q ?? ""));
 
-  const answerHTML = state.modeJeopardy
-    ? (clue.q_html ?? clue.q)
-    : (clue.a_html ?? clue.a);
+  let answerHTML = state.modeJeopardy
+    ? (clue.q_html ?? escapeHtml(clue.q ?? ""))
+    : (clue.a_html ?? escapeHtml(clue.a ?? ""));
+
+  // OPTIONAL TEACHER-FRIENDLY IMAGE FIELD:
+  // If clue.img exists, append it under the answer.
+  // (Keeps your a_html approach working too.)
+  if(clue.img && !String(answerHTML).includes("<img")){
+    const src = String(clue.img).trim();
+    if(src){
+      answerHTML += `<div style="margin-top:10px;">
+        <img src="${escapeHtml(src)}" alt="Image" style="max-width:520px;width:100%;height:auto;border-radius:12px;border:1px solid rgba(0,0,0,.10);">
+      </div>`;
+    }
+  }
 
   setClueContent($("#modalPrompt"), promptHTML);
   setClueContent($("#modalAnswer"), answerHTML);
@@ -757,12 +1475,13 @@ function openClue(ci, r){
 
   $("#overlay").classList.add("show");
 
-  // NEW: auto-start timer (and music) when clue opens (only if timerSeconds > 0)
-  startTimer();
+  // Auto-start timer based on Admin config
+  const cfg = loadCfg();
+  if(cfg.autoStartTimer) startTimer();
 }
 
 function closeModal(){
-  stopTimer(); // will also stop music
+  stopTimer();
   $("#overlay").classList.remove("show");
   state.activeKey = null;
   state.activeValue = 0;
@@ -794,6 +1513,8 @@ function toggleMode(){
 }
 
 /* -------- Awarding points -------- */
+function getNoPenalty(){ return $("#noPenaltyToggle").checked; }
+
 function renderAwardButtons(){
   const wrap = $("#awardGrid");
   wrap.innerHTML = "";
@@ -833,15 +1554,10 @@ function renderAwardButtons(){
   });
 }
 
-function getNoPenalty(){
-  return $("#noPenaltyToggle").checked;
-}
-
 function awardCorrect(teamIndex){
   if(state.activeKey == null) return;
   state.scores[teamIndex] = (state.scores[teamIndex] || 0) + state.activeValue;
 
-  // mark clue used
   state.used.add(state.activeKey);
   saveUsed();
   saveTeams();
@@ -853,14 +1569,11 @@ function awardCorrect(teamIndex){
 
 function awardIncorrect(teamIndex){
   if(state.activeKey == null) return;
-
   if(!getNoPenalty()){
     state.scores[teamIndex] = (state.scores[teamIndex] || 0) - state.activeValue;
     saveTeams();
     renderScoreboard();
   }
-
-  // keep clue open for other teams to try, but update button label
   renderAwardButtons();
 }
 
@@ -914,7 +1627,6 @@ function renderScoreboard(){
     return;
   }
 
-  // show in descending score order, but keep indexes for score edits
   const order = state.teams.map((t, i) => ({
     i,
     name: t.name,
@@ -964,7 +1676,6 @@ function renderScoreboard(){
     list.appendChild(row);
   });
 
-  // If a clue is open, keep award buttons consistent with penalty toggle
   if($("#overlay").classList.contains("show")){
     renderAwardButtons();
   }
@@ -1005,7 +1716,7 @@ function resetTimer(){
 
 function tick(){
   if(state.timer.remaining <= 0){
-    stopTimer(); // will also stop music
+    stopTimer();
     const badge = $("#modalValue");
     badge.style.background = "rgba(255,107,107,.22)";
     setTimeout(()=> badge.style.background = "rgba(240, 75, 216, .12)", 600);
@@ -1018,11 +1729,12 @@ function tick(){
 function startTimer(){
   if(state.timer.seconds <= 0) return;
   if(state.timer.running) return;
+
   state.timer.running = true;
   $("#timerToggleBtn").textContent = "Pause Timer";
   state.timer.interval = setInterval(tick, 1000);
 
-  // NEW: start music when timer starts
+  // music controlled by cfg
   playJeopardyMusic();
 }
 
@@ -1033,8 +1745,6 @@ function stopTimer(){
     state.timer.interval = null;
   }
   if($("#timerToggleBtn")) $("#timerToggleBtn").textContent = "Start Timer";
-
-  // NEW: stop music when timer stops/pauses
   stopJeopardyMusic();
 }
 
@@ -1051,28 +1761,28 @@ function resetBoard(){
   buildGrid();
 }
 
-function escapeHtml(s){
-  return String(s)
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
-}
-
 /* -------- Init -------- */
 function init(){
+  // Load admin overrides before building UI
+  loadGameOverride();
+
+  // If GAME changed, keep state default mode aligned
+  state.modeJeopardy = !!GAME.jeopardyStyle;
+
   setHeader();
+  applyAudioCfg();
+
+  // Apply default timer to the box (from cfg)
+  const cfg = loadCfg();
+  $("#timerSeconds").value = cfg.defaultTimer ?? 0;
 
   loadUsed();
   loadTeams();
 
-  // setup panel defaults
   const initialCount = state.teams.length ? state.teams.length : 4;
   $("#teamCount").value = initialCount;
   buildTeamInputs(initialCount);
 
-  // show correct panel
   if(state.teams.length){
     $("#setupPanel").style.display = "none";
     $("#scorePanel").style.display = "block";
@@ -1121,6 +1831,11 @@ function init(){
 
   // Keyboard shortcuts
   window.addEventListener("keydown", (e) => {
+    if($("#adminDetails")?.open && e.key === "Escape"){
+      // allow ESC to close admin accordion quickly
+      $("#adminDetails").open = false;
+      return;
+    }
     if(!$("#overlay").classList.contains("show")) return;
     if(e.key === "Escape") closeModal();
     if(e.key.toLowerCase() === "a") showAnswer();
@@ -1133,8 +1848,33 @@ function init(){
   $("#toggleModeBtn").textContent = state.modeJeopardy
     ? "Mode: Jeopardy (Answer → Question)"
     : "Mode: Question → Answer";
+
+  // Admin wiring (attendance-style)
+  showAdmin(false);
+  $("#adminUnlockBtn").addEventListener("click", unlockAdmin);
+  $("#adminSetBtn").addEventListener("click", setPasscode);
+  $("#adminLockBtn").addEventListener("click", () => showAdmin(false));
+
+  ["cfgAutoStartTimer","cfgMusicOnTimer","cfgDefaultTimer","cfgMusicVol","cfgMusicFile"].forEach(id=>{
+    $("#"+id).addEventListener("change", adminSaveCfgFromUI);
+  });
+
+  $("#saveGameBtn").addEventListener("click", adminSaveGame);
+  $("#exportGameBtn").addEventListener("click", adminExportGame);
+  $("#resetGameBtn").addEventListener("click", adminResetGame);
+
+  $("#importGameFile").addEventListener("change", (e)=>{
+    const f = e.target.files && e.target.files[0];
+    if(f) adminImportGame(f);
+    e.target.value = "";
+  });
+
+  // If admin is already unlocked in this session, load UI (not persisted like attendance)
+  // Teacher will unlock each session when needed.
 }
 init();
+cbInit();
 </script>
 </body>
 </html>
+
