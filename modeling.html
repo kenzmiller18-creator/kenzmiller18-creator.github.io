@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Modeling Equations</title>
+<style>
+  :root {
+    --bg: #f3f6fb;
+    --card: #ffffff;
+    --ink: #1f2a37;
+    --muted: #637083;
+    --line: #d9e2ef;
+    --accent: #a06bef;
+    --accent-2: #c45de1;
+    --good: #15803d;
+    --bad: #b91c1c;
+    --shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+    --radius: 18px;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: linear-gradient(180deg, #eef4ff 0%, var(--bg) 100%);
+    color: var(--ink);
+  }
+
+  .app {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 16px;
+  }
+
+  /* --- TOOLBAR --- */
+  .toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding: 12px 14px;
+    background: rgba(255,255,255,0.78);
+    border: 1px solid rgba(255,255,255,0.65);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    position: sticky;
+    top: 12px;
+    z-index: 20;
+  }
+
+  .toolbar-left, .toolbar-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .sim-title { font-weight: 800; letter-spacing: 0.2px; font-size: 14px; }
+
+  .toolbar-eq-badge {
+    display: inline-block;
+    margin-top: 4px;
+    padding: 6px 14px;
+    background: var(--card);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    border-radius: 8px;
+    font-weight: 800;
+    font-size: 20px;
+    box-shadow: 0 2px 4px rgba(37, 99, 235, 0.1);
+  }
+
+  .hub-link {
+    text-decoration: none;
+    font-weight: 700;
+    color: var(--accent);
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #e7efff;
+    font-size: 13px;
+  }
+
+  /* --- MAIN LAYOUT --- */
+  .main-layout {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+  }
+
+  .sidebar {
+    flex: 0 0 280px;
+    position: sticky;
+    top: 90px;
+  }
+
+  .content-area { flex: 1; }
+
+  .stack { display: grid; gap: 20px; }
+
+  /* --- CARDS --- */
+  .picker-card, .workspace-card, .counts-card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 16px;
+  }
+
+  .workspace-card { min-height: 500px; display: flex; flex-direction: column; gap: 12px; }
+
+  h2 { margin: 0 0 4px; font-size: 18px; font-weight: 800; }
+  .subtle { color: var(--muted); font-size: 13px; line-height: 1.4; }
+
+  /* --- VERTICAL PALETTE --- */
+  .vertical-palette {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 15px;
+  }
+
+  .element-row {
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 12px;
+    background: #fcfdff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .token-preview {
+    width: 60px;
+    height: 60px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: #f4f7fb;
+    border: 1px dashed var(--line);
+  }
+
+  .element-config { width: 100%; text-align: center; }
+  .inline-controls { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin: 6px 0; }
+
+  .swatch, .shape-pick {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 2px solid transparent;
+    cursor: pointer;
+  }
+
+  .swatch.active, .shape-pick.active {
+    border-color: #111827;
+    box-shadow: 0 0 0 2px white inset;
+  }
+
+  .shape-pick.circle { border-radius: 999px; }
+  .shape-pick.diamond { transform: rotate(45deg); border-radius: 4px; }
+  .shape-pick.hex { clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0 50%); }
+  .shape-pick.triangle { clip-path: polygon(50% 6%, 95% 90%, 5% 90%); }
+
+  .small-label {
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    display: block;
+    margin-top: 4px;
+  }
+
+  /* --- WORKSPACES --- */
+  .workspaces { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  .workspace-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+
+  .reactants-card { background: linear-gradient(180deg, #f8fbff 0%, #ffffff 30%); border-top: 4px solid var(--accent); }
+  .products-card { background: linear-gradient(180deg, #f7fffb 0%, #ffffff 30%); border-top: 4px solid var(--accent-2); }
+
+  .atom-bank { display: flex; flex-wrap: wrap; gap: 6px; }
+  .atom-btn {
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: #fff;
+    cursor: pointer;
+    font-weight: 800;
+    font-size: 12px;
+  }
+  .atom-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+  .workspace {
+    position: relative;
+    flex: 1;
+    min-height: 420px;
+    border-radius: 14px;
+    border: 2px dashed #d9e2ef;
+    background: radial-gradient(circle at 20px 20px, rgba(37,99,235,.03) 1.2px, transparent 1.3px) 0 0 / 24px 24px;
+    overflow: hidden;
+  }
+
+  .workspace-tip {
+    position: absolute;
+    bottom: 12px;
+    left: 12px;
+    padding: 6px 10px;
+    background: rgba(255,255,255,.8);
+    border-radius: 8px;
+    font-size: 11px;
+    color: var(--muted);
+    pointer-events: none;
+  }
+
+  /* --- ATOMS --- */
+  .atom {
+    width: 42px; height: 42px;
+    position: absolute;
+    display: grid; place-items: center;
+    font-weight: 800; color: #111827;
+    border: 2px solid rgba(17,24,39,.2);
+    box-shadow: 0 4px 8px rgba(0,0,0,.1);
+    cursor: grab;
+    user-select: none;
+    z-index: 2;
+  }
+  .atom.circle { border-radius: 999px; }
+  .atom.square { border-radius: 6px; }
+  .atom.diamond { border-radius: 6px; transform: rotate(45deg); }
+  .atom.diamond > span { transform: rotate(-45deg); }
+  .atom.hex { clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0 50%); }
+  .atom.triangle { clip-path: polygon(50% 6%, 95% 90%, 5% 90%); }
+  .atom.dragging { z-index: 10; cursor: grabbing; scale: 1.1; }
+
+  /* --- DASHBOARD --- */
+  .counts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 12px; }
+  .count-box { border: 1px solid var(--line); border-radius: 14px; padding: 14px; background: #fbfdff; }
+  .count-box.good { border-color: #bbf7d0; background: #f0fdf4; }
+
+  .status { padding: 14px; border-radius: 12px; font-weight: 700; display: none; margin-bottom: 10px; }
+  .status.show { display: block; }
+  .status.info { background: #eff6ff; color: #2e1252; border: 1px solid #bfdbfe; }
+  .status.good { background: #ecfdf5; color: var(--good); border: 1px solid #bbf7d0; }
+  .status.bad { background: #fef2f2; color: var(--bad); border: 1px solid #fecaca; }
+
+  .btn {
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+    padding: 8px 16px;
+    border-radius: 10px;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s ease;
+  }
+  .btn:hover { background: #f8fafc; transform: translateY(-1px); }
+  .btn.primary { background: var(--accent); color: white; border-color: var(--accent); }
+  .btn.good { background: var(--accent-2); color: white; border-color: var(--accent-2); }
+
+  @media (max-width: 1000px) {
+    .main-layout { flex-direction: column; }
+    .sidebar { flex: 1; width: 100%; position: static; }
+    .workspaces { grid-template-columns: 1fr; }
+  }
+</style>
+  </style>
+</head>
+<body>
+<div class="app">
+  <header class="toolbar">
+    <div class="toolbar-left">
+      <a class="hub-link" href="#">← Hub</a>
+      <div>
+        <div class="sim-title">Modeling Equations</div>
+        <div id="equationDisplay" class="toolbar-eq-badge"></div>
+      </div>
+    </div>
+    <div class="toolbar-right">
+      <button class="btn ghost" id="showAnswerBtn">Show Targets</button>
+      <button class="btn ghost" id="resetBtn">Reset</button>
+      <button class="btn primary" id="newProblemBtn">New Equation</button>
+      <button class="btn good" id="checkBtn">Check Model</button>
+    </div>
+  </header>
+
+  <div class="main-layout">
+    
+    <aside class="sidebar">
+      <section class="picker-card side-picker">
+        <h2>Atoms</h2>
+        <p class="subtle">Select your atom symbols.</p>
+        <div id="elementPalette" class="vertical-palette"></div>
+      </section>
+    </aside>
+
+    <main class="content-area">
+      <div class="stack">
+        
+        <div class="status info show" id="statusBox">
+          Select an atom type from the sidebar, then click in a workspace to place it.
+        </div>
+
+        <section class="workspaces">
+          <div class="workspace-card reactants-card">
+            <div class="workspace-header">
+              <div>
+                <h2>Reactants</h2>
+                <div class="subtle">Build reactant molecules here.</div>
+              </div>
+              <div class="atom-bank" id="reactantBank"></div>
+            </div>
+            <div class="workspace" id="reactantWorkspace">
+              <div class="workspace-tip">Click to add atoms. Drag to group.</div>
+            </div>
+          </div>
+
+          <div class="workspace-card products-card">
+            <div class="workspace-header">
+              <div>
+                <h2>Products</h2>
+                <div class="subtle">Build product molecules here.</div>
+              </div>
+              <div class="atom-bank" id="productBank"></div>
+            </div>
+            <div class="workspace" id="productWorkspace">
+              <div class="workspace-tip">Click to add atoms. Drag to group.</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="counts-card">
+          <h2>Atom Count Dashboard</h2>
+          <div class="subtle">Total count comparison for each element.</div>
+          <div class="legend" id="legend"></div>
+          <div class="counts-grid" id="countsGrid"></div>
+        </section>
+        
+      </div>
+    </main>
+  </div>
+</div>
+
+  <script>
+    const PROBLEMS = [
+      { display: '2H₂ + O₂ → 2H₂O', reactants: ['2H2', 'O2'], products: ['2H2O'] },
+      { display: 'CH₄ + 2O₂ → CO₂ + 2H₂O', reactants: ['CH4', '2O2'], products: ['CO2', '2H2O'] },
+      { display: '2Na + Cl₂ → 2NaCl', reactants: ['2Na', 'Cl2'], products: ['2NaCl'] },
+      { display: 'CaCO₃ → CaO + CO₂', reactants: ['CaCO3'], products: ['CaO', 'CO2'] },
+      { display: 'N₂ + 3H₂ → 2NH₃', reactants: ['N2', '3H2'], products: ['2NH3'] }
+    ];
+
+    const COLORS = ['#f59e0b', '#60a5fa', '#34d399', '#f472b6', '#a78bfa', '#fb7185', '#22c55e', '#94a3b8'];
+    const SHAPES = ['circle', 'square', 'diamond', 'hex', 'triangle'];
+    const ATOM_SIZE = 42;
+    const ATOM_RADIUS = ATOM_SIZE / 2;
+    const SNAP_DISTANCE = 68;
+    const TARGET_TOUCH_DISTANCE = 42;
+    const PLACEMENT_SEPARATION = 54;
+
+    const equationDisplay = document.getElementById('equationDisplay');
+    const elementPalette = document.getElementById('elementPalette');
+    const reactantBank = document.getElementById('reactantBank');
+    const productBank = document.getElementById('productBank');
+    const reactantWorkspace = document.getElementById('reactantWorkspace');
+    const productWorkspace = document.getElementById('productWorkspace');
+    const countsGrid = document.getElementById('countsGrid');
+    const legend = document.getElementById('legend');
+    const statusBox = document.getElementById('statusBox');
+
+    const state = {
+      problemIndex: 0,
+      currentProblem: null,
+      elements: [],
+      styles: {},
+      selectedElement: null,
+      showAnswerCounts: false,
+      nextId: 1,
+      placed: {
+        reactants: { atoms: [] },
+        products: { atoms: [] }
+      }
+    };
+
+    function parseFormulaWithCoeff(input) {
+      const match = input.match(/^(\d+)?([A-Za-z0-9]+)$/);
+      const coeff = match && match[1] ? Number(match[1]) : 1;
+      const formula = match ? match[2] : input;
+      return { coeff, formula, atoms: parseFormula(formula) };
+    }
+
+    function parseFormula(formula) {
+      const counts = {};
+      const regex = /([A-Z][a-z]?)(\d*)/g;
+      let m;
+      while ((m = regex.exec(formula))) {
+        const el = m[1];
+        const n = m[2] ? Number(m[2]) : 1;
+        counts[el] = (counts[el] || 0) + n;
+      }
+      return counts;
+    }
+
+    function extractElements(problem) {
+      const set = new Set();
+      problem.reactants.concat(problem.products).forEach(item => {
+        const parsed = parseFormulaWithCoeff(item);
+        Object.keys(parsed.atoms).forEach(el => set.add(el));
+      });
+      return Array.from(set);
+    }
+
+    function expectedCounts(side) {
+      const counts = {};
+      state.currentProblem[side].forEach(item => {
+        const parsed = parseFormulaWithCoeff(item);
+        Object.entries(parsed.atoms).forEach(([el, n]) => {
+          counts[el] = (counts[el] || 0) + n * parsed.coeff;
+        });
+      });
+      return counts;
+    }
+
+    function loadProblem(index) {
+      state.problemIndex = index;
+      state.currentProblem = PROBLEMS[index];
+      state.elements = extractElements(state.currentProblem);
+      state.selectedElement = state.elements[0] || null;
+      state.nextId = 1;
+      state.placed = {
+        reactants: { atoms: [] },
+        products: { atoms: [] }
+      };
+
+      state.elements.forEach((el, i) => {
+        if (!state.styles[el]) {
+          state.styles[el] = {
+            color: COLORS[i % COLORS.length],
+            shape: SHAPES[i % SHAPES.length]
+          };
+        }
+      });
+
+      equationDisplay.textContent = state.currentProblem.display;
+      renderElementPalette();
+      renderAtomBanks();
+      redrawAll();
+      refreshCounts();
+      setStatus('Choose an atom type, click to place atoms, then drag them so touching atoms make one molecule.', 'info');
+    }
+
+    function renderElementPalette() {
+      elementPalette.innerHTML = '';
+      legend.innerHTML = '';
+
+      state.elements.forEach(el => {
+        const row = document.createElement('div');
+        row.className = 'element-row';
+        row.innerHTML = `
+          <div class="token-preview" data-preview="${el}"></div>
+          <div class="element-config">
+            <div><strong>${el}</strong> <span class="subtle">symbol</span></div>
+            <div class="small-label">Color</div>
+            <div class="inline-controls colors"></div>
+            <div class="small-label">Shape</div>
+            <div class="inline-controls shapes"></div>
+          </div>
+        `;
+
+        const colorsWrap = row.querySelector('.colors');
+        COLORS.forEach(color => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'swatch' + (state.styles[el].color === color ? ' active' : '');
+          btn.style.background = color;
+          btn.addEventListener('click', () => {
+            state.styles[el].color = color;
+            renderElementPalette();
+            redrawAll();
+            refreshCounts();
+          });
+          colorsWrap.appendChild(btn);
+        });
+
+        const shapesWrap = row.querySelector('.shapes');
+        SHAPES.forEach(shape => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'shape-pick ' + shape + (state.styles[el].shape === shape ? ' active' : '');
+          btn.style.background = state.styles[el].color;
+          btn.addEventListener('click', () => {
+            state.styles[el].shape = shape;
+            renderElementPalette();
+            redrawAll();
+            refreshCounts();
+          });
+          shapesWrap.appendChild(btn);
+        });
+
+        elementPalette.appendChild(row);
+        row.querySelector(`[data-preview="${el}"]`).appendChild(makeAtomVisual(el, state.styles[el], true));
+
+        const pill = document.createElement('div');
+        pill.className = 'legend-pill';
+        pill.innerHTML = `<span class="mini-shape ${state.styles[el].shape}" style="--c:${state.styles[el].color}"></span>${el}`;
+        legend.appendChild(pill);
+      });
+    }
+
+    function renderAtomBanks() {
+      reactantBank.innerHTML = '';
+      productBank.innerHTML = '';
+      state.elements.forEach(el => {
+        reactantBank.appendChild(makeElementButton(el));
+        productBank.appendChild(makeElementButton(el));
+      });
+    }
+
+    function makeElementButton(el) {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'atom-btn' + (state.selectedElement === el ? ' active' : '');
+      btn.textContent = '+ ' + el;
+      btn.addEventListener('click', () => {
+        state.selectedElement = el;
+        renderAtomBanks();
+        setStatus('Selected ' + el + '. Click in either workspace to place that atom.', 'info');
+      });
+      return btn;
+    }
+
+    function makeAtomVisual(label, style, previewMode) {
+      const atom = document.createElement('div');
+      atom.className = 'atom ' + style.shape;
+      atom.style.background = style.color;
+      atom.style.position = previewMode ? 'relative' : 'absolute';
+      atom.style.left = previewMode ? '0px' : '';
+      atom.style.top = previewMode ? '0px' : '';
+      const span = document.createElement('span');
+      span.textContent = label;
+      atom.appendChild(span);
+      return atom;
+    }
+
+    function redrawAll() {
+      redrawWorkspace('reactants', reactantWorkspace);
+      redrawWorkspace('products', productWorkspace);
+    }
+
+    function clearWorkspace(workspace) {
+      workspace.querySelectorAll('.atom').forEach(node => node.remove());
+    }
+
+    function redrawWorkspace(side, workspace) {
+      clearWorkspace(workspace);
+      state.placed[side].atoms.forEach(atom => {
+        const style = state.styles[atom.el];
+        const node = makeAtomVisual(atom.el, style, false);
+        node.style.left = atom.x + 'px';
+        node.style.top = atom.y + 'px';
+        node.dataset.atomId = atom.id;
+        enableDrag(node, side, atom, workspace);
+        workspace.appendChild(node);
+      });
+    }
+
+    function handleWorkspaceClick(side, workspace, event) {
+      const rect = workspace.getBoundingClientRect();
+      addAtom(side, workspace, event.clientX - rect.left, event.clientY - rect.top);
+    }
+
+    function addAtom(side, workspace, x, y) {
+      if (!state.selectedElement) {
+        setStatus('Choose an element token first.', 'bad');
+        return;
+      }
+
+      const atom = {
+        id: 'a' + state.nextId++,
+        el: state.selectedElement,
+        x: clamp(x - ATOM_RADIUS, 10, workspace.clientWidth - ATOM_SIZE - 10),
+        y: clamp(y - ATOM_RADIUS, 10, workspace.clientHeight - ATOM_SIZE - 10)
+      };
+
+      state.placed[side].atoms.push(atom);
+      nudgeAwayFromNeighbors(side, atom.id, workspace);
+      redrawWorkspace(side, workspace);
+      refreshCounts();
+    }
+
+    function getAtomById(side, atomId) {
+      return state.placed[side].atoms.find(atom => atom.id === atomId) || null;
+    }
+
+    function enableDrag(node, side, atom, workspace) {
+      let startX = 0;
+      let startY = 0;
+      let originalX = 0;
+      let originalY = 0;
+      let moved = false;
+
+      node.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        node.setPointerCapture(e.pointerId);
+        startX = e.clientX;
+        startY = e.clientY;
+        originalX = atom.x;
+        originalY = atom.y;
+        moved = false;
+        node.classList.add('dragging');
+
+        const onMove = (ev) => {
+          const dx = ev.clientX - startX;
+          const dy = ev.clientY - startY;
+          if (Math.abs(dx) > 3 || Math.abs(dy) > 3) moved = true;
+
+          atom.x = clamp(originalX + dx, 10, workspace.clientWidth - ATOM_SIZE - 10);
+          atom.y = clamp(originalY + dy, 10, workspace.clientHeight - ATOM_SIZE - 10);
+
+          node.style.left = atom.x + 'px';
+          node.style.top = atom.y + 'px';
+        };
+
+        const onUp = () => {
+          node.classList.remove('dragging');
+          if (moved) {
+            snapDraggedAtom(side, atom.id, workspace);
+          }
+          redrawWorkspace(side, workspace);
+          node.removeEventListener('pointermove', onMove);
+          node.removeEventListener('pointerup', onUp);
+          node.removeEventListener('pointercancel', onUp);
+        };
+
+        node.addEventListener('pointermove', onMove);
+        node.addEventListener('pointerup', onUp);
+        node.addEventListener('pointercancel', onUp);
+      });
+    }
+
+    function nudgeAwayFromNeighbors(side, atomId, workspace) {
+      const atom = getAtomById(side, atomId);
+      if (!atom) return;
+      const others = state.placed[side].atoms.filter(a => a.id !== atomId);
+      others.forEach(other => {
+        const dx = atom.x - other.x;
+        const dy = atom.y - other.y;
+        const distance = Math.sqrt(dx * dx + dy * dy) || 0;
+        if (distance < PLACEMENT_SEPARATION && distance > 0) {
+          const push = (PLACEMENT_SEPARATION - distance) / distance;
+          atom.x = clamp(atom.x + dx * push, 10, workspace.clientWidth - ATOM_SIZE - 10);
+          atom.y = clamp(atom.y + dy * push, 10, workspace.clientHeight - ATOM_SIZE - 10);
+        }
+        if (distance === 0) {
+          atom.x = clamp(atom.x + 30, 10, workspace.clientWidth - ATOM_SIZE - 10);
+          atom.y = clamp(atom.y + 30, 10, workspace.clientHeight - ATOM_SIZE - 10);
+        }
+      });
+    }
+
+    function snapDraggedAtom(side, atomId, workspace) {
+      const atom = getAtomById(side, atomId);
+      if (!atom) return;
+      const nearest = findNearestSnapCandidate(side, atomId);
+      if (!nearest) return;
+
+      const target = nearest.atom;
+      const dx = atom.x - target.x;
+      const dy = atom.y - target.y;
+      const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+      const desired = TARGET_TOUCH_DISTANCE;
+      const scale = desired / dist;
+
+      atom.x = clamp(target.x + dx * scale, 10, workspace.clientWidth - ATOM_SIZE - 10);
+      atom.y = clamp(target.y + dy * scale, 10, workspace.clientHeight - ATOM_SIZE - 10);
+
+      separateCrowdedCluster(side, atomId, workspace);
+    }
+
+    function findNearestSnapCandidate(side, atomId) {
+      const atom = getAtomById(side, atomId);
+      if (!atom) return null;
+      let nearest = null;
+
+      state.placed[side].atoms.forEach(other => {
+        if (other.id === atomId) return;
+        const dx = atom.x - other.x;
+        const dy = atom.y - other.y;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist <= SNAP_DISTANCE) {
+          if (!nearest || dist < nearest.distance) {
+            nearest = { atom: other, distance: dist };
+          }
+        }
+      });
+
+      return nearest;
+    }
+
+    function separateCrowdedCluster(side, movedAtomId, workspace) {
+      const movedAtom = getAtomById(side, movedAtomId);
+      if (!movedAtom) return;
+
+      state.placed[side].atoms.forEach(other => {
+        if (other.id === movedAtomId) return;
+        const dx = other.x - movedAtom.x;
+        const dy = other.y - movedAtom.y;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+
+        if (dist < 22) {
+          const push = 22 / dist;
+          other.x = clamp(movedAtom.x + dx * push, 10, workspace.clientWidth - ATOM_SIZE - 10);
+          other.y = clamp(movedAtom.y + dy * push, 10, workspace.clientHeight - ATOM_SIZE - 10);
+        }
+      });
+    }
+
+    function countPlacedAtoms(side) {
+      const counts = {};
+      state.placed[side].atoms.forEach(atom => {
+        counts[atom.el] = (counts[atom.el] || 0) + 1;
+      });
+      return counts;
+    }
+
+    function atomsTouch(a, b) {
+      const ax = a.x + ATOM_RADIUS;
+      const ay = a.y + ATOM_RADIUS;
+      const bx = b.x + ATOM_RADIUS;
+      const by = b.y + ATOM_RADIUS;
+      const dx = bx - ax;
+      const dy = by - ay;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      return dist <= 46;
+    }
+
+    function componentsForSide(side) {
+      const atoms = state.placed[side].atoms;
+      const visited = new Set();
+      const components = [];
+
+      atoms.forEach(atom => {
+        if (visited.has(atom.id)) return;
+        const queue = [atom.id];
+        const component = [];
+        visited.add(atom.id);
+
+        while (queue.length) {
+          const currentId = queue.shift();
+          component.push(currentId);
+          const current = getAtomById(side, currentId);
+          if (!current) continue;
+
+          atoms.forEach(other => {
+            if (other.id === currentId || visited.has(other.id)) return;
+            if (atomsTouch(current, other)) {
+              visited.add(other.id);
+              queue.push(other.id);
+            }
+          });
+        }
+
+        components.push(component);
+      });
+
+      return components;
+    }
+
+    function componentFormulaCounts(side, component) {
+      const counts = {};
+      component.forEach(atomId => {
+        const atom = getAtomById(side, atomId);
+        if (!atom) return;
+        counts[atom.el] = (counts[atom.el] || 0) + 1;
+      });
+      return counts;
+    }
+
+    function formulaCountsMatch(a, b) {
+      const keys = new Set(Object.keys(a).concat(Object.keys(b)));
+      for (const key of keys) {
+        if ((a[key] || 0) !== (b[key] || 0)) return false;
+      }
+      return true;
+    }
+
+    function sideMatchesFormulaGroups(side) {
+      const targetGroups = [];
+      state.currentProblem[side].forEach(item => {
+        const parsed = parseFormulaWithCoeff(item);
+        for (let i = 0; i < parsed.coeff; i += 1) {
+          targetGroups.push(parsed.atoms);
+        }
+      });
+
+      const builtGroups = componentsForSide(side).map(component => componentFormulaCounts(side, component));
+      if (builtGroups.length !== targetGroups.length) return false;
+
+      const used = new Array(targetGroups.length).fill(false);
+      for (const built of builtGroups) {
+        let matchIndex = -1;
+        for (let i = 0; i < targetGroups.length; i += 1) {
+          if (used[i]) continue;
+          if (formulaCountsMatch(built, targetGroups[i])) {
+            matchIndex = i;
+            break;
+          }
+        }
+        if (matchIndex === -1) return false;
+        used[matchIndex] = true;
+      }
+      return true;
+    }
+
+    function refreshCounts() {
+      countsGrid.innerHTML = '';
+      const reactantCounts = countPlacedAtoms('reactants');
+      const productCounts = countPlacedAtoms('products');
+      const answerR = expectedCounts('reactants');
+      const answerP = expectedCounts('products');
+
+      state.elements.forEach(el => {
+        const r = reactantCounts[el] || 0;
+        const p = productCounts[el] || 0;
+        const matched = r === p && r > 0;
+        const box = document.createElement('div');
+        box.className = 'count-box ' + (matched ? 'good' : 'bad');
+
+        let html = '';
+        html += '<div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">';
+        html += '<strong>' + el + '</strong>';
+        html += '<span class="small-label">' + (matched ? 'matched' : 'not matched') + '</span>';
+        html += '</div>';
+        html += '<div style="margin-top:8px;">Reactants: <strong>' + r + '</strong></div>';
+        html += '<div>Products: <strong>' + p + '</strong></div>';
+        if (state.showAnswerCounts) {
+          html += '<div class="subtle" style="margin-top:8px;">Target as written: R ' + (answerR[el] || 0) + ' / P ' + (answerP[el] || 0) + '</div>';
+        }
+        box.innerHTML = html;
+        countsGrid.appendChild(box);
+      });
+    }
+
+    function checkModel() {
+      const answerR = expectedCounts('reactants');
+      const answerP = expectedCounts('products');
+      const placedR = countPlacedAtoms('reactants');
+      const placedP = countPlacedAtoms('products');
+
+      const countCorrect = state.elements.every(el => {
+        return (placedR[el] || 0) === (answerR[el] || 0) && (placedP[el] || 0) === (answerP[el] || 0);
+      });
+
+      const sideBalanced = state.elements.every(el => {
+        return (placedR[el] || 0) === (placedP[el] || 0);
+      });
+
+      const groupedCorrectly = sideMatchesFormulaGroups('reactants') && sideMatchesFormulaGroups('products');
+
+      if (countCorrect && sideBalanced && groupedCorrectly) {
+        setStatus('Nice — the atom counts work and the touching groups match the formulas in the equation.', 'good');
+      } else if (countCorrect && sideBalanced) {
+        setStatus('Your atom totals work, but some atoms are not grouped into the correct touching clusters yet.', 'bad');
+      } else {
+        setStatus('Not yet. Check total atoms and which atoms are touching each other.', 'bad');
+      }
+    }
+
+    function setStatus(message, mode) {
+      statusBox.textContent = message;
+      statusBox.className = 'status show ' + (mode || 'info');
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    document.getElementById('newProblemBtn').addEventListener('click', function () {
+      loadProblem((state.problemIndex + 1) % PROBLEMS.length);
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', function () {
+      loadProblem(state.problemIndex);
+    });
+
+    document.getElementById('checkBtn').addEventListener('click', function () {
+      checkModel();
+    });
+
+    document.getElementById('showAnswerBtn').addEventListener('click', function () {
+      state.showAnswerCounts = !state.showAnswerCounts;
+      refreshCounts();
+      setStatus(state.showAnswerCounts ? 'Answer counts are visible.' : 'Answer counts are hidden.', 'info');
+    });
+
+    reactantWorkspace.addEventListener('click', function (event) {
+      handleWorkspaceClick('reactants', reactantWorkspace, event);
+    });
+
+    productWorkspace.addEventListener('click', function (event) {
+      handleWorkspaceClick('products', productWorkspace, event);
+    });
+
+    loadProblem(0);
+  </script>
+</body>
+</html>
