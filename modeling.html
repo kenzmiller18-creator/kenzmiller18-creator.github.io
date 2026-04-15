@@ -284,6 +284,7 @@
       <button class="btn ghost" id="resetBtn">Reset</button>
       <button class="btn primary" id="newProblemBtn">New Equation</button>
       <button class="btn good" id="checkBtn">Check Model</button>
+      <span id="scoreDisplay" class="chip">Solves: 0</span> <button class="btn ghost" id="submitScoreBtn">Submit Score</button>
     </div>
   </header>
 
@@ -342,6 +343,18 @@
       </div>
     </main>
   </div>
+
+  <div id="nameModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:100; align-items:center; justify-content:center; padding:20px;">
+  <div style="background:white; padding:24px; border-radius:18px; max-width:400px; width:100%; box-shadow:var(--shadow);">
+    <h3 style="margin-top:0;">Submit to Leaderboard</h3>
+    <p class="subtle">Enter a nickname to show off your balancing skills!</p>
+    <input type="text" id="displayNameInput" placeholder="Your name..." style="width:100%; padding:12px; border-radius:10px; border:1px solid var(--line); margin:12px 0; font-size:16px;">
+    <div style="display:flex; gap:10px; justify-content:flex-end;">
+      <button class="btn ghost" id="cancelName">Cancel</button>
+      <button class="btn primary" id="continueName">Submit</button>
+    </div>
+  </div>
+</div>
 </div>
 
   <script>
@@ -357,8 +370,8 @@
     const SHAPES = ['circle', 'square', 'diamond', 'hex', 'triangle'];
     const ATOM_SIZE = 42;
     const ATOM_RADIUS = ATOM_SIZE / 2;
-    const SNAP_DISTANCE = 68;
-    const TARGET_TOUCH_DISTANCE = 42;
+    const SNAP_DISTANCE = 60;
+    const TARGET_TOUCH_DISTANCE = 38;
     const PLACEMENT_SEPARATION = 54;
 
     const equationDisplay = document.getElementById('equationDisplay');
@@ -863,6 +876,7 @@
 
       if (countCorrect && sideBalanced && groupedCorrectly) {
         setStatus('Nice — the atom counts work and the touching groups match the formulas in the equation.', 'good');
+        markAsSolved();
       } else if (countCorrect && sideBalanced) {
         setStatus('Your atom totals work, but some atoms are not grouped into the correct touching clusters yet.', 'bad');
       } else {
@@ -879,8 +893,131 @@
       return Math.max(min, Math.min(max, value));
     }
 
+    const SIM_ID = "modeling";
+const TOKEN_SALT = "MoLeCuTeOrG";
+const FORM_BASE_URL = "https://docs.google.com/forms/d/e/1FAIpQLSckXbWQsVWobjrktGMoF7AtY6gMch0eQMjsGlddVv1cxgNHgQ/formResponse";
+const FORM_ENTRIES = {
+  displayName: "entry.366340186",
+  sim: "entry.1832756779",
+  score: "entry.221944829",
+  token: "entry.1636605257",
+};
+
+// --- SCORE TRACKING STATE ---
+const scoreState = {
+  solves: 0,
+  attempts: 0,
+  startedAt: Date.now(),
+  currentSolved: false
+};
+
+// Call this inside your checkModel() function when they get it 100% right!
+function markAsSolved() {
+  if (!scoreState.currentSolved) {
+    scoreState.solves++;
+    scoreState.currentSolved = true;
+    
+    // Update the UI chip in the toolbar
+    const display = document.getElementById('scoreDisplay');
+    if (display) {
+      display.textContent = `Solves: ${scoreState.solves}`;
+      // Add a little visual flair
+      display.style.background = "var(--good)";
+      display.style.color = "white";
+      setTimeout(() => {
+        display.style.background = "";
+        display.style.color = "";
+      }, 1000);
+    }
+    console.log("Point added! Total solves:", scoreState.solves);
+  }
+}
+
+// Reset the "current solved" flag when they click "New Equation"
+// Add this to your newProblemBtn click listener
+function resetForNewProblem() {
+  scoreState.currentSolved = false;
+  scoreState.attempts++;
+}
+
+// --- LEADERBOARD FUNCTIONS ---
+function fnv1a(str) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = (h * 0x01000193) >>> 0;
+  }
+  return ("00000000" + h.toString(16)).slice(-8);
+}
+
+function makeToken(summary) {
+  const payload = {
+    v: 1, sim: SIM_ID, score: summary.score, solves: summary.solves,
+    attempts: summary.attempts, seconds: summary.seconds,
+    t: Date.now(), nonce: Math.random().toString(36).slice(2, 10),
+  };
+  const core = JSON.stringify(payload);
+  payload.sig = fnv1a(core + "|" + TOKEN_SALT);
+  return btoa(JSON.stringify(payload));
+}
+
+function askDisplayName() {
+  return new Promise((resolve) => {
+    const modal = document.getElementById("nameModal");
+    const input = document.getElementById("displayNameInput");
+    const cancel = document.getElementById("cancelName");
+    const cont = document.getElementById("continueName");
+    function close(val) {
+      modal.style.display = "none";
+      resolve(val);
+    }
+    modal.style.display = "flex";
+    input.focus();
+    cancel.onclick = () => close(null);
+    cont.onclick = () => close(input.value.trim());
+  });
+}
+
+document.getElementById("submitScoreBtn").onclick = async () => {
+  const summary = {
+    score: scoreState.solves * 10, // Example: 10 points per solve
+    solves: scoreState.solves,
+    attempts: scoreState.attempts,
+    seconds: Math.floor((Date.now() - scoreState.startedAt) / 1000)
+  };
+
+  if (summary.solves === 0) {
+    alert("Solve at least one equation before submitting!");
+    return;
+  }
+
+  const displayName = await askDisplayName();
+  if (!displayName) return;
+
+  const token = makeToken(summary);
+  const params = new URLSearchParams();
+  params.set(FORM_ENTRIES.displayName, displayName);
+  params.set(FORM_ENTRIES.sim, SIM_ID);
+  params.set(FORM_ENTRIES.score, String(summary.score));
+  params.set(FORM_ENTRIES.token, token);
+
+  fetch(FORM_BASE_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: params.toString(),
+  });
+
+  alert("Score submitted! Session reset.");
+  location.reload(); // Optional: Reset sim after submission
+};
+
     document.getElementById('newProblemBtn').addEventListener('click', function () {
-      loadProblem((state.problemIndex + 1) % PROBLEMS.length);
+     
+      resetForNewProblem();
+      scoreState.currentSolved = false; // Allow a point for the new problem
+        scoreState.attempts++;
+    loadProblem((state.problemIndex + 1) % PROBLEMS.length);
     });
 
     document.getElementById('resetBtn').addEventListener('click', function () {
