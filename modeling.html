@@ -6,8 +6,8 @@
   <title>Modeling Equations: Master Edition</title>
 <style>
   :root {
-    --bg: #f3f6fb; --card: #ffffff; --ink: #1f2a37; --muted: #637083;
-    --line: #d9e2ef; --accent: #a06bef; --accent-2: #c45de1;
+    --bg: #ffcfff; --card: #ffffff; --ink: #1f2a37; --muted: #83637e;
+    --line: #f5d0ff; --accent: #a06bef; --accent-2: #c45de1;
     --good: #15803d; --bad: #b91c1c; --shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
     --radius: 18px;
   }
@@ -61,7 +61,7 @@
   .atom.circle { border-radius: 999px; }
   .atom.square { border-radius: 6px; }
   .atom.diamond { border-radius: 6px; transform: rotate(45deg); }
-  .atom.diamond span { transform: rotate(-45deg); display: block; } /* Fix sideways letters */
+  .atom.diamond span { transform: rotate(-45deg); display: block; } 
   .atom.hex { clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0 50%); }
   .atom.triangle { clip-path: polygon(50% 6%, 95% 90%, 5% 90%); }
   .atom.triangle span { margin-top: 10px; }
@@ -78,7 +78,6 @@
   .swatch:hover, .shape-pick:hover { transform: scale(1.1); }
   .swatch.active, .shape-pick.active { border: 2px solid #000; outline: 2px solid white; }
 
-  /* Shape Picker specific visuals */
   .shape-pick.circle { border-radius: 50%; }
   .shape-pick.square { border-radius: 2px; }
   .shape-pick.diamond { transform: rotate(45deg); border-radius: 2px; width: 16px; height: 16px; margin: 3px; }
@@ -178,6 +177,17 @@
 </div>
 
 <script>
+// --- CONFIG & STATE ---
+const SIM_ID = "modeling";
+const TOKEN_SALT = "MoLeCuTeOrG";
+const FORM_BASE_URL = "https://docs.google.com/forms/d/e/1FAIpQLSckXbWQsVWobjrktGMoF7AtY6gMch0eQMjsGlddVv1cxgNHgQ/formResponse";
+const FORM_ENTRIES = { 
+  name: "entry.366340186", 
+  sim: "entry.1832756779", 
+  score: "entry.221944829",
+  token: "entry.1636605257" 
+};
+
 const PROBLEMS = [
     { display: '2H₂ + O₂ → 2H₂O', reactants: ['2H2', 'O2'], products: ['2H2O'], isBalanced: true },
     { display: 'H₂ + O₂ → H₂O', reactants: ['H2', 'O2'], products: ['H2O'], isBalanced: false },
@@ -203,9 +213,34 @@ let state = {
   solves: 0,
   deck: [],
   deckIdx: 0,
-  currentSolved: false
+  currentSolved: false,
+  startTime: Date.now()
 };
 
+// --- HASHING UTILS ---
+function fnv1a(str) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = (h * 0x01000193) >>> 0;
+  }
+  return ("00000000" + h.toString(16)).slice(-8);
+}
+
+function generateToken(name, score) {
+  const payload = {
+    v: 1,
+    sim: SIM_ID,
+    name: name,
+    score: score,
+    t: Date.now()
+  };
+  const json = JSON.stringify(payload);
+  const sig = fnv1a(json + "|" + TOKEN_SALT);
+  return btoa(JSON.stringify({ ...payload, sig }));
+}
+
+// --- CORE SIM LOGIC ---
 function parseFormula(input) {
   const match = input.match(/^(\d+)?([A-Z][a-z]?\d*(?:[A-Z][a-z]?\d*)*)$/);
   const coeff = match && match[1] ? parseInt(match[1]) : 1;
@@ -283,7 +318,7 @@ function renderPalette() {
     SHAPES.forEach(s => {
       const b = document.createElement('button');
       b.className = `shape-pick ${s} ${state.styles[el].shape === s ? 'active' : ''}`;
-      b.style.backgroundColor = state.styles[el].color; // Fill picker with current color
+      b.style.backgroundColor = state.styles[el].color;
       b.onclick = () => { state.styles[el].shape = s; renderPalette(); redraw(); };
       row.querySelector(`#s-${el}`).appendChild(b);
     });
@@ -447,7 +482,11 @@ function validate(claim) {
 }
 
 function addPoint() {
-  if (!state.currentSolved) { state.solves++; state.currentSolved = true; document.getElementById('scoreDisplay').textContent = "Solves: " + state.solves; }
+  if (!state.currentSolved) { 
+    state.solves++; 
+    state.currentSolved = true; 
+    document.getElementById('scoreDisplay').textContent = "Solves: " + state.solves; 
+  }
 }
 
 function updateStatus(msg, type) {
@@ -455,9 +494,7 @@ function updateStatus(msg, type) {
   b.textContent = msg; b.className = `status show ${type}`;
 }
 
-const FORM_BASE_URL = "https://docs.google.com/forms/d/e/1FAIpQLSckXbWQsVWobjrktGMoF7AtY6gMch0eQMjsGlddVv1cxgNHgQ/formResponse";
-const FORM_ENTRIES = { name: "entry.366340186", sim: "entry.1832756779", score: "entry.221944829" };
-
+// --- SUBMISSION ---
 document.getElementById('submitScoreBtn').onclick = () => {
   if (state.solves === 0) return alert("Solve an equation first!");
   document.getElementById('nameModal').style.display = 'flex';
@@ -466,12 +503,24 @@ document.getElementById('submitScoreBtn').onclick = () => {
 document.getElementById('continueName').onclick = () => {
   const name = document.getElementById('displayNameInput').value.trim();
   if (!name) return;
+
+  const scoreVal = state.solves;
+  const token = generateToken(name, scoreVal);
+
   const params = new URLSearchParams();
   params.set(FORM_ENTRIES.name, name);
-  params.set(FORM_ENTRIES.sim, "modeling_master_v2");
-  params.set(FORM_ENTRIES.score, state.solves);
-  fetch(FORM_BASE_URL, { method: "POST", mode: "no-cors", body: params });
-  alert("Score submitted!");
+  params.set(FORM_ENTRIES.sim, SIM_ID);
+  params.set(FORM_ENTRIES.score, scoreVal);
+  params.set(FORM_ENTRIES.token, token);
+
+  fetch(FORM_BASE_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: params.toString()
+  });
+
+  alert("Score submitted! Great job.");
   location.reload();
 };
 
