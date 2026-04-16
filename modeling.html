@@ -363,8 +363,24 @@
       { display: 'CH₄ + 2O₂ → CO₂ + 2H₂O', reactants: ['CH4', '2O2'], products: ['CO2', '2H2O'] },
       { display: '2Na + Cl₂ → 2NaCl', reactants: ['2Na', 'Cl2'], products: ['2NaCl'] },
       { display: 'CaCO₃ → CaO + CO₂', reactants: ['CaCO3'], products: ['CaO', 'CO2'] },
-      { display: 'N₂ + 3H₂ → 2NH₃', reactants: ['N2', '3H2'], products: ['2NH3'] }
-    ];
+      { display: 'N₂ + 3H₂ → 2NH₃', reactants: ['N2', '3H2'], products: ['2NH3'] },
+
+      { display: '2Mg + O₂ → 2MgO', reactants: ['2Mg', 'O2'], products: ['2MgO'] },
+    { display: 'H₂ + Cl₂ → 2HCl', reactants: ['H2', 'Cl2'], products: ['2HCl'] },
+    { display: 'Zn + 2HCl → ZnCl₂ + H₂', reactants: ['Zn', '2HCl'], products: ['ZnCl2', 'H2'] },
+    { display: '2H₂O₂ → 2H₂O + O₂', reactants: ['2H2O2'], products: ['2H2O', 'O2'] },
+    { display: '2CO + O₂ → 2CO₂', reactants: ['2CO', 'O2'], products: ['2CO2'] },
+    { display: 'Fe + S → FeS', reactants: ['Fe'], products: ['FeS'], reactants: ['Fe', 'S'] },
+    { display: 'C + O₂ → CO₂', reactants: ['C', 'O2'], products: ['CO2'] },
+    { display: 'P₄ + 5O₂ → P₄O₁₀', reactants: ['P4', '5O2'], products: ['P4O10'] },
+    { display: '2Li + F₂ → 2LiF', reactants: ['2Li', 'F2'], products: ['2LiF'] },
+    { display: 'BaCl₂ + Na₂SO₄ → BaSO₄ + 2NaCl', reactants: ['BaCl2', 'Na2SO4'], products: ['BaSO4', '2NaCl'] },
+    { display: '2KClO₃ → 2KCl + 3O₂', reactants: ['2KClO3'], products: ['2KCl', '3O2'] },
+    { display: 'S₈ + 8O₂ → 8SO₂', reactants: ['S8', '8O2'], products: ['8SO2'] },
+    { display: '2Al + 3Cl₂ → 2AlCl₃', reactants: ['2Al', '3Cl2'], products: ['2AlCl3'] },
+    { display: 'Pb(NO₃)₂ + 2KI → PbI₂ + 2KNO₃', reactants: ['PbN2O6', '2KI'], products: ['PbI2', '2KNO3'] },
+    { display: 'C₃H₈ + 5O₂ → 3CO₂ + 4H₂O', reactants: ['C3H8', '5O2'], products: ['3CO2', '4H2O'] }
+      ];
 
     const COLORS = ['#f59e0b', '#60a5fa', '#34d399', '#f472b6', '#a78bfa', '#fb7185', '#22c55e', '#94a3b8'];
     const SHAPES = ['circle', 'square', 'diamond', 'hex', 'triangle'];
@@ -1012,13 +1028,18 @@ document.getElementById("submitScoreBtn").onclick = async () => {
   location.reload(); // Optional: Reset sim after submission
 };
 
-    document.getElementById('newProblemBtn').addEventListener('click', function () {
-     
-      resetForNewProblem();
-      scoreState.currentSolved = false; // Allow a point for the new problem
-        scoreState.attempts++;
-    loadProblem((state.problemIndex + 1) % PROBLEMS.length);
-    });
+    document.getElementById('newProblemBtn').addEventListener('click', () => {
+  scoreState.currentSolved = false;
+  scoreState.attempts++;
+  
+  // Pick a random index that isn't the current one
+  let newIndex;
+  do {
+    newIndex = Math.floor(Math.random() * PROBLEMS.length);
+  } while (newIndex === state.problemIndex);
+  
+  loadProblem(newIndex);
+});
 
     document.getElementById('resetBtn').addEventListener('click', function () {
       loadProblem(state.problemIndex);
