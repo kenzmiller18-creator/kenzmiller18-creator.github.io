@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<title>Molar Mass Practice</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+:root{
+  --lavender:#e6c6ff;
+  --purple:#c58df5;
+  --deep-purple:#9a5fd1;
+  --card-bg:#faf5ff;
+  --accent-pink:#e04bd8;
+  --text:#333;
+  --ok:#2f9e44;
+  --bad:#d6336c;
+  --warn:#a66a00;
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:Georgia, serif;background:#fff;color:var(--text)}
+header{background:var(--lavender);border-bottom:2px solid #999;text-align:center;padding:20px 10px}
+main{max-width:1100px;margin:28px auto;padding:0 16px 40px}
+.card{background:var(--card-bg);border:2px solid var(--purple);border-radius:16px;padding:22px;box-shadow:0 8px 20px rgba(0,0,0,.08)}
+.hubLink{display:inline-block;margin-bottom:8px;text-decoration:none;font-weight:bold;color:var(--deep-purple)}
+.hubLink:hover{text-decoration:underline}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:end}
+.grow{flex:1 1 220px}
+label{font-weight:bold;display:block;margin-bottom:6px}
+input[type="text"], input[type="number"], select{width:100%;font-size:1rem;padding:10px 12px;border-radius:10px;border:1px solid #aaa;background:#fff}
+button{background:var(--deep-purple);color:#fff;border:none;border-radius:12px;padding:10px 18px;font-size:1rem;cursor:pointer}
+button:hover{opacity:.92}
+button.alt{background:#fff;color:var(--deep-purple);border:2px solid var(--purple)}
+button.small{padding:8px 12px;font-size:.95rem}
+.problemBar{display:grid;grid-template-columns:1.2fr auto auto;gap:12px;align-items:center;margin-top:14px;background:#fff;border:1px solid #ddd;border-radius:14px;padding:14px}
+@media (max-width: 760px){.problemBar{grid-template-columns:1fr}}
+.formulaBox{text-align:center;border:2px dashed var(--purple);border-radius:16px;padding:14px;background:#fff}
+.formulaLabel{font-size:.95rem;opacity:.85}
+.formulaDisplay{font-size:2rem;font-weight:bold;color:var(--deep-purple);margin-top:6px}
+.scoreGrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-top:14px}
+@media (max-width: 900px){.scoreGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.pill{background:#fff;border:1px solid #ddd;border-radius:999px;padding:8px 12px;font-weight:bold;text-align:center}
+.section{margin-top:18px;background:#fff;border:2px solid #ddd;border-radius:14px;padding:14px}
+.section.locked{opacity:.62}
+.section h3{margin:0 0 6px;color:var(--deep-purple)}
+.sub{margin:0 0 12px;opacity:.87}
+.notice{margin-top:10px;padding:10px 12px;border-radius:12px;background:#fff;border:1px solid #ddd}
+.notice.ok{border-color:rgba(47,158,68,.4);background:rgba(47,158,68,.08)}
+.notice.bad{border-color:rgba(214,51,108,.4);background:rgba(214,51,108,.08)}
+.notice.warn{border-color:rgba(166,106,0,.4);background:rgba(166,106,0,.08)}
+.notice.info{border-color:rgba(154,95,209,.35);background:rgba(154,95,209,.08)}
+table{width:100%;border-collapse:collapse;margin-top:10px}
+th,td{border-bottom:1px solid #ddd;padding:10px 8px;text-align:center;vertical-align:middle}
+th{background:#faf7ff}
+.elementTag{display:inline-block;min-width:2.5em;padding:3px 10px;border-radius:999px;font-weight:bold;border:2px solid rgba(0,0,0,.08);background:var(--el,#eee)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px}
+.tile{background:#fff;border:2px solid var(--purple);border-radius:14px;padding:12px;position:relative;box-shadow:0 6px 16px rgba(0,0,0,.05)}
+.tile::before{content:"";position:absolute;inset:0 0 auto 0;height:12px;border-top-left-radius:12px;border-top-right-radius:12px;background:color-mix(in srgb, var(--el,#f3f3f3) 35%, #fff 65%)}
+.tile .z{font-size:.95rem;opacity:.85}.tile .sym{font-size:2rem;font-weight:bold;text-align:center;margin-top:8px;color:var(--deep-purple)}.tile .name{text-align:center;margin-top:4px}.tile .mass{text-align:center;margin-top:8px;font-weight:bold}
+.flexBetween{display:flex;flex-wrap:wrap;gap:10px;justify-content:space-between;align-items:center}
+.inlineCalc{font-size:1.02rem;line-height:1.5}
+.inlineCalc b{color:var(--deep-purple)}
+.smallText{font-size:.94rem;opacity:.86}
+.submitRow{display:flex;justify-content:flex-end;margin-top:14px}
+.fastSolveFlash{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:radial-gradient(circle, rgba(255,255,255,.18) 0%, rgba(154,95,209,.22) 45%, rgba(0,0,0,.18) 100%);backdrop-filter:blur(1px);z-index:120;pointer-events:none}
+.fastSolveFlash.show{display:flex;animation:flashFade 1300ms ease forwards}
+.fastSolveCard{background:#fff;border:3px solid var(--accent-pink);border-radius:24px;padding:22px 28px;text-align:center;box-shadow:0 18px 40px rgba(0,0,0,.16);transform:scale(.84);animation:cardPop 700ms cubic-bezier(.2,.8,.2,1) forwards}
+.fastSolveTitle{font-size:2rem;font-weight:bold;color:var(--deep-purple)}
+.fastSolveSub{margin-top:8px;font-size:1.05rem}
+.sparkRow{margin-top:10px;font-size:1.7rem;letter-spacing:6px;animation:sparkle 700ms ease-in-out infinite alternate}
+@keyframes flashFade{0%{opacity:0}10%{opacity:1}82%{opacity:1}100%{opacity:0}}
+@keyframes cardPop{0%{transform:scale(.7) translateY(12px)}55%{transform:scale(1.06) translateY(0)}100%{transform:scale(1) translateY(0)}}
+@keyframes sparkle{from{transform:translateY(0)}to{transform:translateY(-4px)}}
+</style>
+</head>
+<body>
+<header>
+  <a href="index.html" class="hubLink">← Back to Hub</a>
+  <h1>Molar Mass Practice</h1>
+  <p>count atoms → find masses → multiply → add</p>
+</header>
+
+<main>
+  <div class="card">
+    <div class="row">
+      <div class="grow">
+        <label for="presetSelect">Choose a practice formula</label>
+        <select id="presetSelect"></select>
+      </div>
+      <div class="grow">
+        <label for="customFormula">Or type your own formula</label>
+        <input id="customFormula" type="text" placeholder="Examples: H2O, CaCl2, Al2(SO4)3" />
+      </div>
+      <div>
+        <button id="loadCustomBtn" type="button">Load Formula</button>
+      </div>
+    </div>
+
+    <div class="problemBar">
+      <div class="formulaBox">
+        <div class="formulaLabel">Current formula</div>
+        <div class="formulaDisplay" id="formulaDisplay">H₂O</div>
+      </div>
+      <button id="newProblemBtn" type="button">Next Problem</button>
+      <button id="resetBtn" type="button" class="alt">Reset This Problem</button>
+    </div>
+
+    <div class="scoreGrid">
+      <div class="pill">Score: <span id="scoreText">0</span></div>
+      <div class="pill">Problem: <span id="problemCount">1</span></div>
+      <div class="pill">Checks used: <span id="checkCount">0</span></div>
+      <div class="pill">Current step: <span id="progressText">Step 1</span></div>
+      <div class="pill">Molar masses solved: <span id="mwSolvedText">0</span></div>
+      <div class="pill">Fast solves: <span id="fastSolvedText">0</span></div>
+    </div>
+
+    <div id="globalMessage" class="notice info">Enter your answers for Step 1, then click <b>Check Step 1</b>.</div>
+
+    <div>
+        <div class="section" id="referenceSection">
+          <h3>Reference tiles</h3>
+          <p class="sub">Use these atomic masses while you work.</p>
+          <div class="tiles" id="tiles"></div>
+        </div>
+
+        <div class="section" id="step1Section">
+          <div class="flexBetween">
+            <div>
+              <h3>1) Count the atoms</h3>
+              <p class="sub">How many atoms of each element are in the formula?</p>
+            </div>
+            <button id="checkStep1Btn" type="button" class="small">Check Step 1</button>
+          </div>
+          <table>
+            <thead><tr><th>Element</th><th>Your atom count</th></tr></thead>
+            <tbody id="step1Body"></tbody>
+          </table>
+          <div id="step1Message" class="notice">Nothing checked yet.</div>
+        </div>
+
+        <div class="section locked" id="step2Section">
+          <div class="flexBetween">
+            <div>
+              <h3>2) Report the atomic weight</h3>
+              <p class="sub">Write the atomic mass for each element in g/mol.</p>
+            </div>
+            <button id="checkStep2Btn" type="button" class="small">Check Step 2</button>
+          </div>
+          <table>
+            <thead><tr><th>Element</th><th>Your atomic mass (g/mol)</th></tr></thead>
+            <tbody id="step2Body"></tbody>
+          </table>
+          <div id="step2Message" class="notice">Locked until Step 1 is correct.</div>
+        </div>
+
+        <div class="section locked" id="step3Section">
+          <div class="flexBetween">
+            <div>
+              <h3>3) Multiply</h3>
+              <p class="sub">Find the product for each element.</p>
+            </div>
+            <button id="checkStep3Btn" type="button" class="small">Check Step 3</button>
+          </div>
+          <table>
+            <thead><tr><th>Element</th><th>Your result (g/mol)</th></tr></thead>
+            <tbody id="step3Body"></tbody>
+          </table>
+          <div id="step3Message" class="notice">Locked until Step 2 is correct.</div>
+        </div>
+
+        <div class="section" id="step4Section">
+          <div class="flexBetween">
+            <div>
+              <h3>4) Add for the total molar mass</h3>
+              <p class="sub">Add your Step 3 results. The sim will not show the addition for you. You can also try the total right away for double points.</p>
+            </div>
+            <button id="checkStep4Btn" type="button" class="small">Check Final Molar Mass</button>
+          </div>
+          <div class="notice warn">No sum expression is revealed here. If you solve the total before checking Steps 1–3, a correct answer earns double points.</div>
+          <div class="row" style="margin-top:12px; align-items:center;">
+            <div class="grow">
+              <label for="finalAnswer">Your total molar mass (g/mol)</label>
+              <input id="finalAnswer" type="number" step="0.01" />
+            </div>
+          </div>
+          <div id="step4Message" class="notice">Locked until Step 3 is correct.</div>
+        </div>
+      </div>
+
+        <div class="submitRow">
+          <button id="submitScoreBtn" type="button" class="alt">Submit Score</button>
+        </div>
+      </div>
+  </div>
+</main>
+
+<div id="fastSolveFlash" class="fastSolveFlash" aria-hidden="true">
+  <div class="fastSolveCard">
+    <div class="fastSolveTitle">⚡ Fast Solve! ⚡</div>
+    <div class="fastSolveSub">Double points for a confident correct answer.</div>
+    <div class="sparkRow">🧪 ✨ 🧮 ✨ 🧪</div>
+  </div>
+</div>
+
+<div id="nameModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:100; align-items:center; justify-content:center; padding:20px;">
+  <div style="background:white; padding:24px; border-radius:18px; max-width:400px; width:100%;">
+    <h3 style="margin:0 0 10px 0;">Submit Score</h3>
+    <p style="margin:0 0 10px 0; opacity:.85;">Enter your name to submit your score.</p>
+    <input type="text" id="displayNameInput" placeholder="Your name..." style="width:100%; padding:12px; margin:12px 0; border:1px solid #ddd; border-radius:8px; font-size:1rem;">
+    <div style="display:flex; gap:10px; justify-content:flex-end;">
+       <button class="alt" onclick="document.getElementById('nameModal').style.display='none'">Cancel</button>
+       <button id="continueName" type="button">Submit Score</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ELEMENTS = {
+  H:{Z:1,name:"Hydrogen",mass:1.01}, C:{Z:6,name:"Carbon",mass:12.01}, N:{Z:7,name:"Nitrogen",mass:14.01}, O:{Z:8,name:"Oxygen",mass:16.00},
+  Na:{Z:11,name:"Sodium",mass:22.99}, Mg:{Z:12,name:"Magnesium",mass:24.31}, Al:{Z:13,name:"Aluminum",mass:26.98}, Si:{Z:14,name:"Silicon",mass:28.09},
+  P:{Z:15,name:"Phosphorus",mass:30.97}, S:{Z:16,name:"Sulfur",mass:32.06}, Cl:{Z:17,name:"Chlorine",mass:35.45}, K:{Z:19,name:"Potassium",mass:39.10},
+  Ca:{Z:20,name:"Calcium",mass:40.08}, Fe:{Z:26,name:"Iron",mass:55.85}, Cu:{Z:29,name:"Copper",mass:63.55}, Zn:{Z:30,name:"Zinc",mass:65.38},
+  Ag:{Z:47,name:"Silver",mass:107.87}, I:{Z:53,name:"Iodine",mass:126.90}, Ba:{Z:56,name:"Barium",mass:137.33}
+};
+
+const PRACTICE_FORMULAS = ["H2O","CO2","NH3","NaCl","CH4","CaCl2","Na2SO4","Mg(OH)2","Ca(NO3)2","Al2(SO4)3","Fe2O3","C6H12O6"];
+
+const SIM_ID = "molar-mass";
+const TOKEN_SALT = "MoLeCuTeOrG";
+const FORM_BASE_URL = "https://docs.google.com/forms/d/e/1FAIpQLSckXbWQsVWobjrktGMoF7AtY6gMch0eQMjsGlddVv1cxgNHgQ/formResponse";
+const FORM_ENTRIES = {
+  name: "entry.366340186",
+  sim: "entry.1832756779",
+  score: "entry.221944829",
+  token: "entry.1636605257"
+};
+
+let currentFormula = 'H2O';
+let currentData = null;
+let problemNumber = 1;
+let checksUsed = 0;
+let totalScore = 0;
+let mwSolved = 0;
+let fastSolved = 0;
+let awarded = { step1:false, step2:false, step3:false, step4:false };
+let stepState = { step1:false, step2:false, step3:false, step4:false };
+
+function fnv1a(str){ let h=0x811c9dc5; for(let i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = (h * 0x01000193) >>> 0; } return ("00000000" + h.toString(16)).slice(-8); }
+function generateToken(name, score){ const payload={ v:1, sim:SIM_ID, name, score, t:Date.now() }; const json=JSON.stringify(payload); const sig=fnv1a(json + "|" + TOKEN_SALT); return btoa(JSON.stringify({ ...payload, sig })); }
+function baseHueFromSymbol(symbol){ let h=0; for(let i=0;i<symbol.length;i++) h=(h*31+symbol.charCodeAt(i))>>>0; return h%360; }
+function distinctColor(symbol, usedHues){ let hue=baseHueFromSymbol(symbol); const minGap=28, step=47; const close=x=>usedHues.some(h=>{const d=Math.abs(h-x); return Math.min(d,360-d)<minGap;}); while(close(hue)) hue=(hue+step)%360; usedHues.push(hue); return `hsl(${hue} 75% 72%)`; }
+function parseFormula(formula){
+  const stack=[{counts:{}}]; let i=0;
+  const addCounts=(target, src, mult=1)=>{ for(const el in src) target[el]=(target[el]||0)+src[el]*mult; };
+  while(i<formula.length){
+    const ch=formula[i];
+    if(ch==='('){ stack.push({counts:{}}); i++; continue; }
+    if(ch===')'){ i++; let num=''; while(i<formula.length && /\d/.test(formula[i])) num+=formula[i++]; const mult=parseInt(num||'1',10); if(stack.length===1) throw new Error('Mismatched parentheses'); const group=stack.pop(); addCounts(stack[stack.length-1].counts, group.counts, mult); continue; }
+    if(!/[A-Z]/.test(ch)) throw new Error('Invalid character');
+    let el=formula[i++]; if(i<formula.length && /[a-z]/.test(formula[i])) el+=formula[i++];
+    let num=''; while(i<formula.length && /\d/.test(formula[i])) num+=formula[i++];
+    const count=parseInt(num||'1',10); stack[stack.length-1].counts[el]=(stack[stack.length-1].counts[el]||0)+count;
+  }
+  if(stack.length!==1) throw new Error('Mismatched parentheses');
+  return stack[0].counts;
+}
+function formatFormulaDisplay(formula){ return formula.replace(/(\d+)/g,'<sub>$1</sub>'); }
+function approxEqual(a,b,tol=0.01){ return Math.abs(Number(a)-Number(b))<=tol; }
+function setMessage(id,text,type=''){ const el=document.getElementById(id); el.className=`notice${type ? ' '+type : ''}`; el.innerHTML=text; }
+function lockSection(sectionId, locked){
+  const section=document.getElementById(sectionId);
+  section.classList.toggle('locked', locked);
+  const checkBtn=section.querySelector('button[id^="check"]');
+  if(checkBtn) checkBtn.disabled=locked;
+  section.querySelectorAll('input').forEach(el=>el.disabled=locked);
+}
+function buildPresetMenu(){ document.getElementById('presetSelect').innerHTML=PRACTICE_FORMULAS.map(f=>`<option value="${f}">${f}</option>`).join(''); }
+function updateHud(){
+  document.getElementById('problemCount').textContent=problemNumber;
+  document.getElementById('checkCount').textContent=checksUsed;
+  document.getElementById('scoreText').textContent=totalScore;
+  document.getElementById('mwSolvedText').textContent=mwSolved;
+  document.getElementById('fastSolvedText').textContent=fastSolved;
+  let status='Complete';
+  if(!stepState.step1) status='Step 1'; else if(!stepState.step2) status='Step 2'; else if(!stepState.step3) status='Step 3'; else if(!stepState.step4) status='Final';
+  document.getElementById('progressText').textContent=status;
+}
+function addPoints(points){ totalScore += points; updateHud(); }
+function subtractPoints(points){ totalScore -= points; updateHud(); }
+function prepareProblem(formula){
+  try{
+    const counts=parseFormula(formula);
+    const elements=Object.keys(counts).sort((a,b)=>a.localeCompare(b));
+    const usedHues=[];
+    const rows=elements.map(el=>{
+      const info=ELEMENTS[el]; if(!info) throw new Error(`Unknown element ${el}`);
+      const color=distinctColor(el, usedHues);
+      return { el, count:counts[el], mass:info.mass, contrib:counts[el]*info.mass, color, name:info.name, Z:info.Z };
+    });
+    currentData={ formula, rows, total:rows.reduce((sum,r)=>sum+r.contrib,0) };
+    currentFormula=formula;
+    renderProblem();
+  } catch(err){ setMessage('globalMessage','That formula could not be loaded. Check capitalization and parentheses.','bad'); }
+}
+function renderProblem(){
+  stepState={ step1:false, step2:false, step3:false, step4:false };
+  awarded={ step1:false, step2:false, step3:false, step4:false };
+  checksUsed=0;
+  document.getElementById('formulaDisplay').innerHTML=formatFormulaDisplay(currentData.formula);
+  document.getElementById('presetSelect').value=currentData.formula;
+  document.getElementById('customFormula').value=currentData.formula;
+  document.getElementById('finalAnswer').value='';
+
+  document.getElementById('tiles').innerHTML=currentData.rows.map(r=>`
+    <div class="tile" style="--el:${r.color}">
+      <div class="z">${r.Z}</div><div class="sym">${r.el}</div><div class="name">${r.name}</div><div class="mass">${r.mass.toFixed(2)} g/mol</div>
+    </div>`).join('');
+
+  document.getElementById('step1Body').innerHTML=currentData.rows.map(r=>`<tr><td><span class="elementTag" style="--el:${r.color}">${r.el}</span></td><td><input type="number" step="1" min="0" id="count_${r.el}" /></td></tr>`).join('');
+  document.getElementById('step2Body').innerHTML=currentData.rows.map(r=>`<tr><td><span class="elementTag" style="--el:${r.color}">${r.el}</span></td><td><input type="number" step="0.01" min="0" id="mass_${r.el}" /></td></tr>`).join('');
+  document.getElementById('step3Body').innerHTML=currentData.rows.map(r=>`<tr><td><span class="elementTag" style="--el:${r.color}">${r.el}</span></td><td><input type="number" step="0.01" min="0" id="contrib_${r.el}" /></td></tr>`).join('');
+
+  setMessage('globalMessage','Enter your answers for Step 1, then click <b>Check Step 1</b>.','info');
+  setMessage('step1Message','Nothing checked yet.','');
+  setMessage('step2Message','Locked until Step 1 is correct.','');
+  setMessage('step3Message','Locked until Step 2 is correct.','');
+  setMessage('step4Message','You can check the final molar mass at any time.','info');
+  lockSection('step1Section', false);
+  lockSection('step2Section', true);
+  lockSection('step3Section', true);
+  lockSection('step4Section', false);
+  wireNumberInputs();
+  updateHud();
+}
+function incrementChecks(){ checksUsed += 1; updateHud(); }
+function checkStep1(){
+  incrementChecks(); const wrong=[];
+  currentData.rows.forEach(r=>{ const val=Number(document.getElementById(`count_${r.el}`).value); if(val!==r.count) wrong.push(r.el); });
+  if(wrong.length===0){ stepState.step1=true; lockSection('step2Section', false); if(!awarded.step1){ addPoints(1); awarded.step1=true; }
+    setMessage('step1Message','Nice work. Your atom counts are correct. <b>+1 point</b>','ok'); setMessage('globalMessage','Step 1 is correct. Move on to Step 2.','ok');
+  } else { subtractPoints(1); setMessage('step1Message',`Not yet. Recheck the atom count for: <b>${wrong.join(', ')}</b>. <b>-1 point</b>`,'bad'); setMessage('globalMessage','Some atom counts are incorrect. Check subscripts and parentheses carefully.','bad'); }
+  updateHud();
+}
+function checkStep2(){
+  if(!stepState.step1) return; incrementChecks(); const wrong=[];
+  currentData.rows.forEach(r=>{ const raw=document.getElementById(`mass_${r.el}`).value; if(raw==='' || !approxEqual(raw, r.mass, 0.01)) wrong.push(r.el); });
+  if(wrong.length===0){ stepState.step2=true; lockSection('step3Section', false); if(!awarded.step2){ addPoints(1); awarded.step2=true; }
+    setMessage('step2Message','Great. Your atomic masses are correct. <b>+1 point</b>','ok'); setMessage('globalMessage','Step 2 is correct. Complete Step 3.','ok');
+  } else { subtractPoints(1); setMessage('step2Message',`Not yet. Recheck the atomic mass for: <b>${wrong.join(', ')}</b>. <b>-1 point</b>`,'bad'); setMessage('globalMessage','Some atomic masses are off. Use the reference tiles or the periodic table.','bad'); }
+  updateHud();
+}
+function checkStep3(){
+  if(!stepState.step2) return; incrementChecks(); const wrong=[];
+  currentData.rows.forEach(r=>{ const raw=document.getElementById(`contrib_${r.el}`).value; if(raw==='' || !approxEqual(raw, r.contrib, 0.01)) wrong.push(r.el); });
+  if(wrong.length===0){ stepState.step3=true; lockSection('step4Section', false); if(!awarded.step3){ addPoints(1); awarded.step3=true; }
+    setMessage('step3Message','Yes. Your multiplication results are correct. <b>+1 point</b>','ok'); setMessage('globalMessage','Step 3 is correct. Now add your own Step 3 answers to find the total molar mass.','ok');
+  } else { subtractPoints(1); setMessage('step3Message',`Not yet. Recheck the multiplication for: <b>${wrong.join(', ')}</b>. <b>-1 point</b>`,'bad'); setMessage('globalMessage','Some Step 3 answers are incorrect. Try each row again.','bad'); }
+  updateHud();
+}
+function checkStep4(){
+  incrementChecks();
+  const raw=document.getElementById('finalAnswer').value;
+  const fastTrack = !stepState.step1 && !stepState.step2 && !stepState.step3;
+  if(raw!=='' && approxEqual(raw, currentData.total, 0.01)){
+    const pointsEarned = fastTrack ? 20 : 10;
+    stepState.step4=true;
+    if(fastTrack){
+      stepState.step1 = true;
+      stepState.step2 = true;
+      stepState.step3 = true;
+      fastSolved += 1;
+      triggerFastSolveAnimation();
+      lockSection('step1Section', true);
+      lockSection('step2Section', true);
+      lockSection('step3Section', true);
+    }
+    if(!awarded.step4){ addPoints(pointsEarned); awarded.step4=true; mwSolved += 1; }
+    setMessage('step4Message',`Correct. Total molar mass = <b>${currentData.total.toFixed(2)} g/mol</b>. <b>+${pointsEarned} points</b>`,'ok');
+    setMessage('globalMessage', fastTrack ? 'Amazing. You solved the molar mass without checking the earlier steps first.' : 'Complete. You solved the molar mass correctly.','ok');
+  } else {
+    subtractPoints(10);
+    setMessage('step4Message','Not yet. The total molar mass is incorrect. <b>-10 points</b>','bad');
+    setMessage('globalMessage','The total molar mass is not correct yet.','bad');
+  }
+  updateHud();
+}
+function nextProblem(){ const idx=PRACTICE_FORMULAS.indexOf(currentData.formula); const nextIdx=idx>=0 ? (idx+1)%PRACTICE_FORMULAS.length : 0; problemNumber += 1; prepareProblem(PRACTICE_FORMULAS[nextIdx]); }
+function resetProblem(){ renderProblem(); }
+
+
+function wireNumberInputs(){
+  document.querySelectorAll('input[type="number"]').forEach(input => {
+    input.addEventListener('wheel', (e) => {
+      if(document.activeElement === input){
+        e.preventDefault();
+        input.blur();
+      }
+    }, { passive:false });
+  });
+}
+
+
+function triggerFastSolveAnimation(){
+  const flash = document.getElementById('fastSolveFlash');
+  if(!flash) return;
+  flash.classList.remove('show');
+  void flash.offsetWidth;
+  flash.classList.add('show');
+  window.clearTimeout(triggerFastSolveAnimation._t);
+  triggerFastSolveAnimation._t = window.setTimeout(() => flash.classList.remove('show'), 1300);
+}
+
+function submitScore(){
+  if(totalScore===0) return alert('Score some points first!');
+  document.getElementById('displayNameInput').value='';
+  document.getElementById('nameModal').style.display='flex';
+}
+
+document.getElementById('checkStep1Btn').addEventListener('click', checkStep1);
+document.getElementById('checkStep2Btn').addEventListener('click', checkStep2);
+document.getElementById('checkStep3Btn').addEventListener('click', checkStep3);
+document.getElementById('checkStep4Btn').addEventListener('click', checkStep4);
+document.getElementById('newProblemBtn').addEventListener('click', nextProblem);
+document.getElementById('resetBtn').addEventListener('click', resetProblem);
+document.getElementById('presetSelect').addEventListener('change', e => { problemNumber += 1; prepareProblem(e.target.value); });
+document.getElementById('loadCustomBtn').addEventListener('click', () => { const formula=document.getElementById('customFormula').value.trim(); if(!formula) return; if(!PRACTICE_FORMULAS.includes(formula)) PRACTICE_FORMULAS.push(formula); buildPresetMenu(); problemNumber += 1; prepareProblem(formula); });
+document.getElementById('customFormula').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('loadCustomBtn').click(); });
+document.getElementById('submitScoreBtn').addEventListener('click', submitScore);
+
+document.getElementById('continueName').addEventListener('click', () => {
+  const name = document.getElementById('displayNameInput').value.trim();
+  if(!name) return;
+
+  const scoreVal = totalScore;
+  const token = generateToken(name, scoreVal);
+
+  const params = new URLSearchParams();
+  params.set(FORM_ENTRIES.name, name);
+  params.set(FORM_ENTRIES.sim, SIM_ID);
+  params.set(FORM_ENTRIES.score, scoreVal);
+  params.set(FORM_ENTRIES.token, token);
+
+  fetch(FORM_BASE_URL, {
+    method:'POST',
+    mode:'no-cors',
+    headers:{ 'Content-Type':'application/x-www-form-urlencoded' },
+    body:params.toString()
+  });
+
+  alert('Score submitted! Great job.');
+  location.reload();
+});
+
+document.getElementById('nameModal').addEventListener('click', (e) => {
+  if(e.target.id==='nameModal') document.getElementById('nameModal').style.display='none';
+});
+
+buildPresetMenu();
+prepareProblem(currentFormula);
+</script>
+</body>
+</html>
