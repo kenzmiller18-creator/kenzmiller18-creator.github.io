@@ -21,7 +21,6 @@
 
   .app { max-width: 1600px; margin: 0 auto; padding: 16px; }
 
-  /* --- TOOLBAR --- */
   .toolbar {
     display: flex; justify-content: space-between; align-items: center;
     gap: 12px; margin-bottom: 20px; padding: 12px 14px;
@@ -38,13 +37,11 @@
     font-weight: 800; font-size: 20px;
   }
 
-  /* --- LAYOUT --- */
   .main-layout { display: flex; gap: 20px; align-items: flex-start; }
   .sidebar { flex: 0 0 260px; position: sticky; top: 100px; }
   .content-area { flex: 1; }
 
   .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; }
-  
   .workspaces { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
   .workspace {
     position: relative; min-height: 440px; border-radius: 14px;
@@ -52,7 +49,6 @@
     background: radial-gradient(circle at 20px 20px, rgba(37,99,235,.03) 1.2px, transparent 1.3px) 0 0 / 24px 24px;
   }
 
-  /* --- ATOMS --- */
   .atom {
     width: 42px; height: 42px; position: absolute; display: grid; place-items: center;
     font-weight: 800; border: 2px solid rgba(17,24,39,.2); box-shadow: 0 4px 8px rgba(0,0,0,.1);
@@ -61,18 +57,17 @@
   .atom.circle { border-radius: 999px; }
   .atom.square { border-radius: 6px; }
   .atom.diamond { border-radius: 6px; transform: rotate(45deg); }
-  .atom.diamond span { transform: rotate(-45deg); display: block; } 
+  .atom.diamond span { transform: rotate(-45deg); display: block; }
   .atom.hex { clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0 50%); }
   .atom.triangle { clip-path: polygon(50% 6%, 95% 90%, 5% 90%); }
   .atom.triangle span { margin-top: 10px; }
 
-  /* --- SIDEBAR PICKER --- */
   .element-row {
     border: 1px solid var(--line); border-radius: 14px; padding: 12px;
     background: #fcfdff; display: flex; flex-direction: column; align-items: center; gap: 8px; margin-bottom: 12px;
   }
   .token-preview { width: 45px; height: 45px; display: grid; place-items: center; border-radius: 10px; background: #fff; border: 1px dashed var(--line); }
-  
+
   .inline-controls { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; }
   .swatch, .shape-pick { width: 22px; height: 22px; border: 1px solid #ddd; cursor: pointer; transition: 0.2s; }
   .swatch:hover, .shape-pick:hover { transform: scale(1.1); }
@@ -95,11 +90,11 @@
   .btn.outline-good { color: var(--good); border-color: var(--good); }
   .btn.outline-bad { color: var(--bad); border-color: var(--bad); }
   .chip { background: #1e293b; color: white; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 800; }
-  
+
   .mode-toggle { display: flex; background: #eee; padding: 4px; border-radius: 10px; gap: 4px; }
   .mode-btn { border: none; background: transparent; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 12px; }
   .mode-btn.active { background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-  
+
   .atom-bank { display: flex; flex-wrap: wrap; gap: 4px; }
   .subtle { color: var(--muted); font-size: 12px; }
 </style>
@@ -119,8 +114,8 @@
 
     <div class="toolbar-right">
       <div class="mode-toggle">
-        <button class="mode-btn active" id="modePractice">Modeling Only</button>
-        <button class="mode-btn" id="modeAudit">Balanced?</button>
+        <button class="mode-btn" id="modePractice">Modeling Only</button>
+        <button class="mode-btn active" id="modeAudit">Balanced?</button>
       </div>
       <button class="btn" id="resetBtn">Reset</button>
       <button class="btn primary" id="newProblemBtn">Next</button>
@@ -138,8 +133,8 @@
     </aside>
 
     <main class="content-area">
-      <div class="status info show" id="statusBox">Build the model to match the equation.</div>
-      
+      <div class="status info show" id="statusBox">Build the equation exactly as written, then decide if it is balanced. Shift+click an atom to remove it.</div>
+
       <div class="workspaces">
         <div class="card">
           <div style="display:flex; justify-content:space-between; margin-bottom:10px; align-items:center;">
@@ -177,15 +172,14 @@
 </div>
 
 <script>
-// --- CONFIG & STATE ---
 const SIM_ID = "modeling";
 const TOKEN_SALT = "MoLeCuTeOrG";
 const FORM_BASE_URL = "https://docs.google.com/forms/d/e/1FAIpQLSckXbWQsVWobjrktGMoF7AtY6gMch0eQMjsGlddVv1cxgNHgQ/formResponse";
-const FORM_ENTRIES = { 
-  name: "entry.366340186", 
-  sim: "entry.1832756779", 
+const FORM_ENTRIES = {
+  name: "entry.366340186",
+  sim: "entry.1832756779",
   score: "entry.221944829",
-  token: "entry.1636605257" 
+  token: "entry.1636605257"
 };
 
 const PROBLEMS = [
@@ -204,7 +198,7 @@ const COLORS = ['#f59e0b', '#60a5fa', '#34d399', '#f472b6', '#a78bfa', '#fb7185'
 const SHAPES = ['circle', 'square', 'diamond', 'hex', 'triangle'];
 
 let state = {
-  mode: 'practice',
+  mode: 'audit',
   problem: null,
   elements: [],
   styles: {},
@@ -217,7 +211,6 @@ let state = {
   startTime: Date.now()
 };
 
-// --- HASHING UTILS ---
 function fnv1a(str) {
   let h = 0x811c9dc5;
   for (let i = 0; i < str.length; i++) {
@@ -228,34 +221,27 @@ function fnv1a(str) {
 }
 
 function generateToken(name, score) {
-  const payload = {
-    v: 1,
-    sim: SIM_ID,
-    name: name,
-    score: score,
-    t: Date.now()
-  };
+  const payload = { v: 1, sim: SIM_ID, name, score, t: Date.now() };
   const json = JSON.stringify(payload);
   const sig = fnv1a(json + "|" + TOKEN_SALT);
   return btoa(JSON.stringify({ ...payload, sig }));
 }
 
-// --- CORE SIM LOGIC ---
 function parseFormula(input) {
   const match = input.match(/^(\d+)?([A-Z][a-z]?\d*(?:[A-Z][a-z]?\d*)*)$/);
-  const coeff = match && match[1] ? parseInt(match[1]) : 1;
+  const coeff = match && match[1] ? parseInt(match[1], 10) : 1;
   const formula = match[2];
   const atoms = {};
   const regex = /([A-Z][a-z]?)(\d*)/g;
   let m;
   while ((m = regex.exec(formula))) {
-    atoms[m[1]] = (atoms[m[1]] || 0) + (m[2] ? parseInt(m[2]) : 1);
+    atoms[m[1]] = (atoms[m[1]] || 0) + (m[2] ? parseInt(m[2], 10) : 1);
   }
   return { coeff, atoms };
 }
 
 function initDeck() {
-  state.deck = Array.from({length: PROBLEMS.length}, (_, i) => i);
+  state.deck = Array.from({ length: PROBLEMS.length }, (_, i) => i);
   for (let i = state.deck.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [state.deck[i], state.deck[j]] = [state.deck[j], state.deck[i]];
@@ -267,11 +253,11 @@ function initProblem() {
   if (state.deckIdx >= state.deck.length) initDeck();
   state.problem = PROBLEMS[state.deck[state.deckIdx++]];
   state.currentSolved = false;
-  
+
   document.getElementById('eqDisplay').textContent = state.problem.display;
-  
+
   const els = new Set();
-  [...state.problem.reactants, ...state.problem.products].forEach(f => {
+  state.problem.reactants.concat(state.problem.products).forEach(f => {
     Object.keys(parseFormula(f).atoms).forEach(e => els.add(e));
   });
   state.elements = Array.from(els);
@@ -281,13 +267,18 @@ function initProblem() {
 
   state.selectedEl = state.elements[0];
   state.placed = { reactants: [], products: [] };
-  
+
   renderPalette();
   renderBanks();
   renderActionArea();
   redraw();
   updateCounts();
-  updateStatus(state.mode === 'practice' ? "Build the model to match the equation!" : "Build the equation exactly as written, then Audit.", "info");
+  updateStatus(
+    state.mode === 'practice'
+      ? 'Build the model to match the equation. Shift+click an atom to remove it.'
+      : 'Build the equation exactly as written, then decide if it is balanced. Shift+click an atom to remove it.',
+    'info'
+  );
 }
 
 function renderPalette() {
@@ -344,18 +335,18 @@ function renderActionArea() {
   area.innerHTML = '';
   if (state.mode === 'practice') {
     const btn = document.createElement('button');
-    btn.className = "btn outline-good";
-    btn.textContent = "Check Model";
+    btn.className = 'btn outline-good';
+    btn.textContent = 'Check Model';
     btn.onclick = () => validate(null);
     area.appendChild(btn);
   } else {
     const b1 = document.createElement('button');
-    b1.className = "btn outline-bad";
-    b1.textContent = "Unbalanced";
+    b1.className = 'btn outline-bad';
+    b1.textContent = 'Unbalanced';
     b1.onclick = () => validate(false);
     const b2 = document.createElement('button');
-    b2.className = "btn outline-good";
-    b2.textContent = "Balanced";
+    b2.className = 'btn outline-good';
+    b2.textContent = 'Balanced';
     b2.onclick = () => validate(true);
     area.append(b1, b2);
   }
@@ -370,10 +361,17 @@ function updateCounts() {
     const box = document.createElement('div');
     box.className = 'card';
     const balanced = r === p && r > 0;
-    box.style.borderLeft = balanced ? "6px solid var(--good)" : "6px solid var(--bad)";
+    box.style.borderLeft = balanced ? '6px solid var(--good)' : '6px solid var(--bad)';
     box.innerHTML = `<strong>${el}</strong><br><span class="subtle">R:</span> ${r} | <span class="subtle">P:</span> ${p}`;
     grid.appendChild(box);
   });
+}
+
+function removeAtom(side, atom) {
+  state.placed[side] = state.placed[side].filter(a => a !== atom);
+  redraw();
+  updateCounts();
+  updateStatus('Atom removed.', 'info');
 }
 
 function redraw() {
@@ -387,26 +385,38 @@ function redraw() {
       node.style.left = atom.x + 'px';
       node.style.top = atom.y + 'px';
       node.innerHTML = `<span>${atom.el}</span>`;
-      
+
       node.onpointerdown = (e) => {
         e.stopPropagation();
+
+        if (e.shiftKey) {
+          e.preventDefault();
+          removeAtom(side, atom);
+          return;
+        }
+
         node.setPointerCapture(e.pointerId);
-        let ox = e.clientX - atom.x, oy = e.clientY - atom.y;
+        let ox = e.clientX - atom.x;
+        let oy = e.clientY - atom.y;
         node.onpointermove = (ev) => {
-          atom.x = ev.clientX - ox; atom.y = ev.clientY - oy;
-          node.style.left = atom.x + 'px'; node.style.top = atom.y + 'px';
+          atom.x = ev.clientX - ox;
+          atom.y = ev.clientY - oy;
+          node.style.left = atom.x + 'px';
+          node.style.top = atom.y + 'px';
         };
         node.onpointerup = () => {
           node.onpointermove = null;
           state.placed[side].forEach(other => {
             if (other === atom) return;
-            const d = Math.sqrt((atom.x-other.x)**2 + (atom.y-other.y)**2);
+            const d = Math.sqrt((atom.x - other.x) ** 2 + (atom.y - other.y) ** 2);
             if (d < 46) {
-              const ang = Math.atan2(atom.y-other.y, atom.x-other.x);
-              atom.x = other.x + Math.cos(ang)*42; atom.y = other.y + Math.sin(ang)*42;
+              const ang = Math.atan2(atom.y - other.y, atom.x - other.x) || 0;
+              atom.x = other.x + Math.cos(ang) * 42;
+              atom.y = other.y + Math.sin(ang) * 42;
             }
           });
-          redraw(); updateCounts();
+          redraw();
+          updateCounts();
         };
       };
       ws.appendChild(node);
@@ -420,7 +430,8 @@ function redraw() {
     const rect = ws.getBoundingClientRect();
     const side = id === 'rWS' ? 'reactants' : 'products';
     state.placed[side].push({ el: state.selectedEl, x: e.clientX - rect.left - 21, y: e.clientY - rect.top - 21 });
-    redraw(); updateCounts();
+    redraw();
+    updateCounts();
   };
 });
 
@@ -428,12 +439,15 @@ function getGroups(side) {
   const atoms = state.placed[side], groups = [], visited = new Set();
   atoms.forEach((a, i) => {
     if (visited.has(i)) return;
-    const group = [], stack = [i]; visited.add(i);
-    while(stack.length) {
-      const curr = stack.pop(); group.push(atoms[curr]);
+    const group = [], stack = [i];
+    visited.add(i);
+    while (stack.length) {
+      const curr = stack.pop();
+      group.push(atoms[curr]);
       atoms.forEach((other, j) => {
-        if (!visited.has(j) && Math.sqrt((atoms[curr].x-other.x)**2 + (atoms[curr].y-other.y)**2) < 55) {
-          visited.add(j); stack.push(j);
+        if (!visited.has(j) && Math.sqrt((atoms[curr].x - other.x) ** 2 + (atoms[curr].y - other.y) ** 2) < 55) {
+          visited.add(j);
+          stack.push(j);
         }
       });
     }
@@ -446,16 +460,21 @@ function checkModelMatch(side) {
   const targets = [];
   state.problem[side].forEach(f => {
     const p = parseFormula(f);
-    for(let i=0; i<p.coeff; i++) targets.push(p.atoms);
+    for (let i = 0; i < p.coeff; i++) targets.push(p.atoms);
   });
   const actuals = getGroups(side).map(g => {
-    const c = {}; g.forEach(at => c[at.el] = (c[at.el]||0)+1); return c;
+    const c = {};
+    g.forEach(at => c[at.el] = (c[at.el] || 0) + 1);
+    return c;
   });
   if (actuals.length !== targets.length) return false;
   const used = new Set();
   return targets.every(t => {
-    const idx = actuals.findIndex((a, i) => !used.has(i) && JSON.stringify(Object.keys(a).sort().reduce((r,k)=>(r[k]=a[k],r),{})) === JSON.stringify(Object.keys(t).sort().reduce((r,k)=>(r[k]=t[k],r),{})));
-    if (idx > -1) { used.add(idx); return true; }
+    const idx = actuals.findIndex((a, i) => !used.has(i) && JSON.stringify(Object.keys(a).sort().reduce((r, k) => (r[k] = a[k], r), {})) === JSON.stringify(Object.keys(t).sort().reduce((r, k) => (r[k] = t[k], r), {})));
+    if (idx > -1) {
+      used.add(idx);
+      return true;
+    }
     return false;
   });
 }
@@ -464,7 +483,7 @@ function validate(claim) {
   const mR = checkModelMatch('reactants');
   const mP = checkModelMatch('products');
   if (!mR || !mP) {
-    updateStatus("Model Mismatch! Ensure touching clusters match the equation's formulas.", "bad");
+    updateStatus('Model Mismatch! Ensure touching clusters match the equation\'s formulas.', 'bad');
     return;
   }
   if (state.mode === 'practice') {
@@ -473,30 +492,30 @@ function validate(claim) {
       const p = state.placed.products.filter(a => a.el === el).length;
       return r === p && r > 0;
     });
-    if (bal) { updateStatus("Correct! Equation is balanced.", "good"); addPoint(); }
-    else updateStatus("Not balanced. Check atom totals.", "bad");
+    if (bal) { updateStatus('Correct! Equation is balanced.', 'good'); addPoint(); }
+    else updateStatus('Not balanced. Check atom totals.', 'bad');
   } else {
-    if (claim === state.problem.isBalanced) { updateStatus("Correct Audit!", "good"); addPoint(); }
-    else updateStatus("Incorrect Audit.", "bad");
+    if (claim === state.problem.isBalanced) { updateStatus('Correct Audit!', 'good'); addPoint(); }
+    else updateStatus('Incorrect Audit.', 'bad');
   }
 }
 
 function addPoint() {
-  if (!state.currentSolved) { 
-    state.solves++; 
-    state.currentSolved = true; 
-    document.getElementById('scoreDisplay').textContent = "Solves: " + state.solves; 
+  if (!state.currentSolved) {
+    state.solves++;
+    state.currentSolved = true;
+    document.getElementById('scoreDisplay').textContent = 'Solves: ' + state.solves;
   }
 }
 
 function updateStatus(msg, type) {
   const b = document.getElementById('statusBox');
-  b.textContent = msg; b.className = `status show ${type}`;
+  b.textContent = msg;
+  b.className = `status show ${type}`;
 }
 
-// --- SUBMISSION ---
 document.getElementById('submitScoreBtn').onclick = () => {
-  if (state.solves === 0) return alert("Solve an equation first!");
+  if (state.solves === 0) return alert('Solve an equation first!');
   document.getElementById('nameModal').style.display = 'flex';
 };
 
@@ -514,13 +533,13 @@ document.getElementById('continueName').onclick = () => {
   params.set(FORM_ENTRIES.token, token);
 
   fetch(FORM_BASE_URL, {
-    method: "POST",
-    mode: "no-cors",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: params.toString()
   });
 
-  alert("Score submitted! Great job.");
+  alert('Score submitted! Great job.');
   location.reload();
 };
 
@@ -534,10 +553,21 @@ function updateModeUI() {
 }
 
 document.getElementById('newProblemBtn').onclick = initProblem;
-document.getElementById('resetBtn').onclick = () => { state.placed = { reactants: [], products: [] }; redraw(); updateCounts(); };
+document.getElementById('resetBtn').onclick = () => {
+  state.placed = { reactants: [], products: [] };
+  redraw();
+  updateCounts();
+  updateStatus(
+    state.mode === 'practice'
+      ? 'Workspace reset. Build the model to match the equation. Shift+click an atom to remove it.'
+      : 'Workspace reset. Build the equation exactly as written, then decide if it is balanced. Shift+click an atom to remove it.',
+    'info'
+  );
+};
 
 initDeck();
-initProblem();
+updateModeUI();
 </script>
 </body>
 </html>
+
