@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Stoichiometry Practice</title>
+<style>
+:root {
+  --bg: #ffcfff; --card: #ffffff; --ink: #1f2a37; --muted: #83637e;
+  --line: #f5d0ff; --accent: #a06bef; --accent-2: #c45de1;
+  --good: #15803d; --bad: #b91c1c; --warn: #a66a00;
+  --shadow: 0 10px 28px rgba(15, 23, 42, 0.08); --radius: 18px;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; font-family: Inter, system-ui, -apple-system, sans-serif;
+  background: linear-gradient(180deg, #eef4ff 0%, var(--bg) 100%); color: var(--ink);
+}
+.app { max-width: 1600px; margin: 0 auto; padding: 16px; }
+.toolbar {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  margin-bottom: 16px; padding: 12px 14px; background: rgba(255,255,255,.78);
+  border: 1px solid rgba(255,255,255,.65); backdrop-filter: blur(10px);
+  border-radius: 16px; box-shadow: var(--shadow); position: sticky; top: 12px; z-index: 20;
+}
+.toolbar-left, .toolbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.sim-title { font-weight: 800; letter-spacing: .2px; font-size: 11px; text-transform: uppercase; color: var(--muted); }
+.toolbar-prompt-badge {
+  display: inline-block; padding: 6px 12px; background: var(--card); border: 2px solid var(--accent);
+  color: var(--accent); border-radius: 8px; font-weight: 800; font-size: 20px;
+}
+.btn { border: 1px solid var(--line); background: #fff; padding: 8px 14px; border-radius: 10px; font-weight: 700; cursor: pointer; font-size: 13px; }
+.btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn.outline-good { color: var(--good); border-color: var(--good); }
+.btn.outline-bad { color: var(--bad); border-color: var(--bad); }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.chip { background: #1e293b; color: #fff; padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 800; }
+.mode-chip { background: #fff; color: var(--accent); border: 2px solid var(--accent); padding: 6px 12px; border-radius: 8px; font-weight: 800; font-size: 12px; }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 16px; }
+.status { padding: 14px; border-radius: 12px; font-weight: 700; margin-bottom: 14px; display: none; text-align: center; }
+.status.show { display: block; }
+.status.info { background: #eff6ff; color: #1e40af; border: 1px solid #bfdbfe; }
+.status.good { background: #ecfdf5; color: var(--good); border: 1px solid #bbf7d0; }
+.status.bad { background: #fef2f2; color: var(--bad); border: 1px solid #fecaca; }
+.status.warn { background: #fffbeb; color: var(--warn); border: 1px solid #fde68a; }
+.problem-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; align-items: stretch; margin-bottom: 16px; }
+.big-box { min-height: 260px; display: flex; flex-direction: column; }
+.box-title { text-align: center; font-size: 34px; line-height: 1; color: #555; margin: 0 0 12px; font-weight: 500; }
+.value-card { flex: 1; border: 2px solid #e7a6ff; border-radius: 28px; padding: 18px; display: flex; flex-direction: column; justify-content: center; gap: 12px; background: #fff; }
+.value-line { display: grid; grid-template-columns: 1.1fr 1fr 1.4fr; gap: 8px; align-items: end; }
+.value-line input, .value-line select, input, select {
+  width: 100%; font-size: 1rem; padding: 10px 12px; border-radius: 10px; border: 1px solid #aaa; background: #fff;
+}
+input[type="number"] { appearance: textfield; -moz-appearance: textfield; }
+input[type="number"]::-webkit-outer-spin-button, input[type="number"]::-webkit-inner-spin-button { appearance: none; margin: 0; }
+.input-label { display: block; font-size: 11px; font-weight: 900; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin-bottom: 4px; }
+.rendered-value { text-align: center; font-weight: 900; color: var(--accent); font-size: 24px; min-height: 34px; }
+.need-options { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.choice-btn { background: #fff; color: var(--accent); border: 2px solid var(--accent); border-radius: 12px; padding: 12px; font-weight: 900; cursor: pointer; }
+.choice-btn.selected { background: var(--accent); color: white; }
+.need-detail { border: 2px dashed #e7a6ff; border-radius: 20px; padding: 12px; min-height: 100px; display: flex; flex-direction: column; justify-content: center; }
+.equation-display { text-align: center; font-weight: 900; color: var(--accent); font-size: 20px; }
+.calc-wrap { display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: stretch; }
+.calc-box { border: 2px solid #e7a6ff; border-radius: 28px; min-height: 190px; background: #fff; padding: 18px; display: flex; flex-direction: column; justify-content: center; }
+.calc-title { text-align: center; font-size: 34px; color: #555; margin: 0 0 12px; font-weight: 500; }
+.factor-builder { display: grid; grid-template-columns: 1fr auto 1.35fr auto 1fr; gap: 12px; align-items: center; }
+.given-box, .answer-box { border: 2px dashed #d9e2ef; border-radius: 16px; padding: 14px; background: #fcfdff; text-align: center; }
+.given-main { font-size: 23px; font-weight: 900; color: var(--accent); }
+.times, .equals { font-size: 30px; font-weight: 900; color: var(--accent); }
+.frac-box { border: 2px dashed #d9e2ef; border-radius: 16px; padding: 12px; background: #fcfdff; }
+.frac-line { height: 2px; background: var(--accent); margin: 8px 0; border-radius: 99px; }
+.answer-line { display: grid; grid-template-columns: 1fr .65fr 1fr; gap: 8px; }
+.side-buttons { display: flex; flex-direction: column; justify-content: center; gap: 10px; }
+.subtle { color: var(--muted); font-size: 12px; text-align: center; }
+.hidden { display: none !important; }
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,.6); z-index: 100; display: none; align-items: center; justify-content: center; padding: 20px; }
+.modal.show { display: flex; }
+.modal-card { background: white; padding: 24px; border-radius: 18px; max-width: 520px; width: 100%; box-shadow: 0 18px 40px rgba(0,0,0,.18); }
+.mode-grid { display: grid; grid-template-columns: 1fr; gap: 10px; }
+.flash { position: fixed; inset: 0; display: none; align-items: center; justify-content: center; background: radial-gradient(circle, rgba(255,255,255,.18) 0%, rgba(154,95,209,.22) 45%, rgba(0,0,0,.18) 100%); backdrop-filter: blur(1px); z-index: 120; pointer-events: none; }
+.flash.show { display: flex; animation: flashFade 1300ms ease forwards; }
+.flash-card { background: #fff; border: 3px solid var(--accent-2); border-radius: 24px; padding: 22px 28px; text-align: center; box-shadow: 0 18px 40px rgba(0,0,0,.16); animation: cardPop 700ms cubic-bezier(.2,.8,.2,1) forwards; }
+.flash-title { font-size: 2rem; font-weight: 900; color: var(--accent); }
+.spark { margin-top: 10px; font-size: 1.7rem; letter-spacing: 6px; animation: sparkle 700ms ease-in-out infinite alternate; }
+@keyframes flashFade { 0%{opacity:0} 10%{opacity:1} 82%{opacity:1} 100%{opacity:0} }
+@keyframes cardPop { 0%{transform:scale(.7) translateY(12px)} 55%{transform:scale(1.06) translateY(0)} 100%{transform:scale(1) translateY(0)} }
+@keyframes sparkle { from{transform:translateY(0)} to{transform:translateY(-4px)} }
+@media (max-width: 1000px) { .problem-row, .calc-wrap { grid-template-columns: 1fr; } .factor-builder { grid-template-columns: 1fr; } .times, .equals { text-align: center; } .toolbar { position: static; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="toolbar">
+    <div class="toolbar-left">
+      <div>
+        <div class="sim-title">Stoichiometry Practice</div>
+        <div id="promptDisplay" class="toolbar-prompt-badge">Choose a mode to begin</div>
+      </div>
+    </div>
+    <div class="toolbar-right">
+      <span id="modeDisplay" class="mode-chip">Mode: —</span>
+      <button class="btn" id="changeModeBtn">Mode</button>
+      <button class="btn" id="resetBtn">Reset</button>
+      <button class="btn primary" id="newProblemBtn">Next</button>
+      <span id="scoreDisplay" class="chip">Points: 0</span>
+      <button class="btn" id="submitScoreBtn">Submit</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="status info show" id="statusBox">Choose a practice mode to start.</div>
+
+    <section class="problem-row">
+      <div class="big-box">
+        <h2 class="box-title">Have</h2>
+        <div class="value-card">
+          <div class="value-line">
+            <div><span class="input-label">#</span><input id="haveValue" type="number" step="0.01" /></div>
+            <div><span class="input-label">Unit</span><select id="haveUnit"><option value="">unit</option><option value="mol">moles</option><option value="g">grams</option></select></div>
+            <div><span class="input-label">Substance</span><input id="haveSubstance" type="text" placeholder="KCl" /></div>
+          </div>
+          <div id="haveRendered" class="rendered-value"></div>
+        </div>
+      </div>
+
+      <div class="big-box">
+        <h2 class="box-title">Need</h2>
+        <div class="value-card">
+          <div class="need-options">
+            <button class="choice-btn" id="needMM">Molar Mass</button>
+            <button class="choice-btn" id="needEQ">Balanced Eq</button>
+          </div>
+          <div id="needDetail" class="need-detail">
+            <div class="subtle">Choose what connects HAVE to WANT.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="big-box">
+        <h2 class="box-title">Want</h2>
+        <div class="value-card">
+          <div class="value-line">
+            <div><span class="input-label">#</span><input id="wantValue" type="number" step="0.01" placeholder="?" /></div>
+            <div><span class="input-label">Unit</span><select id="wantUnit"><option value="">unit</option><option value="mol">moles</option><option value="g">grams</option></select></div>
+            <div><span class="input-label">Substance</span><input id="wantSubstance" type="text" placeholder="KCl" /></div>
+          </div>
+          <div id="wantRendered" class="rendered-value"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="calc-wrap">
+      <div>
+        <h2 class="calc-title">Calculation</h2>
+        <div class="calc-box">
+          <div class="factor-builder">
+            <div class="given-box">
+              <div class="input-label">Given</div>
+              <div id="givenDisplay" class="given-main">—</div>
+            </div>
+            <div class="times">×</div>
+            <div class="frac-box">
+              <select id="numSelect"></select>
+              <div class="frac-line"></div>
+              <select id="denSelect"></select>
+            </div>
+            <div class="equals">=</div>
+            <div class="answer-box">
+              <div class="input-label">Answer</div>
+              <div class="answer-line">
+                <input id="finalAnswer" type="number" step="0.01" />
+                <select id="finalUnit"><option value="">unit</option><option value="mol">mol</option><option value="g">g</option></select>
+                <input id="finalSubstance" type="text" placeholder="substance" />
+              </div>
+            </div>
+          </div>
+          <div class="subtle" style="margin-top:12px;">Fast solve: enter the final answer before checking setup for double points.</div>
+        </div>
+      </div>
+      <div class="side-buttons">
+        <button class="btn outline-good" id="checkPromptBtn">Check Have/Want</button>
+        <button class="btn outline-good" id="checkNeedBtn">Check Need</button>
+        <button class="btn outline-good" id="checkSetupBtn">Check Setup</button>
+        <button class="btn primary" id="checkAnswerBtn">Check Answer</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div id="modeModal" class="modal show">
+  <div class="modal-card">
+    <h2 style="margin:0 0 8px;color:var(--accent);">Choose practice mode</h2>
+    <p class="subtle" style="text-align:left;">Students choose this before the first prompt appears.</p>
+    <div class="mode-grid">
+      <button class="choice-btn mode-pick selected" data-mode="random">Random</button>
+      <button class="choice-btn mode-pick" data-mode="molGram">Moles ↔ Grams</button>
+      <button class="choice-btn mode-pick" data-mode="molMol">Moles → Moles</button>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:16px;">
+      <button class="btn primary" id="startBtn">Start</button>
+    </div>
+  </div>
+</div>
+
+<div id="nameModal" class="modal">
+  <div class="modal-card">
+    <h3 style="margin:0 0 10px 0;">Submit Score</h3>
+    <input type="text" id="displayNameInput" placeholder="Your name..." style="margin:12px 0;" />
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button class="btn" onclick="document.getElementById('nameModal').classList.remove('show')">Cancel</button>
+      <button class="btn primary" id="continueName">Submit Score</button>
+    </div>
+  </div>
+</div>
+
+<div id="fastFlash" class="flash" aria-hidden="true">
+  <div class="flash-card">
+    <div class="flash-title">⚡ Fast Solve! ⚡</div>
+    <div>Double points for a confident correct answer.</div>
+    <div class="spark">🧪 ✨ 🧮 ✨ 🧪</div>
+  </div>
+</div>
+
+<script>
+const ELEMENTS = { H:{mass:1.01}, C:{mass:12.01}, N:{mass:14.01}, O:{mass:16.00}, Na:{mass:22.99}, Mg:{mass:24.31}, Al:{mass:26.98}, P:{mass:30.97}, S:{mass:32.06}, Cl:{mass:35.45}, K:{mass:39.10}, Ca:{mass:40.08}, Fe:{mass:55.85}, Zn:{mass:65.38}, Ag:{mass:107.87}, I:{mass:126.90}, Ba:{mass:137.33} };
+const SIM_ID = "stoichiometry";
+const TOKEN_SALT = "MoLeCuTeOrG";
+const FORM_BASE_URL = "https://docs.google.com/forms/d/e/1FAIpQLSckXbWQsVWobjrktGMoF7AtY6gMch0eQMjsGlddVv1cxgNHgQ/formResponse";
+const FORM_ENTRIES = { name:"entry.366340186", sim:"entry.1832756779", score:"entry.221944829", token:"entry.1636605257" };
+const COMPOUNDS = [
+  // simple ionic
+  "KCl","NaCl","MgO","CaCl2","Al2O3","Fe2O3","ZnCl2",
+
+  // covalent
+  "H2O","CO2","NH3","CH4","SO2","NO2",
+
+  // polyatomic ions
+  "Na2SO4","CaCO3","KNO3","NaNO3","NH4Cl","NaHCO3",
+
+  // parentheses (medium difficulty)
+  "Mg(OH)2","Ca(OH)2","Al(OH)3","Ca(NO3)2","Fe(NO3)3","Al2(SO4)3",
+
+  // harder parentheses
+  "Ca3(PO4)2","(NH4)2SO4","(NH4)3PO4",
+
+  // organic-ish (good stretch)
+  "C2H6","C3H8","C6H12O6","CH3OH"
+];
+const EQUATIONS = [
+
+  // --- synthesis ---
+  { display:"2H₂ + O₂ → 2H₂O", species:{H2:2,O2:1,H2O:2} },
+  { display:"N₂ + 3H₂ → 2NH₃", species:{N2:1,H2:3,NH3:2} },
+  { display:"2Na + Cl₂ → 2NaCl", species:{Na:2,Cl2:1,NaCl:2} },
+  { display:"4Al + 3O₂ → 2Al₂O₃", species:{Al:4,O2:3,Al2O3:2} },
+
+  // --- decomposition ---
+  { display:"2KClO₃ → 2KCl + 3O₂", species:{KClO3:2,KCl:2,O2:3} },
+  { display:"2HgO → 2Hg + O₂", species:{HgO:2,Hg:2,O2:1} },
+  { display:"CaCO₃ → CaO + CO₂", species:{CaCO3:1,CaO:1,CO2:1} },
+
+  // --- combustion ---
+  { display:"CH₄ + 2O₂ → CO₂ + 2H₂O", species:{CH4:1,O2:2,CO2:1,H2O:2} },
+  { display:"2C₂H₆ + 7O₂ → 4CO₂ + 6H₂O", species:{C2H6:2,O2:7,CO2:4,H2O:6} },
+  { display:"C₃H₈ + 5O₂ → 3CO₂ + 4H₂O", species:{C3H8:1,O2:5,CO2:3,H2O:4} },
+
+  // --- single replacement ---
+  { display:"Zn + 2HCl → ZnCl₂ + H₂", species:{Zn:1,HCl:2,ZnCl2:1,H2:1} },
+  { display:"Fe + CuSO₄ → FeSO₄ + Cu", species:{Fe:1,CuSO4:1,FeSO4:1,Cu:1} },
+  { display:"Cl₂ + 2KBr → 2KCl + Br₂", species:{Cl2:1,KBr:2,KCl:2,Br2:1} },
+
+  // --- double replacement ---
+  { display:"AgNO₃ + NaCl → AgCl + NaNO₃", species:{AgNO3:1,NaCl:1,AgCl:1,NaNO3:1} },
+  { display:"BaCl₂ + Na₂SO₄ → BaSO₄ + 2NaCl", species:{BaCl2:1,Na2SO4:1,BaSO4:1,NaCl:2} },
+
+  // --- acid-base ---
+  { display:"HCl + NaOH → NaCl + H₂O", species:{HCl:1,NaOH:1,NaCl:1,H2O:1} },
+  { display:"H₂SO₄ + 2NaOH → Na₂SO₄ + 2H₂O", species:{H2SO4:1,NaOH:2,Na2SO4:1,H2O:2} },
+
+  // --- harder ratios ---
+  { display:"2Al + 6HCl → 2AlCl₃ + 3H₂", species:{Al:2,HCl:6,AlCl3:2,H2:3} },
+  { display:"3Fe + 4H₂O → Fe₃O₄ + 4H₂", species:{Fe:3,H2O:4,Fe3O4:1,H2:4} }
+
+];
+let state = { mode:"random", problem:null, selectedNeed:null, points:0, solved:0, currentSolved:false, checkedPrompt:false, checkedNeed:false, checkedSetup:false, selectedModePending:"random" };
+const MOL_VALUES = [0.5,1,1.5,2,2.5,3,3.5,4,5,6];
+const HARD_MOL_VALUES = [1.25,1.75,2.25,2.75,3.25];
+const GRAM_VALUES = [10,12,15,18,20,25,30,35,40,50,75,100];
+function fnv1a(str){ let h=0x811c9dc5; for(let i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = (h * 0x01000193) >>> 0; } return ("00000000" + h.toString(16)).slice(-8); }
+function generateToken(name, score){ const payload={ v:1, sim:SIM_ID, name, score, t:Date.now() }; const json=JSON.stringify(payload); const sig=fnv1a(json + "|" + TOKEN_SALT); return btoa(JSON.stringify({ ...payload, sig })); }
+function choose(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function parseFormula(formula){ const stack=[{counts:{}}]; let i=0; const add=(t,s,m=1)=>{ for(const el in s) t[el]=(t[el]||0)+s[el]*m; }; while(i<formula.length){ const ch=formula[i]; if(ch==='('){ stack.push({counts:{}}); i++; continue; } if(ch===')'){ i++; let n=''; while(i<formula.length && /\d/.test(formula[i])) n+=formula[i++]; const g=stack.pop(); add(stack[stack.length-1].counts,g.counts,parseInt(n||'1',10)); continue; } if(!/[A-Z]/.test(ch)) throw new Error('bad formula'); let el=formula[i++]; if(i<formula.length && /[a-z]/.test(formula[i])) el+=formula[i++]; let n=''; while(i<formula.length && /\d/.test(formula[i])) n+=formula[i++]; stack[stack.length-1].counts[el]=(stack[stack.length-1].counts[el]||0)+parseInt(n||'1',10); } return stack[0].counts; }
+function molarMass(formula){ const c=parseFormula(formula); return Object.keys(c).reduce((s,e)=>s+c[e]*ELEMENTS[e].mass,0); }
+function fmt(n){ return Number(n).toFixed(2).replace(/\.00$/,''); }
+function subFormula(f){ return String(f).replace(/(\d+)/g,'<sub>$1</sub>'); }
+function approx(a,b){ return Math.abs(Number(a)-Number(b)) <= Math.max(.02, Math.abs(b)*.01); }
+function formatPrompt(p){ return 'Convert ' + fmt(p.haveVal) + ' ' + unitWord(p.haveUnit) + ' of ' + subFormula(p.haveSubstance) + ' to ' + unitWord(p.wantUnit) + ' of ' + subFormula(p.wantSubstance); }
+function unitWord(unit){ return unit === 'g' ? 'grams' : 'moles'; }
+function setStatus(msg,type='info'){ const b=document.getElementById('statusBox'); b.innerHTML=msg; b.className=`status show ${type}`; }
+function addPoints(n){ state.points += n; document.getElementById('scoreDisplay').textContent = 'Points: ' + state.points; }
+function normalizeSubstance(s){ return String(s || '').trim().split(/ +/).join(''); }
+function sameSubstance(a,b){ return normalizeSubstance(a).toLowerCase() === normalizeSubstance(b).toLowerCase(); }
+function populateSubs(){ /* Substance fields are text inputs now; no dropdowns to populate. */ }
+function makeProblem(){ const modeChoices = state.mode==='random' ? ['molToGram','gramToMol','molToMol'] : state.mode==='molGram' ? ['molToGram','gramToMol'] : ['molToMol']; const type=choose(modeChoices); if(type==='molToMol'){ const eq=choose(EQUATIONS); const species=Object.keys(eq.species); const from=choose(species); const to=choose(species.filter(s=>s!==from)); const haveVal=choose([1,2,3,4,5,6]); const answer=haveVal*eq.species[to]/eq.species[from]; return { type, need:'eq', eq, haveVal, haveUnit:'mol', haveSubstance:from, wantUnit:'mol', wantSubstance:to, answer, ratioHave:eq.species[from], ratioWant:eq.species[to], prompt:`Convert ${fmt(haveVal)} ${unitWord('mol')} of ${from} to ${unitWord('mol')} of ${to}` }; }
+  const substance=choose(COMPOUNDS); const mw=molarMass(substance); if(type==='molToGram'){ const haveVal=choose([0.5,1,1.5,2,2.5,3,4]); const answer=haveVal*mw; return { type, need:'mm', haveVal, haveUnit:'mol', haveSubstance:substance, wantUnit:'g', wantSubstance:substance, answer, mw, prompt:`Convert ${fmt(haveVal)} ${unitWord('mol')} of ${substance} to ${unitWord('g')} of ${substance}` }; }
+  const haveVal = Math.random() < 0.3 
+  ? choose(HARD_MOL_VALUES)
+  : choose(MOL_VALUES); const answer=haveVal/mw; return { type, need:'mm', haveVal, haveUnit:'g', haveSubstance:substance, wantUnit:'mol', wantSubstance:substance, answer, mw, prompt:`Convert ${fmt(haveVal)} ${unitWord('g')} of ${substance} to ${unitWord('mol')} of ${substance}` }; }
+function factorOptions(p){ if(p.need==='mm'){ return p.type==='molToGram' ? [`${fmt(p.mw)} g ${p.haveSubstance}`, `1 mol ${p.haveSubstance}`, `1 g ${p.haveSubstance}`, `${fmt(p.mw)} mol ${p.haveSubstance}`] : [`1 mol ${p.haveSubstance}`, `${fmt(p.mw)} g ${p.haveSubstance}`, `1 g ${p.haveSubstance}`, `${fmt(p.mw)} mol ${p.haveSubstance}`]; } return [`${p.ratioWant} mol ${p.wantSubstance}`, `${p.ratioHave} mol ${p.haveSubstance}`, `${p.ratioHave} mol ${p.wantSubstance}`, `${p.ratioWant} mol ${p.haveSubstance}`]; }
+function correctFactor(p){ if(p.need==='mm') return p.type==='molToGram' ? {num:`${fmt(p.mw)} g ${p.haveSubstance}`, den:`1 mol ${p.haveSubstance}`} : {num:`1 mol ${p.haveSubstance}`, den:`${fmt(p.mw)} g ${p.haveSubstance}`}; return {num:`${p.ratioWant} mol ${p.wantSubstance}`, den:`${p.ratioHave} mol ${p.haveSubstance}`}; }
+function renderProblem(){ const p=state.problem; document.getElementById('promptDisplay').innerHTML=formatPrompt(p); document.getElementById('modeDisplay').textContent = 'Mode: ' + (state.mode==='random'?'Random':state.mode==='molGram'?'Moles ↔ Grams':'Moles → Moles');
+  document.getElementById('haveValue').value=''; document.getElementById('haveUnit').value=''; document.getElementById('haveSubstance').value='';
+  document.getElementById('wantValue').value=''; document.getElementById('wantUnit').value=''; document.getElementById('wantSubstance').value=''; document.getElementById('finalAnswer').value=''; document.getElementById('finalUnit').value=''; document.getElementById('finalSubstance').value='';
+  state.selectedNeed=null; state.checkedPrompt=false; state.checkedNeed=false; state.checkedSetup=false; state.currentSolved=false;
+  document.getElementById('needMM').classList.remove('selected'); document.getElementById('needEQ').classList.remove('selected'); renderNeedDetail(); renderValues(); clearFactorOptions(); setStatus('Read the prompt, then fill in HAVE and WANT on your own.','info'); }
+function renderValues(){ const hv=document.getElementById('haveValue').value, hu=document.getElementById('haveUnit').value, hs=normalizeSubstance(document.getElementById('haveSubstance').value); const wv=document.getElementById('wantValue').value, wu=document.getElementById('wantUnit').value, ws=normalizeSubstance(document.getElementById('wantSubstance').value);
+  document.getElementById('haveRendered').innerHTML = (hv || hu || hs) ? `${hv ? fmt(hv) : '#'} ${hu ? unitWord(hu) : 'unit'} ${subFormula(hs || 'substance')}` : '';
+  document.getElementById('wantRendered').innerHTML = (wv || wu || ws) ? `${wv ? fmt(wv) : '?'} ${wu ? unitWord(wu) : 'unit'} ${subFormula(ws || 'substance')}` : '';
+  document.getElementById('givenDisplay').innerHTML = (hv || hu || hs) ? `${hv ? fmt(hv) : '#'} ${hu || 'unit'}<br><span class="subtle">${subFormula(hs || 'substance')}</span>` : '—'; }
+function renderNeedDetail(){ const box=document.getElementById('needDetail'); const p=state.problem; if(!state.selectedNeed){ box.innerHTML='<div class="subtle">Choose what connects HAVE to WANT.</div>'; return; } if(state.selectedNeed==='mm'){ box.innerHTML=`<div><span class="input-label">Student-calculated molar mass</span><input id="molarMassInput" type="number" step="0.01" placeholder="g/mol"></div>`; } else { box.innerHTML=`<div class="subtle">Balanced equation</div><div class="equation-display">${p.eq ? p.eq.display : 'Equation appears here'}</div><div class="subtle" style="margin-top:8px;">Use coefficients for the mole ratio.</div>`; } }
+function clearFactorOptions(){ document.getElementById('numSelect').innerHTML='<option value="">numerator</option>'; document.getElementById('denSelect').innerHTML='<option value="">denominator</option>'; }
+function renderFactorOptions(){ const opts=factorOptions(state.problem); document.getElementById('numSelect').innerHTML='<option value="">numerator</option>' + opts.map(o=>`<option>${o}</option>`).join(''); document.getElementById('denSelect').innerHTML='<option value="">denominator</option>' + opts.map(o=>`<option>${o}</option>`).join(''); }
+function newProblem(){ state.problem=makeProblem(); renderProblem(); }
+function resetProblem(){ renderProblem(); }
+function checkPrompt(){ const p=state.problem; const hv=Number(document.getElementById('haveValue').value); const hu=document.getElementById('haveUnit').value; const hs=normalizeSubstance(document.getElementById('haveSubstance').value); const wu=document.getElementById('wantUnit').value; const ws=normalizeSubstance(document.getElementById('wantSubstance').value); const ok=approx(hv,p.haveVal) && hu===p.haveUnit && sameSubstance(hs,p.haveSubstance) && wu===p.wantUnit && sameSubstance(ws,p.wantSubstance); if(ok){ state.checkedPrompt=true; addPoints(5); setStatus('HAVE and WANT are correct. Now choose what you need. +5 points','good'); } else { addPoints(-2); setStatus('Not yet. Match the prompt: number, unit, and substance all matter. -2 points','bad'); } }
+function checkNeed(){ const p=state.problem; if(!state.checkedPrompt) return setStatus('Check HAVE and WANT first.','warn'); if(!state.selectedNeed) return setStatus('Choose molar mass or balanced equation first.','warn'); if(state.selectedNeed!==p.need){ addPoints(-2); setStatus(p.need==='mm'?'Not quite. Same substance with grams ↔ moles needs molar mass. -2 points':'Not quite. Different substances need the balanced equation. -2 points','bad'); return; }
+  if(p.need==='mm'){ const input=document.getElementById('molarMassInput'); if(!input || input.value==='' || !approx(input.value,p.mw)){ addPoints(-2); setStatus('Correct tool, but the molar mass is not right yet. -2 points','bad'); return; } setStatus(`Correct. Molar mass = ${p.mw.toFixed(2)} g/mol. +5 points`,'good'); }
+  else { setStatus('Correct. Use the balanced equation coefficients to build the mole ratio. +5 points','good'); }
+  state.checkedNeed=true; renderFactorOptions(); addPoints(5); }
+function checkSetup(){ if(!state.checkedNeed) return setStatus('Check the NEED section first.','warn'); const c=correctFactor(state.problem); const ok=document.getElementById('numSelect').value===c.num && document.getElementById('denSelect').value===c.den; if(ok){ state.checkedSetup=true; addPoints(5); setStatus('Correct setup. The HAVE unit cancels and the WANT unit remains. +5 points','good'); } else { addPoints(-2); setStatus('Not yet. Put the unit/substance you want on top and the unit/substance you have on bottom. -2 points','bad'); } }
+function checkAnswer(){ const p=state.problem; const raw=document.getElementById('finalAnswer').value; const unit=document.getElementById('finalUnit').value; const finalSubstance=normalizeSubstance(document.getElementById('finalSubstance').value); const wantValue=document.getElementById('wantValue').value; const finalVal = raw !== '' ? raw : wantValue; const unitOk=unit===p.wantUnit; const substanceOk=sameSubstance(finalSubstance,p.wantSubstance); const fast=!state.checkedPrompt && !state.checkedNeed && !state.checkedSetup; if(finalVal!=='' && approx(finalVal,p.answer) && unitOk && substanceOk){ if(!state.currentSolved){ const pts=fast?40:20; addPoints(pts); state.solved++; state.currentSolved=true; if(fast) triggerFlash(); setStatus(`Correct. Final answer = ${p.answer.toFixed(2)} ${p.wantUnit}. +${pts} points`,'good'); document.getElementById('wantValue').value=p.answer.toFixed(2); document.getElementById('finalUnit').value=p.wantUnit; document.getElementById('finalSubstance').value=p.wantSubstance; renderValues(); } else setStatus('Already solved. Click Next for a new problem.','info'); } else { addPoints(-10); setStatus((unitOk && substanceOk)?'Not yet. The final answer is incorrect. -10 points':'Not yet. Check your number, unit, and substance. -10 points','bad'); } }
+function triggerFlash(){ const f=document.getElementById('fastFlash'); f.classList.remove('show'); void f.offsetWidth; f.classList.add('show'); clearTimeout(triggerFlash._t); triggerFlash._t=setTimeout(()=>f.classList.remove('show'),1300); }
+function setNeed(n){ state.selectedNeed=n; document.getElementById('needMM').classList.toggle('selected', n==='mm'); document.getElementById('needEQ').classList.toggle('selected', n==='eq'); renderNeedDetail(); }
+function setMode(mode){ state.mode=mode; state.selectedModePending=mode; document.getElementById('modeModal').classList.remove('show'); newProblem(); }
+function wireNumberInputs(){ document.querySelectorAll('input[type="number"]').forEach(input => input.addEventListener('wheel', e => { if(document.activeElement === input){ e.preventDefault(); input.blur(); } }, {passive:false})); }
+['haveValue','haveUnit','haveSubstance','wantValue','wantUnit','wantSubstance'].forEach(id=>document.getElementById(id).addEventListener('input', renderValues));
+document.getElementById('needMM').onclick=()=>setNeed('mm'); document.getElementById('needEQ').onclick=()=>setNeed('eq');
+document.getElementById('checkPromptBtn').onclick=checkPrompt; document.getElementById('checkNeedBtn').onclick=checkNeed; document.getElementById('checkSetupBtn').onclick=checkSetup; document.getElementById('checkAnswerBtn').onclick=checkAnswer;
+document.getElementById('newProblemBtn').onclick=newProblem; document.getElementById('resetBtn').onclick=resetProblem; document.getElementById('changeModeBtn').onclick=()=>document.getElementById('modeModal').classList.add('show');
+document.querySelectorAll('.mode-pick').forEach(btn=>btn.onclick=()=>{ document.querySelectorAll('.mode-pick').forEach(b=>b.classList.remove('selected')); btn.classList.add('selected'); state.selectedModePending=btn.dataset.mode; });
+document.getElementById('startBtn').onclick=()=>setMode(state.selectedModePending || 'random');
+document.getElementById('submitScoreBtn').onclick=()=>{ if(state.points===0) return alert('Score some points first!'); document.getElementById('displayNameInput').value=''; document.getElementById('nameModal').classList.add('show'); };
+document.getElementById('continueName').onclick=()=>{ const name=document.getElementById('displayNameInput').value.trim(); if(!name) return; const token=generateToken(name,state.points); const params=new URLSearchParams(); params.set(FORM_ENTRIES.name,name); params.set(FORM_ENTRIES.sim,SIM_ID); params.set(FORM_ENTRIES.score,state.points); params.set(FORM_ENTRIES.token,token); fetch(FORM_BASE_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:params.toString()}); alert('Score submitted! Great job.'); location.reload(); };
+populateSubs(); wireNumberInputs(); newProblem();
+</script>
+</body>
+</html>
