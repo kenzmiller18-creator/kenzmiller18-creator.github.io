@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Coding Demo</title>
+
+  <style>
+    body {
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: black;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    p {
+      margin-top: 0;
+      opacity: 0.8;
+    }
+
+    .circle {
+      position: absolute;
+      border-radius: 50%;
+      pointer-events: none;
+      animation: pop 0.8s linear forwards;
+    }
+
+    @keyframes pop {
+      from {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      to {
+        transform: scale(0);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>🕹️ Move Your Mouse 🕹️</h1>
+  <p>You can change color, size, speed, and effects!</p>
+
+  <script>
+    document.addEventListener("mousemove", function(event) {
+
+      // Create a new circle
+      const circle = document.createElement("div");
+      circle.classList.add("circle");
+
+      // Random size
+      const size = Math.random() * 50 + 10;
+
+      // Position
+      circle.style.width = size + "px";
+      circle.style.height = size + "px";
+      circle.style.left = event.pageX - size / 2 + "px";
+      circle.style.top = event.pageY - size / 2 + "px";
+
+      // Random color
+      const colors = [
+        "red",
+        "orange",
+        "yellow",
+        "lime",
+        "cyan",
+        "magenta",
+        "white"
+      ];
+
+      circle.style.background = colors[Math.floor(Math.random() * colors.length)];
+
+      // Add to page
+      document.body.appendChild(circle);
+
+      // Remove after animation
+      setTimeout(() => {
+        circle.remove();
+      }, 800);
+
+    });
+  </script>
+
+</body>
+</html>
