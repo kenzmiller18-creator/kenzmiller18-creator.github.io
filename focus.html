@@ -3,22 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Focus Mode | Earn Extra Credit</title>
+    <title>Focus Mode Simulation</title>
     <style>
         :root {
-            --bg: #f0fdf4; /* Light green theme for focus */
+            --bg: #f8fafc;
             --card: #ffffff;
-            --ink: #1f2a37;
+            --ink: #1e293b;
             --muted: #64748b;
-            --accent: #22c55e;
-            --accent-dark: #16a34a;
-            --shadow: 0 10px 28px rgba(0, 0, 0, 0.05);
-            --radius: 20px;
+            --accent: #16a34a;
+            --accent-glow: rgba(22, 163, 74, 0.2);
+            --danger: #ef4444;
+            --shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.1);
+            --radius: 24px;
         }
+
+        * { box-sizing: border-box; transition: background 0.4s, opacity 0.4s; }
 
         body {
             margin: 0;
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--bg);
             color: var(--ink);
             display: flex;
@@ -26,13 +29,33 @@
             justify-content: center;
             height: 100vh;
             overflow: hidden;
+            touch-action: manipulation;
         }
 
-        .container {
-            width: 90%;
-            max-width: 400px;
-            text-align: center;
+        /* Dark mode for battery saving */
+        body.blackout {
+            background: #000000 !important;
         }
+        
+        .blackout .card {
+            opacity: 0.1;
+            pointer-events: none;
+        }
+        
+        .blackout #saver-btn {
+            opacity: 1 !important;
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: white;
+            z-index: 1000;
+            pointer-events: auto;
+        }
+
+        .container { width: 90%; max-width: 420px; text-align: center; }
 
         .card {
             background: var(--card);
@@ -40,162 +63,218 @@
             border-radius: var(--radius);
             box-shadow: var(--shadow);
             border: 1px solid rgba(0,0,0,0.05);
+            position: relative;
         }
 
-        h1 { font-size: 24px; margin-bottom: 8px; }
-        p { color: var(--muted); margin-bottom: 30px; font-size: 14px; line-height: 1.5; }
+        .icon-circle {
+            width: 80px;
+            height: 80px;
+            background: var(--accent-glow);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        h1 { font-size: 24px; font-weight: 800; margin: 0 0 10px; }
+        p { color: var(--muted); font-size: 14px; line-height: 1.6; margin-bottom: 24px; }
 
         .timer-display {
-            font-size: 64px;
-            font-weight: 800;
+            font-size: 72px;
+            font-weight: 900;
             color: var(--accent);
             margin: 20px 0;
             font-variant-numeric: tabular-nums;
+            letter-spacing: -2px;
         }
 
         .stats {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
             margin-bottom: 30px;
         }
 
         .stat-box {
-            font-size: 12px;
+            padding: 12px;
+            background: #f1f5f9;
+            border-radius: 12px;
+            font-size: 11px;
             color: var(--muted);
             text-transform: uppercase;
             font-weight: 700;
-            letter-spacing: 0.5px;
         }
 
         .stat-val {
             display: block;
-            font-size: 18px;
+            font-size: 20px;
             color: var(--ink);
+            margin-top: 4px;
         }
 
         .btn {
-            background: var(--accent);
-            color: white;
+            width: 100%;
+            padding: 18px;
+            border-radius: 16px;
             border: none;
-            padding: 16px 32px;
-            border-radius: 12px;
             font-weight: 700;
             font-size: 16px;
             cursor: pointer;
-            width: 100%;
-            transition: transform 0.2s;
+            margin-bottom: 12px;
         }
 
-        .btn:active { transform: scale(0.98); }
-        .btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-secondary { background: #1e293b; color: white; }
+        .btn-ghost { background: transparent; color: var(--muted); text-decoration: underline; font-size: 13px; }
 
         #status-msg {
-            margin-top: 20px;
+            margin-top: 15px;
             font-size: 13px;
             font-weight: 600;
-            min-height: 20px;
+            min-height: 40px;
+            padding: 0 10px;
         }
 
-        .warning { color: #dc2626; }
-        .success { color: var(--accent-dark); }
+        .warning { color: var(--danger); animation: shake 0.5s; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="card">
-        <h1>Focus Session</h1>
-        <p>Put your phone down and focus on your work. Locking your screen is okay, but switching apps will reset the timer!</p>
+        <div class="icon-circle">
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+        </div>
+        <h1>Focus & Earn</h1>
+        <p>Keep this tab open and your screen on. If you leave to check another app, your progress resets!</p>
 
         <div class="timer-display" id="timer">00:00</div>
 
         <div class="stats">
-            <div class="stat-box">Points Earned<span class="stat-val" id="points">0</span></div>
+            <div class="stat-box">Points<span class="stat-val" id="points">0</span></div>
+            <div class="stat-box">Session<span class="stat-val" id="session-type">Active</span></div>
         </div>
 
-        <button class="btn" id="startBtn">Start Focusing</button>
-        <button class="btn" id="submitBtn" style="display:none; margin-top:10px; background:#1e293b;">Submit Points</button>
+        <button class="btn btn-primary" id="start-btn">Start Session</button>
+        <button class="btn btn-secondary" id="saver-btn" style="display:none;">Battery Saver (Blackout)</button>
+        <button class="btn btn-ghost" id="submit-btn" style="display:none;">Submit Early</button>
         
         <div id="status-msg"></div>
     </div>
 </div>
 
 <script>
-const SIM_ID = "focus_mode";
-const FORM_BASE_URL = "https://docs.google.com/forms/d/e/YOUR_FORM_ID/formResponse";
-const FORM_ENTRIES = {
-    name: "entry.366340186",
-    sim: "entry.1832756779",
-    score: "entry.221944829"
-};
+    // --- CONFIGURATION ---
+    const SIM_ID = "focus_mode_pro";
+    const FORM_BASE_URL = "https://docs.google.com/forms/d/e/1FAIpQLSckXbWQsVWobjrktGMoF7AtY6gMch0eQMjsGlddVv1cxgNHgQ/formResponse";
+    const FORM_ENTRIES = {
+        name: "entry.366340186",
+        sim: "entry.1832756779",
+        score: "entry.221944829"
+    };
 
-let startTime = null;
-let isActive = false;
-let totalMinutes = 0;
+    let startTime = null;
+    let isActive = false;
+    let wakeLock = null;
+    let timerInterval = null;
 
-const timerEl = document.getElementById('timer');
-const pointsEl = document.getElementById('points');
-const startBtn = document.getElementById('startBtn');
-const submitBtn = document.getElementById('submitBtn');
-const statusMsg = document.getElementById('status-msg');
+    const timerEl = document.getElementById('timer');
+    const pointsEl = document.getElementById('points');
+    const startBtn = document.getElementById('start-btn');
+    const saverBtn = document.getElementById('saver-btn');
+    const submitBtn = document.getElementById('submit-btn');
+    const statusMsg = document.getElementById('status-msg');
 
-// This runs every time the student re-opens the browser/unlocks phone
-document.addEventListener("visibilitychange", () => {
-    if (!document.hidden && isActive) {
-        updateProgress();
-    }
-});
-
-function updateProgress() {
-    if (!startTime) return;
-    
-    const now = Date.now();
-    const diffInMs = now - startTime;
-    const diffInSecs = Math.floor(diffInMs / 1000);
-    
-    const mins = Math.floor(diffInSecs / 60);
-    const secs = diffInSecs % 60;
-    
-    // Update display
-    timerEl.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-    pointsEl.textContent = mins;
-    totalMinutes = mins;
-}
-
-startBtn.onclick = () => {
-    isActive = true;
-    startTime = Date.now();
-    startBtn.disabled = true;
-    startBtn.textContent = "Focusing...";
-    submitBtn.style.display = "block";
-    statusMsg.innerHTML = '<span class="success">Lock your phone now! Come back when you are finished.</span>';
-    
-    // Keep a "fake" visual timer running while the screen is ON
-    setInterval(() => {
-        if (!document.hidden && isActive) updateProgress();
-    }, 1000);
-};
-
-submitBtn.onclick = () => {
-    updateProgress(); // Final check
-    const name = prompt(`You earned ${totalMinutes} points! Enter your name to submit:`);
-    if (!name) return;
-
-    const params = new URLSearchParams();
-    params.set(FORM_ENTRIES.name, name);
-    params.set(FORM_ENTRIES.sim, SIM_ID);
-    params.set(FORM_ENTRIES.score, totalMinutes);
-
-    fetch(FORM_BASE_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        body: params.toString()
-    }).then(() => {
-        alert("Points submitted!");
-        location.reload();
+    // 1. CHEAT DETECTION (Switching Tabs/Apps)
+    document.addEventListener("visibilitychange", () => {
+        if (document.hidden && isActive) {
+            failSession("Cheating Detected! You left the app.");
+        }
     });
-};
+
+    function failSession(msg) {
+        isActive = false;
+        clearInterval(timerInterval);
+        if (wakeLock) wakeLock.release();
+        document.body.classList.remove('blackout');
+        
+        statusMsg.innerHTML = `<span class="warning">${msg}</span>`;
+        startBtn.disabled = false;
+        startBtn.textContent = "Restart Session";
+        saverBtn.style.display = "none";
+        submitBtn.style.display = "none";
+    }
+
+    async function requestWakeLock() {
+        if ('wakeLock' in navigator) {
+            try {
+                wakeLock = await navigator.wakeLock.request('screen');
+            } catch (err) {
+                console.error("Wake Lock failed");
+            }
+        }
+    }
+
+    function updateTimer() {
+        const now = Date.now();
+        const diffInSecs = Math.floor((now - startTime) / 1000);
+        const mins = Math.floor(diffInSecs / 60);
+        const secs = diffInSecs % 60;
+        
+        timerEl.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        pointsEl.textContent = mins;
+    }
+
+    startBtn.onclick = async () => {
+        isActive = true;
+        startTime = Date.now();
+        startBtn.disabled = true;
+        startBtn.textContent = "Focusing...";
+        
+        saverBtn.style.display = "block";
+        submitBtn.style.display = "block";
+        statusMsg.innerHTML = "Screen lock disabled. Place phone face down.";
+
+        await requestWakeLock();
+        timerInterval = setInterval(updateTimer, 1000);
+    };
+
+    saverBtn.onclick = (e) => {
+        e.stopPropagation();
+        document.body.classList.toggle('blackout');
+        if (document.body.classList.contains('blackout')) {
+            saverBtn.textContent = "Tap to Exit Saver";
+        } else {
+            saverBtn.textContent = "Battery Saver (Blackout)";
+        }
+    };
+
+    submitBtn.onclick = () => {
+        const totalPoints = Math.floor((Date.now() - startTime) / 60000);
+        if (totalPoints < 1) {
+            alert("Focus for at least 1 minute to earn points!");
+            return;
+        }
+
+        const name = prompt(`Great work! You earned ${totalPoints} points. Enter your name:`);
+        if (!name) return;
+
+        const params = new URLSearchParams();
+        params.set(FORM_ENTRIES.name, name);
+        params.set(FORM_ENTRIES.sim, SIM_ID);
+        params.set(FORM_ENTRIES.score, totalPoints);
+
+        fetch(FORM_BASE_URL, { method: 'POST', mode: 'no-cors', body: params.toString() });
+        
+        alert("Submitted to teacher spreadsheet!");
+        location.reload();
+    };
 </script>
 
 </body>
