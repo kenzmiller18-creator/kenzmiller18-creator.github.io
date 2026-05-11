@@ -170,111 +170,130 @@
 </div>
 
 <script>
-    // --- CONFIGURATION ---
-    const SIM_ID = "focus_mode";
-    const FORM_BASE_URL = "https://docs.google.com/forms/d/e/1FAIpQLSckXbWQsVWobjrktGMoF7AtY6gMch0eQMjsGlddVv1cxgNHgQ/formResponse";
-    const FORM_ENTRIES = {
-        name: "entry.366340186",
-        sim: "entry.1832756779",
-        score: "entry.221944829"
-    };
+ // --- CONFIGURATION FROM YOUR TRACKER ---
+const SIM_ID = "focus_mode";
+const TOKEN_SALT = "MoLeCuTeOrG";
+const FORM_BASE_URL = "https://docs.google.com/forms/d/e/1FAIpQLSckXbWQsVWobjrktGMoF7AtY6gMch0eQMjsGlddVv1cxgNHgQ/formResponse";
+const FORM_ENTRIES = {
+  displayName: "entry.366340186",
+  sim: "entry.1832756779",
+  score: "entry.221944829",
+  token: "entry.1636605257",
+};
 
-    let startTime = null;
-    let isActive = false;
-    let wakeLock = null;
-    let timerInterval = null;
+let startTime = null;
+let isActive = false;
+let wakeLock = null;
+let timerInterval = null;
+let totalMinutes = 0;
 
-    const timerEl = document.getElementById('timer');
-    const pointsEl = document.getElementById('points');
-    const startBtn = document.getElementById('start-btn');
-    const saverBtn = document.getElementById('saver-btn');
-    const submitBtn = document.getElementById('submit-btn');
-    const statusMsg = document.getElementById('status-msg');
+// --- SECURITY TOKEN LOGIC ---
+function fnv1a(str) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = (h * 0x01000193) >>> 0;
+  }
+  return ("00000000" + h.toString(16)).slice(-8);
+}
 
-    // 1. CHEAT DETECTION (Switching Tabs/Apps)
-    document.addEventListener("visibilitychange", () => {
-        if (document.hidden && isActive) {
-            failSession("It looks like you left the page. Timer paused.");
-        }
-    });
+function makeToken(name, score) {
+  const payload = {
+    v: 1,
+    sim: SIM_ID,
+    name: name,
+    score: score,
+    t: Date.now(),
+    nonce: Math.random().toString(36).slice(2, 10),
+  };
+  const core = JSON.stringify(payload);
+  payload.sig = fnv1a(core + "|" + TOKEN_SALT);
+  return btoa(JSON.stringify(payload));
+}
 
-    function failSession(msg) {
-        isActive = false;
-        clearInterval(timerInterval);
-        if (wakeLock) wakeLock.release();
-        document.body.classList.remove('blackout');
-        
-        statusMsg.innerHTML = `<span class="warning">${msg}</span>`;
-        startBtn.disabled = false;
-        startBtn.textContent = "Restart Session";
-        saverBtn.style.display = "none";
-        submitBtn.style.display = "none";
-    }
+// --- CORE LOGIC ---
+const timerEl = document.getElementById('timer');
+const pointsEl = document.getElementById('points');
+const startBtn = document.getElementById('start-btn');
+const saverBtn = document.getElementById('saver-btn');
+const submitBtn = document.getElementById('submit-btn');
+const statusMsg = document.getElementById('status-msg');
 
-    async function requestWakeLock() {
-        if ('wakeLock' in navigator) {
-            try {
-                wakeLock = await navigator.wakeLock.request('screen');
-            } catch (err) {
-                console.error("Wake Lock failed");
-            }
-        }
-    }
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden && isActive) {
+    failSession("It looks like you left the page. Timer paused.");
+  }
+});
 
-    function updateTimer() {
-        const now = Date.now();
-        const diffInSecs = Math.floor((now - startTime) / 1000);
-        const mins = Math.floor(diffInSecs / 60);
-        const secs = diffInSecs % 60;
-        
-        timerEl.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        pointsEl.textContent = mins;
-    }
+function failSession(msg) {
+  isActive = false;
+  clearInterval(timerInterval);
+  if (wakeLock) { wakeLock.release(); wakeLock = null; }
+  document.body.classList.remove('blackout');
+  statusMsg.innerHTML = `<span class="warning">${msg}</span>`;
+  startBtn.disabled = false;
+  startBtn.textContent = "Restart Session";
+  saverBtn.style.display = "none";
+  submitBtn.style.display = "none";
+}
 
-    startBtn.onclick = async () => {
-        isActive = true;
-        startTime = Date.now();
-        startBtn.disabled = true;
-        startBtn.textContent = "Focusing...";
-        
-        saverBtn.style.display = "block";
-        submitBtn.style.display = "block";
-        statusMsg.innerHTML = "Screen lock disabled. Place phone face down.";
+async function requestWakeLock() {
+  if ('wakeLock' in navigator) {
+    try { wakeLock = await navigator.wakeLock.request('screen'); } 
+    catch (err) { console.error("Wake Lock failed"); }
+  }
+}
 
-        await requestWakeLock();
-        timerInterval = setInterval(updateTimer, 1000);
-    };
+function updateTimer() {
+  const diffInSecs = Math.floor((Date.now() - startTime) / 1000);
+  totalMinutes = Math.floor(diffInSecs / 60);
+  const secs = diffInSecs % 60;
+  timerEl.textContent = `${totalMinutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  pointsEl.textContent = totalMinutes;
+}
 
-    saverBtn.onclick = (e) => {
-        e.stopPropagation();
-        document.body.classList.toggle('blackout');
-        if (document.body.classList.contains('blackout')) {
-            saverBtn.textContent = "Tap to Exit Saver";
-        } else {
-            saverBtn.textContent = "Battery Saver (Blackout)";
-        }
-    };
+startBtn.onclick = async () => {
+  isActive = true;
+  startTime = Date.now();
+  startBtn.disabled = true;
+  startBtn.textContent = "Focusing...";
+  saverBtn.style.display = "block";
+  submitBtn.style.display = "block";
+  statusMsg.innerHTML = "Screen lock disabled. Face down now.";
+  await requestWakeLock();
+  timerInterval = setInterval(updateTimer, 1000);
+};
 
-    submitBtn.onclick = () => {
-        const totalPoints = Math.floor((Date.now() - startTime) / 60000);
-        if (totalPoints < 1) {
-            alert("Focus for at least 1 minute to earn points!");
-            return;
-        }
+saverBtn.onclick = (e) => {
+  e.stopPropagation();
+  document.body.classList.toggle('blackout');
+  saverBtn.textContent = document.body.classList.contains('blackout') ? "Tap to Exit Saver" : "Battery Saver (Blackout)";
+};
 
-        const name = prompt(`Great work! You earned ${totalPoints} points. Enter your name:`);
-        if (!name) return;
+submitBtn.onclick = async () => {
+  // Update one last time
+  updateTimer();
+  
+  const name = prompt(`Submit ${totalMinutes} focus points? Enter your name:`);
+  if (!name) return;
 
-        const params = new URLSearchParams();
-        params.set(FORM_ENTRIES.name, name);
-        params.set(FORM_ENTRIES.sim, SIM_ID);
-        params.set(FORM_ENTRIES.score, totalPoints);
+  const token = makeToken(name, totalMinutes);
+  const body = new URLSearchParams();
+  body.set(FORM_ENTRIES.displayName, name);
+  body.set(FORM_ENTRIES.sim, SIM_ID);
+  body.set(FORM_ENTRIES.score, String(totalMinutes));
+  body.set(FORM_ENTRIES.token, token);
 
-        fetch(FORM_BASE_URL, { method: 'POST', mode: 'no-cors', body: params.toString() });
-        
-        alert("Submitted to teacher spreadsheet!");
-        location.reload();
-    };
+  fetch(FORM_BASE_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+    body: body.toString(),
+  });
+
+  alert("Points submitted! Screen will now reset.");
+  location.reload();
+};
 </script>
 
 </body>
