@@ -122,85 +122,80 @@
 </div>
 
 <script>
-    // Configuration - Match your Spreadsheet Form IDs
-    const SIM_ID = "focus_mode";
-    const FORM_BASE_URL = "https://docs.google.com/forms/d/e/YOUR_FORM_ID/formResponse";
-    const FORM_ENTRIES = {
-        name: "entry.366340186",
-        sim: "entry.1832756779",
-        score: "entry.221944829"
-    };
+const SIM_ID = "focus_mode";
+const FORM_BASE_URL = "https://docs.google.com/forms/d/e/YOUR_FORM_ID/formResponse";
+const FORM_ENTRIES = {
+    name: "entry.366340186",
+    sim: "entry.1832756779",
+    score: "entry.221944829"
+};
 
-    let startTime = null;
-    let timerInterval = null;
-    let totalSeconds = 0;
-    let isActive = false;
+let startTime = null;
+let isActive = false;
+let totalMinutes = 0;
 
-    const timerEl = document.getElementById('timer');
-    const pointsEl = document.getElementById('points');
-    const startBtn = document.getElementById('startBtn');
-    const submitBtn = document.getElementById('submitBtn');
-    const statusMsg = document.getElementById('status-msg');
+const timerEl = document.getElementById('timer');
+const pointsEl = document.getElementById('points');
+const startBtn = document.getElementById('startBtn');
+const submitBtn = document.getElementById('submitBtn');
+const statusMsg = document.getElementById('status-msg');
 
-    // 1. App Switch Detection (The "Cheat" Guard)
-    document.addEventListener("visibilitychange", () => {
-        if (document.hidden && isActive) {
-            handleCheat();
-        }
+// This runs every time the student re-opens the browser/unlocks phone
+document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && isActive) {
+        updateProgress();
+    }
+});
+
+function updateProgress() {
+    if (!startTime) return;
+    
+    const now = Date.now();
+    const diffInMs = now - startTime;
+    const diffInSecs = Math.floor(diffInMs / 1000);
+    
+    const mins = Math.floor(diffInSecs / 60);
+    const secs = diffInSecs % 60;
+    
+    // Update display
+    timerEl.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    pointsEl.textContent = mins;
+    totalMinutes = mins;
+}
+
+startBtn.onclick = () => {
+    isActive = true;
+    startTime = Date.now();
+    startBtn.disabled = true;
+    startBtn.textContent = "Focusing...";
+    submitBtn.style.display = "block";
+    statusMsg.innerHTML = '<span class="success">Lock your phone now! Come back when you are finished.</span>';
+    
+    // Keep a "fake" visual timer running while the screen is ON
+    setInterval(() => {
+        if (!document.hidden && isActive) updateProgress();
+    }, 1000);
+};
+
+submitBtn.onclick = () => {
+    updateProgress(); // Final check
+    const name = prompt(`You earned ${totalMinutes} points! Enter your name to submit:`);
+    if (!name) return;
+
+    const params = new URLSearchParams();
+    params.set(FORM_ENTRIES.name, name);
+    params.set(FORM_ENTRIES.sim, SIM_ID);
+    params.set(FORM_ENTRIES.score, totalMinutes);
+
+    fetch(FORM_BASE_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: params.toString()
+    }).then(() => {
+        alert("Points submitted!");
+        location.reload();
     });
-
-    function handleCheat() {
-        clearInterval(timerInterval);
-        isActive = false;
-        statusMsg.innerHTML = '<span class="warning">Session Reset: App switched or phone used.</span>';
-        startBtn.disabled = false;
-        startBtn.textContent = "Restart Session";
-        // Optional: Reset progress
-        // totalSeconds = 0;
-        // updateDisplay();
-    }
-
-    function updateDisplay() {
-        const mins = Math.floor(totalSeconds / 60);
-        const secs = totalSeconds % 60;
-        timerEl.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        // Award 1 point per minute
-        pointsEl.textContent = Math.floor(totalSeconds / 60);
-    }
-
-    startBtn.onclick = () => {
-        isActive = true;
-        startTime = Date.now();
-        statusMsg.innerHTML = '<span class="success">Focusing active... You can lock your screen.</span>';
-        startBtn.disabled = true;
-        submitBtn.style.display = "block";
-
-        timerInterval = setInterval(() => {
-            totalSeconds++;
-            updateDisplay();
-        }, 1000);
-    };
-
-    submitBtn.onclick = () => {
-        const name = prompt("Enter your name to submit your focus points:");
-        if (!name) return;
-
-        const points = Math.floor(totalSeconds / 60);
-        
-        const params = new URLSearchParams();
-        params.set(FORM_ENTRIES.name, name);
-        params.set(FORM_ENTRIES.sim, SIM_ID);
-        params.set(FORM_ENTRIES.score, points);
-
-        fetch(FORM_BASE_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: params.toString()
-        }).then(() => {
-            alert(`Great job, ${name}! You earned ${points} points.`);
-            location.reload();
-        });
-    };
+};
 </script>
 
 </body>
