@@ -22,24 +22,133 @@
       color: var(--text-dark);
     }
 
-    /* ===== HEADER ===== */
-    header {
+    /* ===== NAVBAR ===== */
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;1,400&display=swap');
+
+    nav.topnav {
       background: var(--lavender);
-      border: 2px solid #999;
-      text-align: center;
-      padding: 24px 10px 18px;
+      border-bottom: 3px solid var(--purple);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      height: 68px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 12px rgba(154,95,209,0.10);
     }
 
-    header h1 {
-      margin: 0;
-      font-size: 2.8rem;
+    .nav-brand {
+      font-family: Georgia, serif;
+      font-weight: bold;
+      font-size: 2rem;
+      color: var(--deep-purple);
       letter-spacing: 1px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: opacity 0.15s;
+    }
+    .nav-brand:hover { opacity: 0.82; }
+    .nav-brand .brand-atom { font-size: 1.5rem; }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
     }
 
-    header p {
-      margin: 6px 0 0;
-      font-size: 1.1rem;
+    .nav-links > li {
+      position: relative;
+    }
+
+    .nav-links > li > a,
+    .nav-links > li > button {
+      font-family: 'Nunito', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--deep-purple);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 10px 16px;
+      border-radius: 999px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-links > li > a:hover,
+    .nav-links > li > button:hover {
+      background: rgba(197,141,245,0.22);
+    }
+
+    /* dropdown arrow */
+    .nav-links > li > button .caret {
+      font-size: 0.65rem;
+      transition: transform 0.2s;
+      display: inline-block;
+    }
+    .nav-links > li.open > button .caret { transform: rotate(180deg); }
+
+    /* ===== DROPDOWN MENU ===== */
+    .dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      background: #fff;
+      border: 2px solid var(--purple);
+      border-radius: 18px;
+      min-width: 190px;
+      box-shadow: 0 8px 28px rgba(154,95,209,0.16);
+      overflow: hidden;
+      flex-direction: column;
+      animation: dropIn 0.18s ease;
+    }
+    @keyframes dropIn {
+      from { opacity:0; transform: translateY(-8px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+    .nav-links > li.open .dropdown { display: flex; }
+
+    .dropdown a {
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.97rem;
+      font-weight: 600;
+      color: var(--deep-purple);
+      text-decoration: none;
+      padding: 13px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: background 0.12s;
+    }
+    .dropdown a:hover { background: var(--card-bg); }
+    .dropdown a + a { border-top: 1px solid #eee; }
+    .dropdown a .dd-icon { font-size: 1.1rem; }
+
+    /* tagline strip below nav */
+    .tagline-strip {
+      background: linear-gradient(90deg, var(--lavender) 0%, #f5e6ff 100%);
+      text-align: center;
+      padding: 10px 10px 9px;
+      font-family: 'Nunito', sans-serif;
       font-style: italic;
+      font-size: 1.05rem;
+      color: var(--deep-purple);
+      border-bottom: 2px dotted var(--purple);
+    }
+
+    @media (max-width: 500px) {
+      .nav-brand { font-size: 1.5rem; }
+      nav.topnav { padding: 0 14px; }
     }
 
     /* ===== MAIN GRID ===== */
@@ -186,6 +295,26 @@
       border: 2px solid var(--purple);
     }
 
+      /* ===== Teacher Section Divider ===== */
+    .first-divider {
+      grid-column: 1 / -1;
+      margin: 4px 0 4px;
+      padding-top: 0px;
+      text-align: center;
+      position: relative;
+    }
+
+    .first-divider span {
+      display: inline-block;
+      background: #fff;
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      font-style: italic;
+      color: var(--deep-purple);
+      border: 2px solid var(--purple);
+    }
+
     /* ✅ Teacher cards: same style, but centered nicely in grid */
 .teacher-card {
   justify-self: center;
@@ -226,30 +355,115 @@
   .hub{ grid-template-columns: 1fr; }
 }
 
+/* Styling for the Contact Section */
+/* Styling for the Contact Section */
+.contact-card {
+  border-color: var(--accent-pink);
+  background: #fff0f9;
+  
+  /* Centering Logic */
+  grid-column: 1 / -1;   /* Spans across all grid columns */
+  justify-self: center;  /* Centers the card itself */
+  width: 100%;
+  max-width: 520px;      /* Matches the width of your Stoich Roadmap card */
+}
+
+.contact-links {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.contact-btn {
+  background: var(--purple);
+  color: white !important;
+  padding: 10px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: bold;
+  transition: opacity 0.2s;
+}
+
+.contact-btn:hover {
+  opacity: 0.8;
+}
+
   </style>
 </head>
 
 <body>
 
-<header>
-  <h1>Chemistry Exploration Hub</h1>
-  <p>Simulate • Play • Practice</p>
-</header>
+<nav class="topnav">
+  <a class="nav-brand" href="index.html">
+    <span class="brand-atom">🧬</span> Molecute
+  </a>
+
+  <ul class="nav-links">
+
+    <li class="dd-item" id="resourcesDropdownItem">
+      <button aria-haspopup="true" aria-expanded="false">
+        Resources <span class="caret">▼</span>
+      </button>
+      <div class="dropdown" role="menu">
+        <a href="https://www.youtube.com/@MsMiller138" target="_blank" rel="noopener" role="menuitem">
+          <span class="dd-icon">🎞️</span> Instructional Videos
+        </a>
+        <a href="https://quizlet.com/user/mmiller123523/folders" target="_blank" rel="noopener" role="menuitem">
+          <span class="dd-icon">📖</span> Quizlet
+        </a>
+      </div>
+    </li>
+
+    <li class="dd-item" id="rosterDropdownItem">
+      <button aria-haspopup="true" aria-expanded="false">
+        Roster <span class="caret">▼</span>
+      </button>
+      <div class="dropdown" role="menu">
+        <a href="scan.html" id="teacherScanLink" role="menuitem">
+          <span class="dd-icon">🏫</span> Attendance Scanner
+        </a>
+        <a href="weekly.html" id="teacherWeeklyLink" role="menuitem">
+          <span class="dd-icon">📊</span> Attendance Filter
+        </a>
+      </div>
+    </li>
+
+    <li class="dd-item" id="connectDropdownItem">
+      <button aria-haspopup="true" aria-expanded="false">
+        Connect <span class="caret">▼</span>
+      </button>
+      <div class="dropdown" role="menu">
+        <a href="mailto:kenzmiller18@gmail.com" role="menuitem">
+          <span class="dd-icon">📧</span> Email Me
+        </a>
+        <a href="about-me.html" role="menuitem">
+          <span class="dd-icon">🧬</span> About Me
+        </a>
+      </div>
+    </li>
+
+  </ul>
+</nav>
+
 
 <main class="hub">
 
-    <div class="teacher-divider">
-    <span>Simulate</span>
+  <!-- ===== CREATE ===== -->
+  <div class="first-divider">
+    <span>Create</span>
   </div>
 
-    <div class="card">
+  <div class="card">
     <a href="atomic-structure.html">
       <h2>Build an Atom</h2>
       <p>Build Bohr models and create Lewis Dot Structures.</p>
       <div class="icon">⚛️</div>
     </a>
   </div>
-    <div class="card">
+
+  <div class="card">
     <a href="ionic-bonding.html">
       <h2>Ionic Bonding</h2>
       <p>Build ionic compounds and explore charge balance.</p>
@@ -269,20 +483,24 @@
     </a>
   </div>
 
-    <div class="card">
-    <a href="balancing-equations.html">
-      <h2>Balancing Equations</h2>
-      <p>Balance chemical equations and visualize conservation of mass.</p>
-      <div class="icon">⚖️</div>
-    </a>
+  <!-- ===== VISUALIZE ===== -->
+  <div class="teacher-divider">
+    <span>Visualize</span>
   </div>
 
-
-    <div class="card">
+  <div class="card">
     <a href="reaction-chamber.html">
       <h2>Reaction Chamber</h2>
       <p>Watch molecules collide, break bonds, and rearrange into new substances.</p>
       <div class="icon">⛓️‍💥🌡️</div>
+    </a>
+  </div>
+
+  <div class="card">
+    <a href="modeling.html">
+      <h2>Modeling Equations</h2>
+      <p>Build, group, and balance atoms to see chemical equations come to life.</p>
+      <div class="icon">⚗️</div>
     </a>
   </div>
 
@@ -303,16 +521,28 @@
     </a>
   </div>
 
-      <div class="card">
-    <a href="modeling.html">
-      <h2>Modeling Equations</h2>
-      <p>Build, group, and balance atoms to see chemical equations come to life.</p>
-      <div class="icon">⚗️</div>
+  <!-- ===== CALCULATE ===== -->
+  <div class="teacher-divider">
+    <span>Calculate</span>
+  </div>
+
+  <div class="card">
+    <a href="balancing-equations.html">
+      <h2>Balancing Equations</h2>
+      <p>Balance chemical equations and visualize conservation of mass.</p>
+      <div class="icon">⚖️</div>
     </a>
   </div>
 
+  <div class="card">
+    <a href="stoichiometry.html">
+      <h2>Stoichiometry Challenge</h2>
+      <p>Break down stoichiometry prompts and visualize dimensional analysis.</p>
+      <div class="icon">🧩</div>
+    </a>
+  </div>
 
-        <div class="card">
+  <div class="card">
     <a href="molar-mass-practice.html">
       <h2>Molar Mass Challenge</h2>
       <p>Break formulas apart, track atoms, and build molar mass step by step.</p>
@@ -320,19 +550,10 @@
     </a>
   </div>
 
-          <div class="card">
-    <a href="stoichiometry.html">
-      <h2>Stoichiometry Challenge</h2>
-      <p>Break down stoichiometry prompts and visualize dimensional analysis.</p>
-      <div class="icon">🧪🔁</div>
-    </a>
+  <!-- ===== CLASSROOM TOOLS ===== -->
+  <div class="teacher-divider">
+    <span>Classroom Tools</span>
   </div>
-  
-     <div class="teacher-divider">
-    <span>Play</span>
-  </div>
-
-
 
   <div class="card">
     <a href="focus.html">
@@ -342,9 +563,7 @@
     </a>
   </div>
 
-
-
-<div class="card">
+  <div class="card">
     <a href="jeopardy.html">
       <h2>Jeopardy</h2>
       <p>Play a Jeopardy-style review game.</p>
@@ -352,80 +571,55 @@
     </a>
   </div>
 
-
   <div class="card">
     <a href="reaction.html">
       <h2>Virtual Reactivity Lab</h2>
       <p>Explore periodic trends and predict reactivity by performing water and flame tests.</p>
-      <div class="icon">👩🏾‍🔬🫧🔥</div>
+      <div class="icon">🫧🔥</div>
     </a>
   </div>
-
-
-
-      <div class="teacher-divider">
-    <span>Practice</span>
-  </div>
-
-    <div class="card">
-  <a href="https://www.youtube.com/@MsMiller138" target="_blank" rel="noopener">
-    <h2>Instructional Videos</h2>
-    <p>Click to access Ms. Miller's YouTube channel.</p>
-    <div class="icon">🎞️</div>
-  </a>
-</div>
-
-  <div class="card">
-  <a href="https://quizlet.com/user/mmiller123523/folders" target="_blank" rel="noopener">
-    <h2>Quizlet</h2>
-    <p>Click to access Ms. Miller's Quizlet folders.</p>
-    <div class="icon">📖</div>
-  </a>
-</div>
-
-    <div class="card">
-    <a href="molar-mass.html">
-      <h2>Molar Mass Calculator</h2>
-      <p>Calculate molar mass by unpacking formulas one step at a time.</p>
-      <div class="icon">📲</div>
-    </a>
-  </div>
- 
-
-  <div class="teacher-divider">
-    <span>Teacher Tools</span>
-  </div>
-
-  <!-- ✅ Teacher cards now live in the SAME grid -->
-<div class="teacher-row">
-  <div class="card teacher-card">
-    <a id="teacherScanLink" href="scan.html">
-      <h2>Attendance Scanner</h2>
-      <p>Click to access the attendance scanner.</p>
-      <div class="icon">🏫🛎️</div>
-    </a>
-  </div>
-
-  <div class="card teacher-card">
-    <a id="teacherWeeklyLink" href="weekly.html">
-      <h2>Attendance Filter</h2>
-      <p>Click to access the attendance filter.</p>
-      <div class="icon">📊📝</div>
-    </a>
-  </div>
-</div>
-
 
 </main>
 
 <footer>
- Instructional tools developed by Mackenzie Miller • Not for commercial use
+ Designed by Mackenzie Miller • Enhanced by AI • Not for commercial use
 </footer>
 
 <script>
-  // ===== Teacher Gate (index) =====
+  // ===== All Dropdowns =====
+  (function(){
+    const ddItems = document.querySelectorAll(".dd-item");
+
+    ddItems.forEach(item => {
+      const btn = item.querySelector("button");
+      if (!btn) return;
+
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isOpen = !item.classList.contains("open");
+        // close all others
+        ddItems.forEach(i => { i.classList.remove("open"); i.querySelector("button").setAttribute("aria-expanded","false"); });
+        if (isOpen) {
+          item.classList.add("open");
+          btn.setAttribute("aria-expanded", "true");
+        }
+      });
+    });
+
+    document.addEventListener("click", () => {
+      ddItems.forEach(i => { i.classList.remove("open"); i.querySelector("button").setAttribute("aria-expanded","false"); });
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        ddItems.forEach(i => { i.classList.remove("open"); i.querySelector("button").setAttribute("aria-expanded","false"); });
+      }
+    });
+  })();
+
+  // ===== Teacher Gate (Roster) =====
   const TEACHER_GATE_KEY = "teacher_gate_unlocked_v1";
-  const TEACHER_PASSCODE = "MinutesMatter"; // <-- change this
+  const TEACHER_PASSCODE = "MinutesMatter";
 
   function isTeacherUnlocked(){
     try { return localStorage.getItem(TEACHER_GATE_KEY) === "1"; }
@@ -439,26 +633,19 @@
   function promptTeacherPass(){
     const pass = prompt("Teacher access only. Enter passcode:");
     if (!pass) return false;
-    if (pass === TEACHER_PASSCODE){
-      setTeacherUnlocked();
-      return true;
-    }
+    if (pass === TEACHER_PASSCODE){ setTeacherUnlocked(); return true; }
     alert("Incorrect passcode.");
     return false;
   }
 
   document.addEventListener("DOMContentLoaded", () => {
-    const scan = document.getElementById("teacherScanLink");
-    const weekly = document.getElementById("teacherWeeklyLink");
-
-    [scan, weekly].forEach(link => {
+    ["teacherScanLink","teacherWeeklyLink"].forEach(id => {
+      const link = document.getElementById(id);
       if (!link) return;
       link.addEventListener("click", (e) => {
         if (isTeacherUnlocked()) return;
         e.preventDefault();
-        if (promptTeacherPass()){
-          window.location.href = link.getAttribute("href");
-        }
+        if (promptTeacherPass()) window.location.href = link.getAttribute("href");
       });
     });
   });
