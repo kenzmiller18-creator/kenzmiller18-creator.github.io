@@ -171,7 +171,7 @@
 
 <script>
     // --- CONFIGURATION ---
-    const SIM_ID = "focus_mode_pro";
+    const SIM_ID = "focus_mode";
     const FORM_BASE_URL = "https://docs.google.com/forms/d/e/1FAIpQLSckXbWQsVWobjrktGMoF7AtY6gMch0eQMjsGlddVv1cxgNHgQ/formResponse";
     const FORM_ENTRIES = {
         name: "entry.366340186",
@@ -194,7 +194,7 @@
     // 1. CHEAT DETECTION (Switching Tabs/Apps)
     document.addEventListener("visibilitychange", () => {
         if (document.hidden && isActive) {
-            failSession("Cheating Detected! You left the app.");
+            failSession("It looks like you left the page. Timer paused.");
         }
     });
 
