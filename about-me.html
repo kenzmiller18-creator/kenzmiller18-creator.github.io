@@ -465,12 +465,36 @@
  
     /* ===== FOOTER ===== */
     footer {
-      text-align: center;
-      margin: 30px 0 18px;
-      font-size: 0.95rem;
-      color: #777;
-      font-family: 'Nunito', sans-serif;
-    }
+  padding: 20px;
+  font-size: 0.85rem;
+  color: #555;
+  text-align: center;
+  border-top: 1px solid #eee;
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.cc-license img {
+  height: 1.2em;
+  width: auto;
+  vertical-align: middle;
+  margin-left: 2px;
+}
+
+.cc-license a {
+  text-decoration: none;
+  color: inherit;
+  font-weight: bold;
+}
+
+.cc-license a:hover {
+  text-decoration: underline;
+}
  
     @media (max-width: 600px) {
       .hero { padding: 36px 20px 32px; gap: 28px; }
@@ -687,7 +711,19 @@
 </div>
  
 <footer>
-   Developed by Mackenzie Miller • Enhanced by AI • Not for commercial use
+  <div class="footer-content">
+    
+    <span class="cc-license">
+      <a href="https://www.molecute.org/">Molecute</a> © 2026 by 
+      <a href="https://www.molecute.org/about-me.html">Mackenzie Miller</a> is licensed under 
+      <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="license noopener noreferrer">CC BY-NC-SA 4.0
+        <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="CC">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="Attribution">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="Non-Commercial">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="Share-Alike">
+      </a>
+    </span>
+  </div>
 </footer>
  
 <script>
