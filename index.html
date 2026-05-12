@@ -422,6 +422,234 @@ footer {
   text-decoration: underline;
 }
 
+/* ===== NGSS / FRAMEWORK TOOLTIP ===== */
+.ngss-tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e0a3c;
+  color: #f0e6ff;
+  border: 2px solid var(--purple);
+  border-radius: 16px;
+  padding: 12px 16px;
+  min-width: 240px;
+  max-width: 300px;
+  text-align: left;
+  z-index: 500;
+  box-shadow: 0 8px 28px rgba(154,95,209,0.35);
+  pointer-events: none;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.ngss-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 8px solid transparent;
+  border-top-color: var(--purple);
+}
+
+/* When tooltip is below the card, flip the arrow to point up */
+.ngss-tooltip.tooltip-below::after {
+  top: auto;
+  bottom: 100%;
+  border-top-color: transparent;
+  border-bottom-color: var(--purple);
+}
+
+.ngss-tooltip .tooltip-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--purple);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ngss-tooltip .standard-code {
+  display: inline-block;
+  background: var(--purple);
+  color: #fff;
+  border-radius: 999px;
+  padding: 1px 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin: 2px 2px 2px 0;
+}
+
+.ngss-tooltip .standard-desc {
+  margin-top: 5px;
+  color: #ddd0f5;
+  font-size: 0.8rem;
+}
+
+.ngss-tooltip .framework-tag {
+  display: inline-block;
+  background: #2d1060;
+  border: 1px solid #c58df5;
+  color: #e6c6ff;
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-size: 0.74rem;
+  margin: 3px 2px 0 0;
+}
+
+/* tooltip shown via JS when shift held + mouseenter */
+
+/* show tooltip when shift is held AND card is hovered */
+body.shift-held .card:hover .ngss-tooltip {
+  display: block;
+}
+
+/* Top-row cards: tooltip appears below instead */
+.card.tooltip-below .ngss-tooltip {
+  bottom: auto;
+  top: calc(100% + 10px);
+}
+
+.card.tooltip-below .ngss-tooltip::after {
+  top: auto;
+  bottom: 100%;
+  border-top-color: transparent;
+  border-bottom-color: var(--purple);
+}
+
+/* cards need position:relative for tooltip positioning */
+.card {
+  position: relative;
+  z-index: 0;
+}
+
+/* Raise the hovered card above siblings so tooltip clears everything */
+body.shift-held .card:hover {
+  z-index: 200;
+}
+
+/* subtle shift-mode indicator on cards */
+body.shift-held .card:hover {
+  outline: 2px dashed var(--purple);
+  outline-offset: 3px;
+}
+
+/* hint bar that appears at bottom when Shift held */
+.shift-hint {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #1e0a3c;
+  color: var(--lavender);
+  text-align: center;
+  padding: 7px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.82rem;
+  z-index: 999;
+  display: none;
+  border-top: 2px solid var(--purple);
+  letter-spacing: 0.02em;
+}
+body.shift-held .shift-hint { display: block; }
+
+/* ===== TEACHER TOAST ===== */
+.teacher-toast {
+  position: fixed;
+  top: 82px;
+  right: 20px;
+  background: #1e0a3c;
+  color: #f0e6ff;
+  border: 2px solid var(--purple);
+  border-radius: 18px;
+  padding: 14px 18px 14px 16px;
+  max-width: 290px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  z-index: 1000;
+  box-shadow: 0 8px 28px rgba(154,95,209,0.35);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  animation: toastIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(30px) scale(0.95); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+.teacher-toast.toast-out {
+  animation: toastOut 0.3s ease forwards;
+}
+
+@keyframes toastOut {
+  from { opacity: 1; transform: translateX(0) scale(1); }
+  to   { opacity: 0; transform: translateX(30px) scale(0.95); }
+}
+
+.toast-icon { font-size: 1.4rem; flex-shrink: 0; margin-top: 1px; }
+
+.toast-body { flex: 1; }
+
+.toast-title {
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--purple);
+  margin-bottom: 4px;
+}
+
+.toast-key {
+  display: inline-block;
+  background: var(--purple);
+  color: #fff;
+  border-radius: 6px;
+  padding: 1px 7px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.toast-dismiss {
+  background: none;
+  border: none;
+  color: #c58df5;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 1px;
+  transition: color 0.15s;
+}
+.toast-dismiss:hover { color: #fff; }
+
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: var(--purple);
+  border-radius: 0 0 16px 16px;
+  width: 100%;
+  transform-origin: left;
+  animation: toastProgress 15s linear forwards;
+}
+
+@keyframes toastProgress {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
   </style>
 </head>
 
@@ -487,23 +715,33 @@ footer {
     <span>Create</span>
   </div>
 
-  <div class="card">
+  <div class="card tooltip-below">
     <a href="atomic-structure.html">
       <h2>Build an Atom</h2>
       <p>Build Bohr models and create Lewis Dot Structures.</p>
       <div class="icon">⚛️</div>
     </a>
+    <div class="ngss-tooltip">
+      <div class="tooltip-label">🔬 NGSS Alignment</div>
+      <div><span class="standard-code">HS-PS1-1</span></div>
+      <div class="standard-desc">Use the periodic table as a model to predict relative properties of elements based on electron patterns in the outermost energy level.</div>
+    </div>
   </div>
 
-  <div class="card">
+  <div class="card tooltip-below">
     <a href="ionic-bonding.html">
       <h2>Ionic Bonding</h2>
       <p>Build ionic compounds and explore charge balance.</p>
       <div class="icon">🧲</div>
     </a>
+    <div class="ngss-tooltip">
+      <div class="tooltip-label">🔬 NGSS Alignment</div>
+      <div><span class="standard-code">HS-PS1-2</span></div>
+      <div class="standard-desc">Construct and revise an explanation for a simple chemical reaction based on outermost electron states and periodic table trends.</div>
+    </div>
   </div>
 
-  <div class="card">
+  <div class="card tooltip-below">
     <a href="covalent-bonding.html">
       <h2>Covalent Bonding</h2>
       <p>Create covalent molecules and visualize shared electrons.</p>
@@ -513,6 +751,11 @@ footer {
         <div class="atom hydrogen h2"></div>
       </div>
     </a>
+    <div class="ngss-tooltip">
+      <div class="tooltip-label">🔬 NGSS Alignment</div>
+      <div><span class="standard-code">HS-PS1-2</span></div>
+      <div class="standard-desc">Construct and revise an explanation for a simple chemical reaction based on outermost electron states and periodic table trends.</div>
+    </div>
   </div>
 
   <!-- ===== VISUALIZE ===== -->
@@ -526,6 +769,14 @@ footer {
       <p>Watch molecules collide, break bonds, and rearrange into new substances.</p>
       <div class="icon">⛓️‍💥🌡️</div>
     </a>
+    <div class="ngss-tooltip">
+      <div class="tooltip-label">🔬 NGSS Alignment</div>
+      <div>
+        <span class="standard-code">HS-PS1-4</span>
+        <span class="standard-code">HS-PS1-5</span>
+      </div>
+      <div class="standard-desc">Model energy release/absorption from bond changes; explain how temperature and concentration affect reaction rate through molecular collisions.</div>
+    </div>
   </div>
 
   <div class="card">
@@ -534,6 +785,11 @@ footer {
       <p>Build, group, and balance atoms to see chemical equations come to life.</p>
       <div class="icon">⚗️</div>
     </a>
+    <div class="ngss-tooltip">
+      <div class="tooltip-label">🔬 NGSS Alignment</div>
+      <div><span class="standard-code">HS-PS1-7</span></div>
+      <div class="standard-desc">Use mathematical representations to support the claim that atoms and mass are conserved during a chemical reaction.</div>
+    </div>
   </div>
 
   <div class="card">
@@ -551,6 +807,11 @@ footer {
         <div class="roadmap-line line-right"></div>
       </div>
     </a>
+    <div class="ngss-tooltip">
+      <div class="tooltip-label">🔬 NGSS Alignment</div>
+      <div><span class="standard-code">HS-PS1-7</span></div>
+      <div class="standard-desc">Use mathematical representations (mole ratios, dimensional analysis) to communicate proportional relationships between masses in reactions.</div>
+    </div>
   </div>
 
   <!-- ===== CALCULATE ===== -->
@@ -564,6 +825,11 @@ footer {
       <p>Balance chemical equations and visualize conservation of mass.</p>
       <div class="icon">⚖️</div>
     </a>
+    <div class="ngss-tooltip">
+      <div class="tooltip-label">🔬 NGSS Alignment</div>
+      <div><span class="standard-code">HS-PS1-7</span></div>
+      <div class="standard-desc">Use mathematical representations to support the claim that atoms and mass are conserved during a chemical reaction.</div>
+    </div>
   </div>
 
   <div class="card">
@@ -572,6 +838,14 @@ footer {
       <p>Break down stoichiometry prompts and visualize dimensional analysis.</p>
       <div class="icon">🧩</div>
     </a>
+    <div class="ngss-tooltip">
+      <div class="tooltip-label">🔬 NGSS Alignment</div>
+      <div>
+        <span class="standard-code">HS-PS1-7</span>
+        
+      </div>
+      <div class="standard-desc">Apply mathematical thinking to mole ratios and proportional relationships.</div>
+    </div>
   </div>
 
   <div class="card">
@@ -580,6 +854,11 @@ footer {
       <p>Break formulas apart, track atoms, and build molar mass step by step.</p>
       <div class="icon">🧮</div>
     </a>
+    <div class="ngss-tooltip">
+      <div class="tooltip-label">🔬 NGSS Alignment</div>
+      <div><span class="standard-code">HS-PS1-7</span></div>
+      <div class="standard-desc">Use the mole as the conversion from the atomic to the macroscopic scale; apply mathematical thinking to atomic mass and formula composition.</div>
+    </div>
   </div>
 
   <!-- ===== CLASSROOM TOOLS ===== -->
@@ -593,6 +872,14 @@ footer {
       <p>Earn points for digital discipline!</p>
       <div class="icon">⏳</div>
     </a>
+    <div class="ngss-tooltip">
+      <div class="tooltip-label">📚 Framework Alignment</div>
+      <div>
+        <span class="framework-tag">SEL: Self-Management</span>
+        <span class="framework-tag">Digital Citizenship</span>
+      </div>
+      <div class="standard-desc">Supports CASEL self-management competency: impulse control, self-discipline, and goal-setting through gamified focus rewards.</div>
+    </div>
   </div>
 
   <div class="card">
@@ -601,6 +888,15 @@ footer {
       <p>Play a Jeopardy-style review game.</p>
       <div class="icon">🏆⏰</div>
     </a>
+    <div class="ngss-tooltip">
+      <div class="tooltip-label">📚 Framework Alignment</div>
+      <div>
+        <span class="framework-tag">Culturally Responsive</span>
+        <span class="framework-tag">Gamification</span>
+        <span class="framework-tag">SEL: Social Awareness</span>
+      </div>
+      <div class="standard-desc">Leverages game-based learning for engagement and community-building; supports collaborative and competitive social learning.</div>
+    </div>
   </div>
 
   <div class="card">
@@ -609,6 +905,14 @@ footer {
       <p>Explore periodic trends and predict reactivity by performing water and flame tests.</p>
       <div class="icon">🫧🔥</div>
     </a>
+    <div class="ngss-tooltip">
+      <div class="tooltip-label">🔬 NGSS Alignment</div>
+      <div>
+        <span class="standard-code">HS-PS1-1</span>
+        <span class="standard-code">HS-PS1-2</span>
+      </div>
+      <div class="standard-desc">Use the periodic table to predict reactivity; construct explanations for reaction outcomes based on electron states and periodic trends.</div>
+    </div>
   </div>
 
 </main>
@@ -631,6 +935,20 @@ footer {
     Portions of this site’s content and code were developed with AI assistance to enhance clarity, accessibility, and user experience.
   </div>
 </footer>
+
+<!-- Shift-mode hint bar -->
+<div class="shift-hint">⇧ Shift held — hover any card to see NGSS / framework alignment</div>
+
+<!-- Teacher one-time toast -->
+<div class="teacher-toast" id="teacherToast" style="display:none;">
+  <div class="toast-icon">🔬</div>
+  <div class="toast-body">
+    <div class="toast-title">Standards Alignment</div>
+    Hold <span class="toast-key">⇧ Shift</span> and hover to see standards alignment.
+  </div>
+  <button class="toast-dismiss" id="toastDismiss" aria-label="Dismiss">✕</button>
+  <div class="toast-progress" id="toastProgress"></div>
+</div>
 
 <script>
   // ===== All Dropdowns =====
@@ -696,6 +1014,41 @@ footer {
       });
     });
   });
+
+  // ===== Shift-key tracker for NGSS tooltips =====
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Shift') document.body.classList.add('shift-held');
+  });
+  document.addEventListener('keyup', (e) => {
+    if (e.key === 'Shift') document.body.classList.remove('shift-held');
+  });
+  window.addEventListener('blur', () => document.body.classList.remove('shift-held'));
+
+  // ===== Teacher one-time toast =====
+  const TOAST_KEY = 'ngss_toast_seen_v1';
+  const toast = document.getElementById('teacherToast');
+  const dismissBtn = document.getElementById('toastDismiss');
+  const progressBar = document.getElementById('toastProgress');
+  let toastTimer = null;
+
+  function dismissToast() {
+    clearTimeout(toastTimer);
+    toast.classList.add('toast-out');
+    toast.addEventListener('animationend', () => toast.style.display = 'none', { once: true });
+    try { sessionStorage.setItem(TOAST_KEY, '1'); } catch {}
+  }
+
+  dismissBtn.addEventListener('click', dismissToast);
+
+  // Show once per session
+  try {
+    if (!sessionStorage.getItem(TOAST_KEY)) {
+      setTimeout(() => {
+        toast.style.display = 'flex';
+        toastTimer = setTimeout(dismissToast, 15000);
+      }, 1200);
+    }
+  } catch {}
 </script>
 
 </body>
