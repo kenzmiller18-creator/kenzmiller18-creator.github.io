@@ -185,83 +185,83 @@
 <script>
 const BINGO_DATA = [
   { 
-    prompt: "Synthesis with a REACTANT coefficient of 2.<br><i>Sintesis con un coeficiente de REACTIVO de 2.</i>", 
+    prompt: "Synthesis reaction with a REACTANT coefficient of 2.<br><i>Sintesis con un coeficiente de REACTIVO de 2.</i>", 
     eq: "2Mg(s) + O₂(g) → 2MgO(s)" 
   },
   { 
-    prompt: "Synthesis with Aluminum metal as a reactant.<br><i>Síntesis con aluminio metálico como reactivo.</i>", 
+    prompt: "Synthesis reaction with Aluminum metal as a reactant.<br><i>Síntesis con aluminio metálico como reactivo.</i>", 
     eq: "4Al(s) + 3O₂(g) → 2Al₂O₃(s)" 
   },
   { 
-    prompt: "Synthesis with an aqueous product.<br><i>Síntesis con un producto acuoso.</i>", 
+    prompt: "Synthesis reaction with an aqueous product.<br><i>Síntesis con un producto acuoso.</i>", 
     eq: "SO₃(g) + H₂O(l) → H₂SO₄(aq)" 
   },
   { 
-    prompt: "Synthesis with a coefficient of 5.<br><i>Síntesis con un coeficiente de 5.</i>", 
+    prompt: "Synthesis reaction with a coefficient of 5.<br><i>Síntesis con un coeficiente de 5.</i>", 
     eq: "P₄(s) + 5O₂(g) → P₄O₁₀(s)" 
   },
   { 
-    prompt: "Decomposition with only gaseous products.<br><i>Descomposición con solo productos gaseosos.</i>", 
+    prompt: "Decomposition reaction with only gaseous products.<br><i>Descomposición con solo productos gaseosos.</i>", 
     eq: "2H₂O(l) → 2H₂(g) + O₂(g)" 
   },
   { 
-    prompt: "Decomposition with a coefficient of 3.<br><i>Descomposición con un coeficiente de 3.</i>", 
+    prompt: "Decomposition reaction with a coefficient of 3.<br><i>Descomposición con un coeficiente de 3.</i>", 
     eq: "2KClO₃(s) → 2KCl(s) + 3O₂(g)" 
   },
   { 
-    prompt: "Decomposition with 3 different products.<br><i>Descomposición con 3 productos diferentes.</i>", 
+    prompt: "Decomposition reaction with 3 different products.<br><i>Descomposición con 3 productos diferentes.</i>", 
     eq: "2NaHCO₃(s) → Na₂CO₃(s) + H₂O(g) + CO₂(g)" 
   },
   { 
-    prompt: "Decomposition with only coefficients of 1.<br><i>Descomposición con solo coeficientes de 1.</i>", 
+    prompt: "Decomposition reaction with only coefficients of 1.<br><i>Descomposición con solo coeficientes de 1.</i>", 
     eq: "CaCO₃(s) → CaO(s) + CO₂(g)" 
   },
   { 
-    prompt: "Single Replacement with a product that contains parenthesis in its chemical formula.<br><i>Sustitución simple con un producto que contiene paréntesis en su fórmula química.</i>", 
+    prompt: "Single Replacement reaction with a product that contains parenthesis in its chemical formula.<br><i>Sustitución simple con un producto que contiene paréntesis en su fórmula química.</i>", 
     eq: "Cu(s) + 2AgNO₃(aq) → Cu(NO₃)₂(aq) + 2Ag(s)" 
   },
   { 
-    prompt: "Single Replacement with a coefficient of 3.<br><i>Sustitución simple con un coeficiente de 3.</i>", 
+    prompt: "Single Replacement reaction with a coefficient of 3.<br><i>Sustitución simple con un coeficiente de 3.</i>", 
     eq: "2Al(s) + 3CuCl₂(aq) → 2AlCl₃(aq) + 3Cu(s)" 
   },
   { 
-    prompt: "Single Replacement with a gaseous reactant.<br><i>Sustitución simple con un reactivo gaseoso.</i>", 
+    prompt: "Single Replacement reaction with a gaseous reactant.<br><i>Sustitución simple con un reactivo gaseoso.</i>", 
     eq: "Cl₂(g) + 2KI(aq) → 2KCl(aq) + I₂(s)" 
   },
   { 
-    prompt: "Single Replacement with a gaseous product.<br><i>Sustitución simple con un producto gaseoso.</i>", 
+    prompt: "Single Replacement reaction with a gaseous product.<br><i>Sustitución simple con un producto gaseoso.</i>", 
     eq: "Mg(s) + H₂SO₄(aq) → MgSO₄(aq) + H₂(g)" 
   },
   { 
-    prompt: "Double Replacement with only coefficients of 1.<br><i>Sustitución doble con solo coeficientes de 1.</i>", 
+    prompt: "Double Replacement reaction with only coefficients of 1.<br><i>Sustitución doble con solo coeficientes de 1.</i>", 
     eq: "AgNO₃(aq) + NaCl(aq) → AgCl(s) + NaNO₃(aq)" 
   },
   { 
-    prompt: "Double Replacement that contains lead.<br><i>Sustitución doble que contiene plomo.</i>", 
+    prompt: "Double Replacement reaction that contains lead.<br><i>Sustitución doble que contiene plomo.</i>", 
     eq: "Pb(NO₃)₂(aq) + 2KI(aq) → PbI₂(s) + 2KNO₃(aq)" 
   },
   { 
-    prompt: "Double Replacement with table salt as a product.<br><i>Sustitución doble con sal de mesa como producto.</i>", 
+    prompt: "Double Replacement reaction with table salt as a product.<br><i>Sustitución doble con sal de mesa como producto.</i>", 
     eq: "BaCl₂(aq) + Na₂SO₄(aq) → BaSO₄(s) + 2NaCl(aq)" 
   },
   { 
-    prompt: "Double Replacement with a coefficient of 3.<br><i>Sustitución doble con un coeficiente de 3.</i>", 
+    prompt: "Double Replacement reaction with a coefficient of 3.<br><i>Sustitución doble con un coeficiente de 3.</i>", 
     eq: "Al₂(SO₄)₃(aq) + 6KOH(aq) → 2Al(OH)₃(s) + 3K₂SO₄(aq)" 
   },
   { 
-    prompt: "Combustion that releases 2 units of water.<br><i>Combustión que libera 2 unidades de agua.</i>", 
+    prompt: "Combustion reaction that releases 2 units of water.<br><i>Combustión que libera 2 unidades de agua.</i>", 
     eq: "CH₄(g) + 2O₂(g) → CO₂(g) + 2H₂O(g)" 
   },
   { 
-    prompt: "Combustion with product CO₂:H₂O ratio of 3:4.<br><i>Combustión con una relación de producto CO₂:H₂O de 3:4.</i>", 
+    prompt: "Combustion reaction with product CO₂:H₂O ratio of 3:4.<br><i>Combustión con una relación de producto CO₂:H₂O de 3:4.</i>", 
     eq: "C₃H₈(g) + 5O₂(g) → 3CO₂(g) + 4H₂O(g)" 
   },
   { 
-    prompt: "Combustion with a coefficient of 7.<br><i>Combustión con un coeficiente de 7.</i>", 
+    prompt: "Combustion reaction with a coefficient of 7.<br><i>Combustión con un coeficiente de 7.</i>", 
     eq: "2C₂H₆(g) + 7O₂(g) → 4CO₂(g) + 6H₂O(g)" 
   },
   { 
-    prompt: "Combustion with a liquid reactant.<br><i>Combustión con un reactivo líquido.</i>", 
+    prompt: "Combustion reaction with a liquid reactant.<br><i>Combustión con un reactivo líquido.</i>", 
     eq: "C₂H₅OH(l) + 3O₂(g) → 2CO₂(g) + 3H₂O(g)" 
   },
     { 
