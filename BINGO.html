@@ -27,7 +27,7 @@
     }
 
     header{ padding: 15px; text-align:center; background: rgb(230, 173, 255); border-bottom: 1px solid #ddd; }
-    
+
     .container {
       display: grid;
       grid-template-columns: 1fr 350px;
@@ -36,6 +36,8 @@
       margin: 20px auto;
       padding: 0 20px;
     }
+
+    @media(max-width:800px){ .container{ grid-template-columns:1fr; } }
 
     .card {
       background: var(--panel);
@@ -58,27 +60,26 @@
       align-items: center;
     }
 
-    #current-prompt { 
-        font-size: 1.8rem; 
-        font-weight: 600; 
-        color: var(--ink); 
-        margin-bottom: 20px; 
-        white-space: pre-line; /* This makes the \n create a new line */
-        }
-
+    #current-prompt {
+      font-size: 1.8rem;
+      font-weight: 600;
+      color: var(--ink);
+      margin-bottom: 20px;
+      white-space: pre-line;
+    }
     #current-prompt i {
-        font-style: italic;
-        font-size: 1.7rem; /* Slightly smaller than the English */
-        color: var(--muted);
-        display: block;
-        margin-top: 5px;
-       }
+      font-style: italic;
+      font-size: 1.7rem;
+      color: var(--muted);
+      display: block;
+      margin-top: 5px;
+    }
 
-    #current-equation { 
-      font-size: 2.2rem; 
-      font-weight: 800; 
-      color: var(--accent2); 
-      display: none; 
+    #current-equation {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--accent2);
+      display: none;
       margin-top: 20px;
       padding: 10px;
       background: rgba(240, 75, 216, 0.05);
@@ -107,6 +108,8 @@
     .btn:active { transform: scale(0.98); }
     .btn.secondary { background: var(--muted); }
     .btn.reveal { background: var(--accent2); }
+    .btn.good { background: var(--good); color: white; }
+    .btn.danger { background: var(--bad); color: white; }
 
     .log-title { font-weight: 800; text-transform: uppercase; font-size: 0.9rem; margin-bottom: 15px; display: block; }
     .history-list { list-style: none; padding: 0; }
@@ -138,12 +141,142 @@
       color: white;
       opacity: 1;
     }
+
+    /* Admin panel */
+    .admin-wrap {
+      max-width: 1200px;
+      margin: 0 auto 30px;
+      padding: 0 20px;
+    }
+    .admin-card {
+      background: var(--panel);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(0,0,0,.05);
+      padding: 16px 20px;
+    }
+    details summary {
+      cursor: pointer;
+      user-select: none;
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+    details[open] summary { color: var(--ink); }
+    textarea { resize: vertical; }
+
+    .setupRow { display: grid; gap: 10px; }
+    .setupRow label {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 650;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .setupRow input[type="text"],
+    .setupRow input[type="number"],
+    .setupRow input[type="password"],
+    .setupRow textarea {
+      width: 100%;
+      padding: 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(0,0,0,.14);
+      font-size: 14px;
+      background: white;
+      box-sizing: border-box;
+      font: inherit;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .pill {
+      background: rgba(76, 19, 168, .10);
+      color: #2b1060;
+      padding: 8px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .pill input[type="number"],
+    .pill input[type="text"] {
+      width: 80px;
+      border-radius: 10px;
+      border: 1px solid rgba(0,0,0,.18);
+      padding: 6px 8px;
+      background: white;
+    }
+    .hint-text {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .admin-btn {
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 0.9rem;
+    }
+    .admin-btn.secondary { background: var(--muted); }
+    .admin-btn.good { background: var(--good); }
+    .admin-btn.danger { background: var(--bad); }
+    .admin-btn:active { transform: scale(0.98); }
+
+    /* Clue builder table */
+    .cb-table-wrap {
+      overflow: auto;
+      border: 1px solid rgba(0,0,0,.10);
+      border-radius: 14px;
+      padding: 10px;
+    }
+    .cb-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 700px;
+    }
+    .cb-table th {
+      text-align: left;
+      font-size: 12px;
+      color: var(--muted);
+      padding: 8px 6px;
+    }
+    .cb-table td { padding: 6px; border-top: 1px solid rgba(0,0,0,.06); }
+    .cb-input {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid rgba(0,0,0,.14);
+      padding: 8px;
+      background: white;
+      box-sizing: border-box;
+      font: inherit;
+      font-size: 13px;
+    }
+    .cb-textarea {
+      width: 100%;
+      border-radius: 10px;
+      border: 1px solid rgba(0,0,0,.14);
+      padding: 8px;
+      background: white;
+      box-sizing: border-box;
+      font: inherit;
+      font-size: 13px;
+      resize: vertical;
+      min-height: 52px;
+    }
   </style>
 </head>
 <body>
 
 <header>
-  <h1>🧪🎯 CHEMICAL REACTION BINGO!</h1>
+  <h1 id="game-title">🧪🎯 CHEMICAL REACTION BINGO!</h1>
 </header>
 
 <audio id="bingoAudio" preload="auto" loop>
@@ -158,17 +291,17 @@
         <div id="current-prompt">Ready to start?</div>
         <div id="current-equation">---</div>
       </div>
-      
+
       <div style="text-align: center;">
         <button class="btn" id="draw-btn">🎲 Draw Next Clue</button>
-        <button class="btn reveal" id="reveal-btn" style="display:none;">⚛️ Show Equation</button>
+        <button class="btn reveal" id="reveal-btn" style="display:none;">⚛️ Show Answer</button>
         <button class="btn secondary" id="pause-timer-btn">⏳ Pause Music/Timer</button>
         <br>
         <button class="btn secondary" id="reset-btn">↩️ Reset Game</button>
       </div>
 
       <hr style="margin: 30px 0; border: 0; border-top: 1px solid #eee;">
-      
+
       <span class="log-title">Master Verification Grid</span>
       <div class="eq-grid" id="master-grid"></div>
     </div>
@@ -182,232 +315,688 @@
   </aside>
 </div>
 
+<!-- ADMIN PANEL -->
+<div class="admin-wrap">
+  <div class="admin-card">
+    <details id="adminDetails">
+      <summary>⚙️ Admin (hidden)</summary>
+
+      <p class="hint-text" style="margin: 8px 0 12px;">
+        Enter your passcode to unlock. Passcode is stored only on this computer.
+      </p>
+
+      <div id="adminLocked">
+        <div class="setupRow">
+          <div>
+            <label>Admin passcode</label>
+            <input id="adminPasscode" type="password" placeholder="Set once / enter to unlock" />
+          </div>
+          <div class="controls" style="margin-top:4px;">
+            <button class="admin-btn" id="adminUnlockBtn" type="button">Unlock Admin</button>
+            <button class="admin-btn secondary" id="adminSetBtn" type="button">Set / Change Passcode</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="adminTools" style="display:none;">
+        <div class="controls" style="justify-content:space-between; width:100%; margin-bottom:10px;">
+          <div class="pill">🔓 Admin unlocked</div>
+          <button class="admin-btn secondary" id="adminLockBtn" type="button">Lock Admin</button>
+        </div>
+
+        <hr style="border:0; border-top:1px solid rgba(0,0,0,.08); margin: 10px 0;">
+
+        <!-- Settings row -->
+        <div class="controls" style="flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+          <div class="pill">
+            ⏱️ Timer (seconds):
+            <input type="number" id="cfgTimer" min="0" step="5" value="90" />
+          </div>
+          <div class="pill">
+            🔊 Volume (0–1):
+            <input type="number" id="cfgVol" min="0" max="1" step="0.05" value="0.8" />
+          </div>
+          <div class="pill" style="flex:1; min-width:220px;">
+            🎵 Music file:
+            <input type="text" id="cfgMusicFile" value="BINGOtheme.mp3" style="width:180px;" />
+          </div>
+        </div>
+        <p class="hint-text" style="margin:0 0 12px;">Put the MP3 in the same folder as this HTML file, then enter its filename above.</p>
+
+        <hr style="border:0; border-top:1px solid rgba(0,0,0,.08); margin: 10px 0;">
+
+        <!-- Clue Builder -->
+        <details id="clueBuilderDetails" open>
+          <summary style="font-weight:800; color:var(--ink); margin-bottom:8px;">✏️ Clue Builder</summary>
+
+          <p class="hint-text" style="margin: 8px 0 12px;">
+            Each row is one BINGO clue. <b>Prompt</b> is shown to students. <b>Translation</b> (optional) appears in italics below it — useful for bilingual classes. <b>Answer</b> is revealed when you click "Show Answer" — leave blank or write "N/A" if there's no equation.
+          </p>
+
+          <div class="controls" style="justify-content:flex-end; margin-bottom:8px; gap:8px;">
+            <button class="admin-btn secondary" id="cbLoadBtn" type="button">Load Current Clues</button>
+            <button class="admin-btn secondary" id="cbAddBtn" type="button">+ Add Row</button>
+            <button class="admin-btn good" id="cbSaveBtn" type="button">Save to Game</button>
+          </div>
+
+          <div class="cb-table-wrap">
+            <table class="cb-table">
+              <thead>
+                <tr>
+                  <th style="width:35%;">Prompt (shown to students)</th>
+                  <th style="width:25%;">Translation / 2nd line (optional)</th>
+                  <th style="width:32%;">Answer (revealed on click)</th>
+                  <th style="width:8%;"></th>
+                </tr>
+              </thead>
+              <tbody id="cbTbody"></tbody>
+            </table>
+          </div>
+          <div id="cbMsg" class="hint-text" style="margin-top:8px; min-height:1.2em;"></div>
+        </details>
+
+        <hr style="border:0; border-top:1px solid rgba(0,0,0,.08); margin: 14px 0;">
+
+        <!-- JSON editor -->
+        <details>
+          <summary>Game editor (JSON — advanced)</summary>
+          <p class="hint-text" style="margin:8px 0 10px;">Direct JSON editing for power users. Each item needs <code>prompt</code>, optional <code>translation</code>, and <code>eq</code> (the answer).</p>
+          <textarea id="gameJson" style="width:100%; min-height:300px; box-sizing:border-box; border-radius:14px; border:1px solid rgba(0,0,0,.14); padding:12px; font-family:monospace; font-size:12.5px; line-height:1.4;"></textarea>
+          <div class="controls" style="margin-top:10px; flex-wrap:wrap;">
+            <button class="admin-btn good" id="saveGameBtn" type="button">Save Game</button>
+            <button class="admin-btn secondary" id="exportGameBtn" type="button">Export JSON</button>
+            <label class="admin-btn secondary" style="cursor:pointer;">
+              Import JSON <input id="importGameFile" type="file" accept=".json,application/json" style="display:none;">
+            </label>
+            <button class="admin-btn danger" id="resetGameBtn" type="button">Reset to Default</button>
+            <span id="adminMsg" class="hint-text" style="margin-left:auto;"></span>
+          </div>
+        </details>
+
+      </div><!-- /adminTools -->
+    </details>
+  </div>
+</div>
+
 <script>
-const BINGO_DATA = [
-  { 
-    prompt: "Synthesis reaction with a REACTANT coefficient of 2.<br><i>Sintesis con un coeficiente de REACTIVO de 2.</i>", 
-    eq: "2Mg(s) + O₂(g) → 2MgO(s)" 
+/* =====================================================================
+   DEFAULT BINGO DATA
+   Edit these clues here, OR use the Admin panel above (recommended).
+   Each item:
+     prompt      – the clue shown to students (required)
+     translation – optional second line shown in italics (delete the line to omit)
+     eq          – the answer revealed when teacher clicks "Show Answer"
+                   Use "N/A" if there is no equation answer.
+===================================================================== */
+const DEFAULT_DATA = [
+  {
+    prompt: "Synthesis with a REACTANT coefficient of 2.",
+    translation: "Síntesis con un coeficiente de REACTIVO de 2.",
+    eq: "2Mg(s) + O₂(g) → 2MgO(s)"
   },
-  { 
-    prompt: "Synthesis reaction with Aluminum metal as a reactant.<br><i>Síntesis con aluminio metálico como reactivo.</i>", 
-    eq: "4Al(s) + 3O₂(g) → 2Al₂O₃(s)" 
+  {
+    prompt: "Synthesis with Aluminum metal as a reactant.",
+    translation: "Síntesis con aluminio metálico como reactivo.",
+    eq: "4Al(s) + 3O₂(g) → 2Al₂O₃(s)"
   },
-  { 
-    prompt: "Synthesis reaction with an aqueous product.<br><i>Síntesis con un producto acuoso.</i>", 
-    eq: "SO₃(g) + H₂O(l) → H₂SO₄(aq)" 
+  {
+    prompt: "Synthesis with an aqueous product.",
+    translation: "Síntesis con un producto acuoso.",
+    eq: "SO₃(g) + H₂O(l) → H₂SO₄(aq)"
   },
-  { 
-    prompt: "Synthesis reaction with a coefficient of 5.<br><i>Síntesis con un coeficiente de 5.</i>", 
-    eq: "P₄(s) + 5O₂(g) → P₄O₁₀(s)" 
+  {
+    prompt: "Synthesis with a coefficient of 5.",
+    translation: "Síntesis con un coeficiente de 5.",
+    eq: "P₄(s) + 5O₂(g) → P₄O₁₀(s)"
   },
-  { 
-    prompt: "Decomposition reaction with only gaseous products.<br><i>Descomposición con solo productos gaseosos.</i>", 
-    eq: "2H₂O(l) → 2H₂(g) + O₂(g)" 
+  {
+    prompt: "Decomposition with only gaseous products.",
+    translation: "Descomposición con solo productos gaseosos.",
+    eq: "2H₂O(l) → 2H₂(g) + O₂(g)"
   },
-  { 
-    prompt: "Decomposition reaction with a coefficient of 3.<br><i>Descomposición con un coeficiente de 3.</i>", 
-    eq: "2KClO₃(s) → 2KCl(s) + 3O₂(g)" 
+  {
+    prompt: "Decomposition with a coefficient of 3.",
+    translation: "Descomposición con un coeficiente de 3.",
+    eq: "2KClO₃(s) → 2KCl(s) + 3O₂(g)"
   },
-  { 
-    prompt: "Decomposition reaction with 3 different products.<br><i>Descomposición con 3 productos diferentes.</i>", 
-    eq: "2NaHCO₃(s) → Na₂CO₃(s) + H₂O(g) + CO₂(g)" 
+  {
+    prompt: "Decomposition with 3 different products.",
+    translation: "Descomposición con 3 productos diferentes.",
+    eq: "2NaHCO₃(s) → Na₂CO₃(s) + H₂O(g) + CO₂(g)"
   },
-  { 
-    prompt: "Decomposition reaction with only coefficients of 1.<br><i>Descomposición con solo coeficientes de 1.</i>", 
-    eq: "CaCO₃(s) → CaO(s) + CO₂(g)" 
+  {
+    prompt: "Decomposition with only coefficients of 1.",
+    translation: "Descomposición con solo coeficientes de 1.",
+    eq: "CaCO₃(s) → CaO(s) + CO₂(g)"
   },
-  { 
-    prompt: "Single Replacement reaction with a product that contains parenthesis in its chemical formula.<br><i>Sustitución simple con un producto que contiene paréntesis en su fórmula química.</i>", 
-    eq: "Cu(s) + 2AgNO₃(aq) → Cu(NO₃)₂(aq) + 2Ag(s)" 
+  {
+    prompt: "Single Replacement with a product that contains parenthesis in its chemical formula.",
+    translation: "Sustitución simple con un producto que contiene paréntesis en su fórmula química.",
+    eq: "Cu(s) + 2AgNO₃(aq) → Cu(NO₃)₂(aq) + 2Ag(s)"
   },
-  { 
-    prompt: "Single Replacement reaction with a coefficient of 3.<br><i>Sustitución simple con un coeficiente de 3.</i>", 
-    eq: "2Al(s) + 3CuCl₂(aq) → 2AlCl₃(aq) + 3Cu(s)" 
+  {
+    prompt: "Single Replacement with a coefficient of 3.",
+    translation: "Sustitución simple con un coeficiente de 3.",
+    eq: "2Al(s) + 3CuCl₂(aq) → 2AlCl₃(aq) + 3Cu(s)"
   },
-  { 
-    prompt: "Single Replacement reaction with a gaseous reactant.<br><i>Sustitución simple con un reactivo gaseoso.</i>", 
-    eq: "Cl₂(g) + 2KI(aq) → 2KCl(aq) + I₂(s)" 
+  {
+    prompt: "Single Replacement with a gaseous reactant.",
+    translation: "Sustitución simple con un reactivo gaseoso.",
+    eq: "Cl₂(g) + 2KI(aq) → 2KCl(aq) + I₂(s)"
   },
-  { 
-    prompt: "Single Replacement reaction with a gaseous product.<br><i>Sustitución simple con un producto gaseoso.</i>", 
-    eq: "Mg(s) + H₂SO₄(aq) → MgSO₄(aq) + H₂(g)" 
+  {
+    prompt: "Single Replacement with a gaseous product.",
+    translation: "Sustitución simple con un producto gaseoso.",
+    eq: "Mg(s) + H₂SO₄(aq) → MgSO₄(aq) + H₂(g)"
   },
-  { 
-    prompt: "Double Replacement reaction with only coefficients of 1.<br><i>Sustitución doble con solo coeficientes de 1.</i>", 
-    eq: "AgNO₃(aq) + NaCl(aq) → AgCl(s) + NaNO₃(aq)" 
+  {
+    prompt: "Double Replacement with only coefficients of 1.",
+    translation: "Sustitución doble con solo coeficientes de 1.",
+    eq: "AgNO₃(aq) + NaCl(aq) → AgCl(s) + NaNO₃(aq)"
   },
-  { 
-    prompt: "Double Replacement reaction that contains lead.<br><i>Sustitución doble que contiene plomo.</i>", 
-    eq: "Pb(NO₃)₂(aq) + 2KI(aq) → PbI₂(s) + 2KNO₃(aq)" 
+  {
+    prompt: "Double Replacement that contains lead.",
+    translation: "Sustitución doble que contiene plomo.",
+    eq: "Pb(NO₃)₂(aq) + 2KI(aq) → PbI₂(s) + 2KNO₃(aq)"
   },
-  { 
-    prompt: "Double Replacement reaction with table salt as a product.<br><i>Sustitución doble con sal de mesa como producto.</i>", 
-    eq: "BaCl₂(aq) + Na₂SO₄(aq) → BaSO₄(s) + 2NaCl(aq)" 
+  {
+    prompt: "Double Replacement with table salt as a product.",
+    translation: "Sustitución doble con sal de mesa como producto.",
+    eq: "BaCl₂(aq) + Na₂SO₄(aq) → BaSO₄(s) + 2NaCl(aq)"
   },
-  { 
-    prompt: "Double Replacement reaction with a coefficient of 3.<br><i>Sustitución doble con un coeficiente de 3.</i>", 
-    eq: "Al₂(SO₄)₃(aq) + 6KOH(aq) → 2Al(OH)₃(s) + 3K₂SO₄(aq)" 
+  {
+    prompt: "Double Replacement with a coefficient of 3.",
+    translation: "Sustitución doble con un coeficiente de 3.",
+    eq: "Al₂(SO₄)₃(aq) + 6KOH(aq) → 2Al(OH)₃(s) + 3K₂SO₄(aq)"
   },
-  { 
-    prompt: "Combustion reaction that releases 2 units of water.<br><i>Combustión que libera 2 unidades de agua.</i>", 
-    eq: "CH₄(g) + 2O₂(g) → CO₂(g) + 2H₂O(g)" 
+  {
+    prompt: "Combustion that releases 2 units of water.",
+    translation: "Combustión que libera 2 unidades de agua.",
+    eq: "CH₄(g) + 2O₂(g) → CO₂(g) + 2H₂O(g)"
   },
-  { 
-    prompt: "Combustion reaction with product CO₂:H₂O ratio of 3:4.<br><i>Combustión con una relación de producto CO₂:H₂O de 3:4.</i>", 
-    eq: "C₃H₈(g) + 5O₂(g) → 3CO₂(g) + 4H₂O(g)" 
+  {
+    prompt: "Combustion with product CO₂:H₂O ratio of 3:4.",
+    translation: "Combustión con una relación de producto CO₂:H₂O de 3:4.",
+    eq: "C₃H₈(g) + 5O₂(g) → 3CO₂(g) + 4H₂O(g)"
   },
-  { 
-    prompt: "Combustion reaction with a coefficient of 7.<br><i>Combustión con un coeficiente de 7.</i>", 
-    eq: "2C₂H₆(g) + 7O₂(g) → 4CO₂(g) + 6H₂O(g)" 
+  {
+    prompt: "Combustion with a coefficient of 7.",
+    translation: "Combustión con un coeficiente de 7.",
+    eq: "2C₂H₆(g) + 7O₂(g) → 4CO₂(g) + 6H₂O(g)"
   },
-  { 
-    prompt: "Combustion reaction with a liquid reactant.<br><i>Combustión con un reactivo líquido.</i>", 
-    eq: "C₂H₅OH(l) + 3O₂(g) → 2CO₂(g) + 3H₂O(g)" 
+  {
+    prompt: "Combustion with a liquid reactant.",
+    translation: "Combustión con un reactivo líquido.",
+    eq: "C₂H₅OH(l) + 3O₂(g) → 2CO₂(g) + 3H₂O(g)"
   },
-    { 
-    prompt: "An atomic model for a combustion reaction.<br><i>Un modelo atómico de una reacción de combustión.</i>", 
-    eq: "N/A" 
+  {
+    prompt: "An atomic model for a combustion reaction.",
+    translation: "Un modelo atómico de una reacción de combustión.",
+    eq: "N/A"
   },
-      { 
-    prompt: "An atomic model for a synthesis reaction.<br><i>Un modelo atómico de una reacción de síntesis.</i>", 
-    eq: "N/A" 
+  {
+    prompt: "An atomic model for a synthesis reaction.",
+    translation: "Un modelo atómico de una reacción de síntesis.",
+    eq: "N/A"
   },
-      { 
-    prompt: "An atomic model for a decomposition reaction.<br><i>Un modelo atómico para una reacción de descomposición.</i>", 
-    eq: "N/A" 
+  {
+    prompt: "An atomic model for a decomposition reaction.",
+    translation: "Un modelo atómico para una reacción de descomposición.",
+    eq: "N/A"
   },
-      { 
-    prompt: "An atomic model for a single replacement reaction.<br><i>Un modelo atómico de una reacción de sustitución simple.</i>", 
-    eq: "N/A" 
+  {
+    prompt: "An atomic model for a single replacement reaction.",
+    translation: "Un modelo atómico de una reacción de sustitución simple.",
+    eq: "N/A"
   },
-      { 
-    prompt: "An atomic model for a double replacement reaction.<br><i>Un modelo atómico de una reacción de Un modelo atómico para una reacción de doble desplazamiento.</i>", 
-    eq: "N/A" 
+  {
+    prompt: "An atomic model for a double replacement reaction.",
+    translation: "Un modelo atómico para una reacción de doble desplazamiento.",
+    eq: "N/A"
   }
 ];
 
-let remaining = [...BINGO_DATA];
-let called = [];
+/* =====================================================================
+   SETTINGS & STORAGE
+===================================================================== */
+const LS_KEYS = {
+  game:      "bingo_game_data",
+  cfg:       "bingo_cfg",
+  adminHash: "bingo_admin_hash"
+};
+
+const DEFAULT_CFG = {
+  timerSeconds: 90,
+  musicVol: 0.8,
+  musicFile: "BINGOtheme.mp3"
+};
+
+function loadCfg(){
+  try {
+    const raw = localStorage.getItem(LS_KEYS.cfg);
+    return raw ? { ...DEFAULT_CFG, ...JSON.parse(raw) } : { ...DEFAULT_CFG };
+  } catch { return { ...DEFAULT_CFG }; }
+}
+function saveCfg(cfg){ localStorage.setItem(LS_KEYS.cfg, JSON.stringify(cfg)); }
+
+function loadGameData(){
+  try {
+    const raw = localStorage.getItem(LS_KEYS.game);
+    if(!raw) return null;
+    const parsed = JSON.parse(raw);
+    if(Array.isArray(parsed) && parsed.length) return parsed;
+  } catch {}
+  return null;
+}
+function saveGameData(data){ localStorage.setItem(LS_KEYS.game, JSON.stringify(data)); }
+function resetGameData(){ localStorage.removeItem(LS_KEYS.game); }
+
+/* =====================================================================
+   ADMIN: PASSCODE (SHA-256)
+===================================================================== */
+let adminUnlocked = false;
+
+async function sha256(str){
+  const enc = new TextEncoder().encode(str);
+  const buf = await crypto.subtle.digest("SHA-256", enc);
+  return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2,"0")).join("");
+}
+async function setAdminPasscode(pass){
+  localStorage.setItem(LS_KEYS.adminHash, await sha256(pass));
+}
+async function checkPasscode(pass){
+  const saved = localStorage.getItem(LS_KEYS.adminHash);
+  if(!saved) return false;
+  return (await sha256(pass)) === saved;
+}
+function showAdmin(unlocked){
+  adminUnlocked = unlocked;
+  document.getElementById("adminTools").style.display  = unlocked ? "block" : "none";
+  document.getElementById("adminLocked").style.display = unlocked ? "none"  : "block";
+}
+async function unlockAdmin(){
+  const pass = document.getElementById("adminPasscode").value || "";
+  if(await checkPasscode(pass)){ showAdmin(true); adminLoadUI(); }
+  else alert("Incorrect passcode.");
+}
+async function setPasscode(){
+  const pass = document.getElementById("adminPasscode").value || "";
+  if(pass.length < 4){ alert("Use at least 4 characters."); return; }
+  await setAdminPasscode(pass);
+  alert("Passcode saved on this computer.");
+}
+
+/* =====================================================================
+   GAME STATE
+===================================================================== */
+let BINGO_DATA = loadGameData() || JSON.parse(JSON.stringify(DEFAULT_DATA));
+let remaining  = [];
+let called     = [];
 let timerInterval = null;
-let isPaused = false;
-let timeLeft = 90;
-const DEFAULT_TIME = 90;
+let isPaused   = false;
+let timeLeft   = loadCfg().timerSeconds;
 
-const drawBtn = document.getElementById('draw-btn');
-const revealBtn = document.getElementById('reveal-btn');
-const resetBtn = document.getElementById('reset-btn');
-const pauseBtn = document.getElementById('pause-timer-btn');
-const promptEl = document.getElementById('current-prompt');
-const eqEl = document.getElementById('current-equation');
-const timerEl = document.getElementById('timer-display');
-const historyEl = document.getElementById('call-history');
-const gridEl = document.getElementById('master-grid');
-const audio = document.getElementById('bingoAudio');
+function getCurrentData(){ return BINGO_DATA; }
 
-function initGrid() {
-  gridEl.innerHTML = '';
-  BINGO_DATA.forEach(item => {
-    const chip = document.createElement('div');
-    chip.className = 'eq-chip';
-    chip.id = `chip-${item.eq.replace(/[^a-zA-Z0-9]/g, '')}`;
-    chip.innerText = item.eq;
-    gridEl.appendChild(chip);
-  });
+/* =====================================================================
+   AUDIO
+===================================================================== */
+function applyAudioCfg(){
+  const cfg = loadCfg();
+  const audio = document.getElementById("bingoAudio");
+  if(!audio) return;
+  audio.volume = Math.max(0, Math.min(1, Number(cfg.musicVol ?? 0.8)));
+  const src = audio.querySelector("source");
+  const file = String(cfg.musicFile || "BINGOtheme.mp3").trim();
+  if(src && src.getAttribute("src") !== file){
+    src.setAttribute("src", file);
+    audio.load();
+  }
 }
 
-function startTimer() {
-  clearInterval(timerInterval);
-  timeLeft = DEFAULT_TIME;
-  isPaused = false;
-  updateTimerUI();
-  
-  audio.currentTime = 0;
-  audio.play().catch(e => console.log("Audio waiting for user interaction."));
+/* =====================================================================
+   TIMER
+===================================================================== */
+const timerEl   = document.getElementById("timer-display");
+const pauseBtn  = document.getElementById("pause-timer-btn");
+const audio     = document.getElementById("bingoAudio");
 
-  timerInterval = setInterval(() => {
-    if(!isPaused) {
-      timeLeft--;
-      updateTimerUI();
-      if (timeLeft <= 0) {
-        clearInterval(timerInterval);
-        audio.pause();
-      }
-    }
-  }, 1000);
-}
-
-function updateTimerUI() {
+function updateTimerUI(){
+  const cfg = loadCfg();
   timerEl.innerText = timeLeft + "s";
   timerEl.style.color = (timeLeft <= 10) ? "var(--bad)" : "var(--accent)";
 }
 
-function togglePause() {
+function startTimer(){
+  clearInterval(timerInterval);
+  timeLeft  = loadCfg().timerSeconds;
+  isPaused  = false;
+  updateTimerUI();
+  audio.currentTime = 0;
+  audio.play().catch(() => {});
+  timerInterval = setInterval(() => {
+    if(!isPaused){
+      timeLeft--;
+      updateTimerUI();
+      if(timeLeft <= 0){ clearInterval(timerInterval); audio.pause(); }
+    }
+  }, 1000);
+}
+
+function togglePause(){
   isPaused = !isPaused;
-  if(isPaused) {
+  if(isPaused){
     audio.pause();
-    pauseBtn.innerText = "⏳ Resume Music/Timer";
+    pauseBtn.innerText = "▶️ Resume Music/Timer";
   } else {
-    if(timeLeft > 0) audio.play();
+    if(timeLeft > 0) audio.play().catch(() => {});
     pauseBtn.innerText = "⏳ Pause Music/Timer";
   }
 }
 
-function drawNext() {
-  if (remaining.length === 0) {
-    promptEl.innerText = "Game Over!";
-    eqEl.innerText = "";
+/* =====================================================================
+   BINGO CORE
+===================================================================== */
+const drawBtn    = document.getElementById("draw-btn");
+const revealBtn  = document.getElementById("reveal-btn");
+const resetBtn   = document.getElementById("reset-btn");
+const promptEl   = document.getElementById("current-prompt");
+const eqEl       = document.getElementById("current-equation");
+const historyEl  = document.getElementById("call-history");
+const gridEl     = document.getElementById("master-grid");
+
+function initGame(){
+  remaining = [...getCurrentData()];
+  called    = [];
+}
+
+function initGrid(){
+  gridEl.innerHTML = "";
+  getCurrentData().forEach((item, idx) => {
+    const chip = document.createElement("div");
+    chip.className = "eq-chip";
+    chip.id = `chip-${idx}`;
+    chip.innerText = item.eq || item.prompt.slice(0, 40);
+    gridEl.appendChild(chip);
+  });
+}
+
+function drawNext(){
+  if(remaining.length === 0){
+    promptEl.innerText = "🎉 All clues called!";
+    eqEl.style.display = "none";
     revealBtn.style.display = "none";
     audio.pause();
     return;
   }
 
-  const index = Math.floor(Math.random() * remaining.length);
+  const index  = Math.floor(Math.random() * remaining.length);
   const picked = remaining.splice(index, 1)[0];
   called.push(picked);
 
-  promptEl.innerHTML = picked.prompt;
-  eqEl.innerText = picked.eq;
+  // Find original index for chip tracking
+  const origIdx = getCurrentData().indexOf(picked);
+
+  // Build prompt display
+  if(picked.translation && picked.translation.trim()){
+    promptEl.innerHTML = picked.prompt + `<i>${picked.translation}</i>`;
+  } else {
+    promptEl.innerText = picked.prompt;
+  }
+
+  eqEl.innerText = picked.eq || "";
   eqEl.style.display = "none";
-  revealBtn.style.display = "inline-block";
-  revealBtn.innerText = "Show Equation";
+  revealBtn.style.display = (picked.eq && picked.eq !== "N/A") ? "inline-block" : "none";
+  revealBtn.innerText = "Show Answer";
   pauseBtn.innerText = "⏳ Pause Music/Timer";
 
-  const logItem = document.createElement('div');
-  logItem.className = 'history-item';
+  const logItem = document.createElement("div");
+  logItem.className = "history-item";
   logItem.innerHTML = `<span class="history-num">${called.length}</span><small>${picked.prompt}</small>`;
   historyEl.prepend(logItem);
 
-  const chipId = `chip-${picked.eq.replace(/[^a-zA-Z0-9]/g, '')}`;
-  document.getElementById(chipId).classList.add('called');
+  if(origIdx >= 0){
+    const chip = document.getElementById(`chip-${origIdx}`);
+    if(chip) chip.classList.add("called");
+  }
 
   startTimer();
 }
 
-revealBtn.addEventListener('click', () => {
+revealBtn.addEventListener("click", () => {
   const isHidden = eqEl.style.display === "none";
   eqEl.style.display = isHidden ? "block" : "none";
-  revealBtn.innerText = isHidden ? "Hide Equation" : "Show Equation";
+  revealBtn.innerText = isHidden ? "Hide Answer" : "Show Answer";
 });
 
-pauseBtn.addEventListener('click', togglePause);
+pauseBtn.addEventListener("click", togglePause);
 
-resetBtn.addEventListener('click', () => {
-  if(!confirm("Reset game?")) return;
-  remaining = [...BINGO_DATA];
-  called = [];
+resetBtn.addEventListener("click", () => {
+  if(!confirm("Reset game? This will reshuffle all clues.")) return;
   promptEl.innerText = "Ready to start?";
   eqEl.style.display = "none";
   revealBtn.style.display = "none";
-  historyEl.innerHTML = '';
+  historyEl.innerHTML = "";
   clearInterval(timerInterval);
   audio.pause();
-  timeLeft = DEFAULT_TIME;
+  timeLeft = loadCfg().timerSeconds;
   updateTimerUI();
+  initGame();
   initGrid();
 });
 
-drawBtn.addEventListener('click', drawNext);
-initGrid();
+drawBtn.addEventListener("click", drawNext);
+
+/* =====================================================================
+   CLUE BUILDER
+===================================================================== */
+function cbMsg(text, ok=true){
+  const el = document.getElementById("cbMsg");
+  if(!el) return;
+  el.style.color = ok ? "#146c2e" : "#8b1a1a";
+  el.textContent = text;
+  setTimeout(() => { el.textContent = ""; }, 2000);
+}
+
+function cbAddRow(rowData={}){
+  const tbody = document.getElementById("cbTbody");
+  const tr = document.createElement("tr");
+
+  // PROMPT
+  const tdPrompt = document.createElement("td");
+  const promptTA = document.createElement("textarea");
+  promptTA.className = "cb-textarea";
+  promptTA.placeholder = "Clue shown to students…";
+  promptTA.value = rowData.prompt || "";
+  tdPrompt.appendChild(promptTA);
+
+  // TRANSLATION
+  const tdTrans = document.createElement("td");
+  const transTA = document.createElement("textarea");
+  transTA.className = "cb-textarea";
+  transTA.placeholder = "Optional translation / 2nd line…";
+  transTA.value = rowData.translation || "";
+  tdTrans.appendChild(transTA);
+
+  // ANSWER
+  const tdEq = document.createElement("td");
+  const eqInp = document.createElement("input");
+  eqInp.type = "text";
+  eqInp.className = "cb-input";
+  eqInp.placeholder = "e.g. 2H₂ + O₂ → 2H₂O  (or N/A)";
+  eqInp.value = rowData.eq || "";
+  tdEq.appendChild(eqInp);
+
+  // DELETE
+  const tdDel = document.createElement("td");
+  const delBtn = document.createElement("button");
+  delBtn.type = "button";
+  delBtn.className = "admin-btn secondary";
+  delBtn.textContent = "✕";
+  delBtn.style.padding = "8px 10px";
+  delBtn.addEventListener("click", () => tr.remove());
+  tdDel.appendChild(delBtn);
+
+  tr.appendChild(tdPrompt);
+  tr.appendChild(tdTrans);
+  tr.appendChild(tdEq);
+  tr.appendChild(tdDel);
+  tbody.appendChild(tr);
+}
+
+function cbLoadFromGame(){
+  const tbody = document.getElementById("cbTbody");
+  tbody.innerHTML = "";
+  getCurrentData().forEach(item => cbAddRow(item));
+  cbMsg("Loaded ✓", true);
+}
+
+function cbExtractRows(){
+  const rows = [...document.querySelectorAll("#cbTbody tr")];
+  const out = [];
+  for(const tr of rows){
+    const tds = tr.querySelectorAll("td");
+    const prompt      = (tds[0].querySelector("textarea")?.value || "").trim();
+    const translation = (tds[1].querySelector("textarea")?.value || "").trim();
+    const eq          = (tds[2].querySelector("input")?.value    || "").trim();
+    if(!prompt) continue;
+    const item = { prompt, eq: eq || "N/A" };
+    if(translation) item.translation = translation;
+    out.push(item);
+  }
+  return out;
+}
+
+function cbSaveToGame(){
+  const rows = cbExtractRows();
+  if(!rows.length){ cbMsg("Nothing to save — add at least one clue.", false); return; }
+  for(const r of rows){
+    if(!r.prompt){ cbMsg("A row is missing a prompt.", false); return; }
+  }
+  BINGO_DATA = rows;
+  saveGameData(BINGO_DATA);
+  document.getElementById("gameJson").value = JSON.stringify(BINGO_DATA, null, 2);
+  initGame();
+  initGrid();
+  cbMsg(`Saved ${rows.length} clues ✓`, true);
+}
+
+/* =====================================================================
+   ADMIN UI
+===================================================================== */
+function adminLoadUI(){
+  const cfg = loadCfg();
+  document.getElementById("cfgTimer").value     = cfg.timerSeconds;
+  document.getElementById("cfgVol").value       = cfg.musicVol;
+  document.getElementById("cfgMusicFile").value = cfg.musicFile;
+  document.getElementById("gameJson").value     = JSON.stringify(BINGO_DATA, null, 2);
+  applyAudioCfg();
+  cbLoadFromGame();
+}
+
+function adminSaveCfgFromUI(){
+  const cfg = {
+    timerSeconds: Math.max(0, parseInt(document.getElementById("cfgTimer").value, 10) || 90),
+    musicVol:     Math.max(0, Math.min(1, parseFloat(document.getElementById("cfgVol").value) || 0.8)),
+    musicFile:    (document.getElementById("cfgMusicFile").value || "BINGOtheme.mp3").trim()
+  };
+  saveCfg(cfg);
+  applyAudioCfg();
+  timeLeft = cfg.timerSeconds;
+  updateTimerUI();
+}
+
+function adminSaveGame(){
+  const msg = document.getElementById("adminMsg");
+  try {
+    const parsed = JSON.parse(document.getElementById("gameJson").value);
+    if(!Array.isArray(parsed) || !parsed.length) throw new Error("Expected a non-empty array.");
+    BINGO_DATA = parsed;
+    saveGameData(BINGO_DATA);
+    initGame();
+    initGrid();
+    msg.style.color = "#146c2e";
+    msg.textContent = "Saved ✓";
+  } catch(e) {
+    msg.style.color = "#8b1a1a";
+    msg.textContent = "Invalid JSON ✗ — " + e.message;
+  }
+}
+
+function adminExportGame(){
+  const blob = new Blob([JSON.stringify(BINGO_DATA, null, 2)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "bingo-clues.json";
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function adminImportGame(file){
+  const msg = document.getElementById("adminMsg");
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const parsed = JSON.parse(reader.result);
+      document.getElementById("gameJson").value = JSON.stringify(parsed, null, 2);
+      msg.style.color = "#2b1060";
+      msg.textContent = "Loaded. Click Save Game to apply.";
+    } catch {
+      msg.style.color = "#8b1a1a";
+      msg.textContent = "Could not parse file.";
+    }
+  };
+  reader.readAsText(file);
+}
+
+function adminResetGame(){
+  if(!confirm("Reset all clues to the built-in defaults?")) return;
+  resetGameData();
+  BINGO_DATA = JSON.parse(JSON.stringify(DEFAULT_DATA));
+  document.getElementById("gameJson").value = JSON.stringify(BINGO_DATA, null, 2);
+  cbLoadFromGame();
+  initGame();
+  initGrid();
+  document.getElementById("adminMsg").textContent = "Reset to defaults ✓";
+}
+
+/* =====================================================================
+   INIT
+===================================================================== */
+function init(){
+  applyAudioCfg();
+  updateTimerUI();
+  initGame();
+  initGrid();
+
+  // Game buttons wired above (draw, reveal, pause, reset)
+
+  // Admin wiring
+  showAdmin(false);
+  document.getElementById("adminUnlockBtn").addEventListener("click", unlockAdmin);
+  document.getElementById("adminSetBtn").addEventListener("click", setPasscode);
+  document.getElementById("adminLockBtn").addEventListener("click", () => showAdmin(false));
+
+  ["cfgTimer","cfgVol","cfgMusicFile"].forEach(id => {
+    document.getElementById(id).addEventListener("change", adminSaveCfgFromUI);
+  });
+
+  document.getElementById("cbLoadBtn").addEventListener("click", cbLoadFromGame);
+  document.getElementById("cbAddBtn").addEventListener("click", () => cbAddRow());
+  document.getElementById("cbSaveBtn").addEventListener("click", cbSaveToGame);
+
+  document.getElementById("saveGameBtn").addEventListener("click", adminSaveGame);
+  document.getElementById("exportGameBtn").addEventListener("click", adminExportGame);
+  document.getElementById("resetGameBtn").addEventListener("click", adminResetGame);
+  document.getElementById("importGameFile").addEventListener("change", e => {
+    const f = e.target.files && e.target.files[0];
+    if(f) adminImportGame(f);
+    e.target.value = "";
+  });
+}
+
+init();
 </script>
 </body>
 </html>
+
