@@ -114,6 +114,7 @@
 
     <div class="toolbar-right">
       <div class="mode-toggle">
+        <button class="mode-btn" id="modeTerm">Term Practice</button>
         <button class="mode-btn" id="modePractice">Modeling Only</button>
         <button class="mode-btn active" id="modeAudit">Balanced?</button>
       </div>
@@ -135,15 +136,15 @@
     <main class="content-area">
       <div class="status info show" id="statusBox">Build the equation exactly as written, then decide if it is balanced. Shift+click an atom to remove it.</div>
 
-      <div class="workspaces">
-        <div class="card">
+      <div class="workspaces" id="workspacesGrid">
+        <div class="card" id="reactantsCard">
           <div style="display:flex; justify-content:space-between; margin-bottom:10px; align-items:center;">
-            <h2 style="margin:0; font-size:18px;">Reactants</h2>
+            <h2 style="margin:0; font-size:18px;" id="reactantsLabel">Reactants</h2>
             <div class="atom-bank" id="rBank"></div>
           </div>
           <div class="workspace" id="rWS"></div>
         </div>
-        <div class="card">
+        <div class="card" id="productsCard">
           <div style="display:flex; justify-content:space-between; margin-bottom:10px; align-items:center;">
             <h2 style="margin:0; font-size:18px;">Products</h2>
             <div class="atom-bank" id="pBank"></div>
@@ -195,11 +196,24 @@ const PROBLEMS = [
 ];
 
 const COLORS = ['#f59e0b', '#60a5fa', '#34d399', '#f472b6', '#a78bfa', '#fb7185'];
+
+// Flatten all individual terms from all problems for Term Practice mode
+const TERM_PROBLEMS = [];
+PROBLEMS.forEach(p => {
+  p.reactants.forEach(f => TERM_PROBLEMS.push(f));
+  p.products.forEach(f => TERM_PROBLEMS.push(f));
+});
+// Deduplicate
+const _seen = new Set();
+const TERM_PROBLEMS_UNIQUE = TERM_PROBLEMS.filter(f => { if (_seen.has(f)) return false; _seen.add(f); return true; });
+
+
 const SHAPES = ['circle', 'square', 'diamond', 'hex', 'triangle'];
 
 let state = {
-  mode: 'audit',
+  mode: 'term',
   problem: null,
+  termProblem: null,
   elements: [],
   styles: {},
   selectedEl: null,
@@ -207,6 +221,8 @@ let state = {
   solves: 0,
   deck: [],
   deckIdx: 0,
+  termDeck: [],
+  termDeckIdx: 0,
   currentSolved: false,
   startTime: Date.now()
 };
@@ -249,7 +265,55 @@ function initDeck() {
   state.deckIdx = 0;
 }
 
+function initTermDeck() {
+  state.termDeck = Array.from({ length: TERM_PROBLEMS_UNIQUE.length }, (_, i) => i);
+  for (let i = state.termDeck.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [state.termDeck[i], state.termDeck[j]] = [state.termDeck[j], state.termDeck[i]];
+  }
+  state.termDeckIdx = 0;
+}
+
 function initProblem() {
+  if (state.mode === 'term') {
+    if (state.termDeckIdx >= state.termDeck.length) initTermDeck();
+    const formula = TERM_PROBLEMS_UNIQUE[state.termDeck[state.termDeckIdx++]];
+    state.termProblem = formula;
+    state.currentSolved = false;
+
+    const coeffMatch = formula.match(/^(\d+)/);
+    const leadCoeff = coeffMatch ? coeffMatch[1] : '';
+    const rest = formula.slice(leadCoeff.length);
+    const prettyRest = rest.replace(/(\d+)/g, n => n.split('').map(d => '01234567890'.indexOf(d) >= 0 ? '\u2080\u2081\u2082\u2083\u2084\u2085\u2086\u2087\u2088\u2089'[+d] : d).join(''));
+    document.getElementById('eqDisplay').textContent = leadCoeff + prettyRest;
+
+    const parsed = parseFormula(formula);
+    state.elements = Object.keys(parsed.atoms);
+    state.elements.forEach((e, i) => {
+      if (!state.styles[e]) state.styles[e] = { color: COLORS[i % COLORS.length], shape: SHAPES[i % SHAPES.length] };
+    });
+    state.selectedEl = state.elements[0];
+    state.placed = { reactants: [], products: [] };
+
+    // Show only the single workspace
+    document.getElementById('workspacesGrid').style.gridTemplateColumns = '1fr';
+    document.getElementById('productsCard').style.display = 'none';
+    document.getElementById('reactantsLabel').textContent = 'Model';
+
+    renderPalette();
+    renderBanks();
+    renderActionArea();
+    redraw();
+    updateCounts();
+    updateStatus('Model this term using atom tokens. Shift+click an atom to remove it.', 'info');
+    return;
+  }
+
+  // Restore two-workspace layout for other modes
+  document.getElementById('workspacesGrid').style.gridTemplateColumns = '';
+  document.getElementById('productsCard').style.display = '';
+  document.getElementById('reactantsLabel').textContent = 'Reactants';
+
   if (state.deckIdx >= state.deck.length) initDeck();
   state.problem = PROBLEMS[state.deck[state.deckIdx++]];
   state.currentSolved = false;
@@ -317,9 +381,13 @@ function renderPalette() {
 }
 
 function renderBanks() {
+  const bankIds = state.mode === 'term' ? ['rBank'] : ['rBank', 'pBank'];
   ['rBank', 'pBank'].forEach(id => {
     const bank = document.getElementById(id);
     bank.innerHTML = '';
+  });
+  bankIds.forEach(id => {
+    const bank = document.getElementById(id);
     state.elements.forEach(el => {
       const btn = document.createElement('button');
       btn.className = `btn ${state.selectedEl === el ? 'primary' : ''}`;
@@ -333,7 +401,13 @@ function renderBanks() {
 function renderActionArea() {
   const area = document.getElementById('actionArea');
   area.innerHTML = '';
-  if (state.mode === 'practice') {
+  if (state.mode === 'term') {
+    const btn = document.createElement('button');
+    btn.className = 'btn outline-good';
+    btn.textContent = 'Check Model';
+    btn.onclick = () => validateTerm();
+    area.appendChild(btn);
+  } else if (state.mode === 'practice') {
     const btn = document.createElement('button');
     btn.className = 'btn outline-good';
     btn.textContent = 'Check Model';
@@ -355,16 +429,33 @@ function renderActionArea() {
 function updateCounts() {
   const grid = document.getElementById('countsGrid');
   grid.innerHTML = '';
-  state.elements.forEach(el => {
-    const r = state.placed.reactants.filter(a => a.el === el).length;
-    const p = state.placed.products.filter(a => a.el === el).length;
-    const box = document.createElement('div');
-    box.className = 'card';
-    const balanced = r === p && r > 0;
-    box.style.borderLeft = balanced ? '6px solid var(--good)' : '6px solid var(--bad)';
-    box.innerHTML = `<strong>${el}</strong><br><span class="subtle">R:</span> ${r} | <span class="subtle">P:</span> ${p}`;
-    grid.appendChild(box);
-  });
+  if (state.mode === 'term') {
+    if (!state.termProblem) return;
+    const parsed = parseFormula(state.termProblem);
+    const needed = {};
+    Object.keys(parsed.atoms).forEach(el => needed[el] = parsed.atoms[el] * parsed.coeff);
+    state.elements.forEach(el => {
+      const placed = state.placed.reactants.filter(a => a.el === el).length;
+      const target = needed[el] || 0;
+      const box = document.createElement('div');
+      box.className = 'card';
+      const ok = placed === target && placed > 0;
+      box.style.borderLeft = ok ? '6px solid var(--good)' : '6px solid var(--bad)';
+      box.innerHTML = `<strong>${el}</strong><br><span class="subtle">Placed:</span> ${placed} / <span class="subtle">Needed:</span> ${target}`;
+      grid.appendChild(box);
+    });
+  } else {
+    state.elements.forEach(el => {
+      const r = state.placed.reactants.filter(a => a.el === el).length;
+      const p = state.placed.products.filter(a => a.el === el).length;
+      const box = document.createElement('div');
+      box.className = 'card';
+      const balanced = r === p && r > 0;
+      box.style.borderLeft = balanced ? '6px solid var(--good)' : '6px solid var(--bad)';
+      box.innerHTML = `<strong>${el}</strong><br><span class="subtle">R:</span> ${r} | <span class="subtle">P:</span> ${p}`;
+      grid.appendChild(box);
+    });
+  }
 }
 
 function removeAtom(side, atom) {
@@ -479,6 +570,35 @@ function checkModelMatch(side) {
   });
 }
 
+function validateTerm() {
+  const parsed = parseFormula(state.termProblem);
+  // Build list of expected molecule groups: coeff copies of the atom set
+  const targets = [];
+  for (let i = 0; i < parsed.coeff; i++) targets.push(parsed.atoms);
+
+  const actuals = getGroups('reactants').map(g => {
+    const c = {};
+    g.forEach(at => c[at.el] = (c[at.el] || 0) + 1);
+    return c;
+  });
+
+  if (actuals.length !== targets.length) {
+    updateStatus(`Wrong number of molecules. Expected ${targets.length}, got ${actuals.length}.`, 'bad');
+    return;
+  }
+  const used = new Set();
+  const match = targets.every(t => {
+    const idx = actuals.findIndex((a, i) => !used.has(i) &&
+      JSON.stringify(Object.keys(a).sort().reduce((r, k) => (r[k] = a[k], r), {})) ===
+      JSON.stringify(Object.keys(t).sort().reduce((r, k) => (r[k] = t[k], r), {})));
+    if (idx > -1) { used.add(idx); return true; }
+    return false;
+  });
+
+  if (match) { updateStatus('Correct! Great model.', 'good'); addPoint(1); }
+  else updateStatus('Not quite. Check your atom counts inside each molecule group.', 'bad');
+}
+
 function validate(claim) {
   const mR = checkModelMatch('reactants');
   const mP = checkModelMatch('products');
@@ -492,19 +612,19 @@ function validate(claim) {
       const p = state.placed.products.filter(a => a.el === el).length;
       return r === p && r > 0;
     });
-    if (bal) { updateStatus('Correct! Equation is balanced.', 'good'); addPoint(); }
+    if (bal) { updateStatus('Correct! Equation is balanced.', 'good'); addPoint(2); }
     else updateStatus('Not balanced. Check atom totals.', 'bad');
   } else {
-    if (claim === state.problem.isBalanced) { updateStatus('Correct Audit!', 'good'); addPoint(); }
+    if (claim === state.problem.isBalanced) { updateStatus('Correct Audit!', 'good'); addPoint(3); }
     else updateStatus('Incorrect Audit.', 'bad');
   }
 }
 
-function addPoint() {
+function addPoint(pts) {
   if (!state.currentSolved) {
-    state.solves++;
+    state.solves += pts;
     state.currentSolved = true;
-    document.getElementById('scoreDisplay').textContent = 'Solves: ' + state.solves;
+    document.getElementById('scoreDisplay').textContent = 'Points: ' + state.solves;
   }
 }
 
@@ -543,12 +663,15 @@ document.getElementById('continueName').onclick = () => {
   location.reload();
 };
 
+document.getElementById('modeTerm').onclick = () => { state.mode = 'term'; updateModeUI(); };
 document.getElementById('modePractice').onclick = () => { state.mode = 'practice'; updateModeUI(); };
 document.getElementById('modeAudit').onclick = () => { state.mode = 'audit'; updateModeUI(); };
 
 function updateModeUI() {
   document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById(state.mode === 'practice' ? 'modePractice' : 'modeAudit').classList.add('active');
+  const activeId = state.mode === 'term' ? 'modeTerm' : state.mode === 'practice' ? 'modePractice' : 'modeAudit';
+  document.getElementById(activeId).classList.add('active');
+  if (state.mode === 'term' && state.termDeck.length === 0) initTermDeck();
   initProblem();
 }
 
@@ -557,12 +680,12 @@ document.getElementById('resetBtn').onclick = () => {
   state.placed = { reactants: [], products: [] };
   redraw();
   updateCounts();
-  updateStatus(
-    state.mode === 'practice'
+  const msg = state.mode === 'term'
+    ? 'Workspace reset. Model this term using atom tokens. Shift+click an atom to remove it.'
+    : state.mode === 'practice'
       ? 'Workspace reset. Build the model to match the equation. Shift+click an atom to remove it.'
-      : 'Workspace reset. Build the equation exactly as written, then decide if it is balanced. Shift+click an atom to remove it.',
-    'info'
-  );
+      : 'Workspace reset. Build the equation exactly as written, then decide if it is balanced. Shift+click an atom to remove it.';
+  updateStatus(msg, 'info');
 };
 
 initDeck();
@@ -570,4 +693,6 @@ updateModeUI();
 </script>
 </body>
 </html>
+
+
 
