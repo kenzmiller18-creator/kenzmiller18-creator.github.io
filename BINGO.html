@@ -419,15 +419,7 @@
 </div>
 
 <script>
-/* =====================================================================
-   DEFAULT BINGO DATA
-   Edit these clues here, OR use the Admin panel above (recommended).
-   Each item:
-     prompt      – the clue shown to students (required)
-     translation – optional second line shown in italics (delete the line to omit)
-     eq          – the answer revealed when teacher clicks "Show Answer"
-                   Use "N/A" if there is no equation answer.
-===================================================================== */
+
 const DEFAULT_DATA = [
   {
     prompt: "Synthesis with a REACTANT coefficient of 2.",
@@ -556,9 +548,7 @@ const DEFAULT_DATA = [
   }
 ];
 
-/* =====================================================================
-   SETTINGS & STORAGE
-===================================================================== */
+
 const LS_KEYS = {
   game:      "bingo_game_data",
   cfg:       "bingo_cfg",
@@ -591,9 +581,7 @@ function loadGameData(){
 function saveGameData(data){ localStorage.setItem(LS_KEYS.game, JSON.stringify(data)); }
 function resetGameData(){ localStorage.removeItem(LS_KEYS.game); }
 
-/* =====================================================================
-   ADMIN: PASSCODE (SHA-256)
-===================================================================== */
+
 let adminUnlocked = false;
 
 async function sha256(str){
@@ -626,9 +614,7 @@ async function setPasscode(){
   alert("Passcode saved on this computer.");
 }
 
-/* =====================================================================
-   GAME STATE
-===================================================================== */
+
 let BINGO_DATA = loadGameData() || JSON.parse(JSON.stringify(DEFAULT_DATA));
 let remaining  = [];
 let called     = [];
@@ -638,9 +624,7 @@ let timeLeft   = loadCfg().timerSeconds;
 
 function getCurrentData(){ return BINGO_DATA; }
 
-/* =====================================================================
-   AUDIO
-===================================================================== */
+
 function applyAudioCfg(){
   const cfg = loadCfg();
   const audio = document.getElementById("bingoAudio");
@@ -654,9 +638,7 @@ function applyAudioCfg(){
   }
 }
 
-/* =====================================================================
-   TIMER
-===================================================================== */
+
 const timerEl   = document.getElementById("timer-display");
 const pauseBtn  = document.getElementById("pause-timer-btn");
 const audio     = document.getElementById("bingoAudio");
@@ -694,9 +676,7 @@ function togglePause(){
   }
 }
 
-/* =====================================================================
-   BINGO CORE
-===================================================================== */
+
 const drawBtn    = document.getElementById("draw-btn");
 const revealBtn  = document.getElementById("reveal-btn");
 const resetBtn   = document.getElementById("reset-btn");
@@ -787,9 +767,7 @@ resetBtn.addEventListener("click", () => {
 
 drawBtn.addEventListener("click", drawNext);
 
-/* =====================================================================
-   CLUE BUILDER
-===================================================================== */
+
 function cbMsg(text, ok=true){
   const el = document.getElementById("cbMsg");
   if(!el) return;
@@ -881,9 +859,7 @@ function cbSaveToGame(){
   cbMsg(`Saved ${rows.length} clues ✓`, true);
 }
 
-/* =====================================================================
-   ADMIN UI
-===================================================================== */
+
 function adminLoadUI(){
   const cfg = loadCfg();
   document.getElementById("cfgTimer").value     = cfg.timerSeconds;
@@ -960,9 +936,7 @@ function adminResetGame(){
   document.getElementById("adminMsg").textContent = "Reset to defaults ✓";
 }
 
-/* =====================================================================
-   INIT
-===================================================================== */
+
 function init(){
   applyAudioCfg();
   updateTimerUI();
