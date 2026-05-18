@@ -286,7 +286,7 @@
 <div class="container">
   <main>
     <div class="card">
-      <div id="timer-display">60s</div>
+      <div id="timer-display">30s</div>
       <div class="caller-display">
         <div id="current-prompt">Ready to start?</div>
         <div id="current-equation">---</div>
@@ -350,7 +350,7 @@
         <div class="controls" style="flex-wrap:wrap; gap:10px; margin-bottom:12px;">
           <div class="pill">
             ⏱️ Timer (seconds):
-            <input type="number" id="cfgTimer" min="0" step="5" value="60" />
+            <input type="number" id="cfgTimer" min="0" step="5" value="30" />
           </div>
           <div class="pill">
             🔊 Volume (0–1):
@@ -552,7 +552,7 @@ const LS_KEYS = {
 };
 
 const DEFAULT_CFG = {
-  timerSeconds: 60,
+  timerSeconds: 30,
   musicVol: 0.8,
   musicFile: "BINGOtheme.mp3"
 };
@@ -868,7 +868,7 @@ function adminLoadUI(){
 
 function adminSaveCfgFromUI(){
   const cfg = {
-    timerSeconds: Math.max(0, parseInt(document.getElementById("cfgTimer").value, 10) || 90),
+    timerSeconds: Math.max(0, parseInt(document.getElementById("cfgTimer").value, 10) || 30),
     musicVol:     Math.max(0, Math.min(1, parseFloat(document.getElementById("cfgVol").value) || 0.8)),
     musicFile:    (document.getElementById("cfgMusicFile").value || "BINGOtheme.mp3").trim()
   };
