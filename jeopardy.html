@@ -663,54 +663,53 @@ let GAME = {
 
   categories: [
     {
-      name: "Atomic Structure",
+      name: "Chemical Equations",
       clues: [
-        { value: 100, q: "What is the charge of an electron?", a: "Negative.", hint: "Neutral, negative, or positive?" },
-        { value: 200, q: "Where are electrons found?", a: "In the energy levels/rings around the nucleus." },
-        { value: 300, q: "What does the atomic number tell you?", a: "The number of protons (and electrons if neutral)." },
-        { value: 400, q: "What two subatomic particles are similar is size?", a: "Protons and Neutrons" },
-        { value: 500, q: "What happens to the overall charge when an atom GAINS electrons?", a: "It becomes negatively charged." }
+        { value: 100, q: "What does (aq) mean in a chemical equation? ¿Qué significa (aq) en una ecuación química?", a: "aqueous" },
+        { value: 200, q: "What is the big number in front of a chemical formula called? ¿Cómo se llama el número grande que aparece delante de una fórmula química?", a: "Coefficient" },
+        { value: 300, q: "How many O atoms are in this chemical formula: 3Al₂O₃? ¿Cuántos átomos de O hay en esta fórmula química: 3Al₂O₃?", a: "9" },
+        { value: 400, q: "Write the chemical formula for '3 atoms of Zinc metal'. Escribe la fórmula química para «3 átomos de zinc metálico».", a: "3Zn₍ₛ₎" },
+        { value: 500, q: "Write the equation for: 2 atoms of sodium (Na) metal added to 1 molecule of chlorine (Cl₂) gas  becomes 2 molecules of solid sodium chloride (NaCl). Escribe la ecuación para: «2 átomos de sodio (Na) metálico añadidos a 1 molécula de cloro (Cl₂) gaseoso se convierten en 2 moléculas de cloruro de sodio (NaCl) sólido».", a: "2Na(s) + Cl₂(g) → 2NaCl(s)" }
       ]
     },
     {
-      name: "Periodic Trends",
+      name: "Chemical Reactions",
       clues: [
-        { value: 100, q: "Metals are generally on which side of the periodic table?", a: "Left side (and center)." },
-        { value: 200, q: "What group are the noble gases?", a: "Group 18." },
-        { value: 300, q: "Alkali metals have ___ valence electron(s).", a: "1" },
-        { value: 400, q: "The only elements that follow the Duet Rule are...?", a: "Hydrogen and Helium." },
-        { value: 500, q: "As you move DOWN a group, the number of valence electrons __________", a: "Stays the same.", hint: "increases, decreases, stays the same" }
+        { value: 100, q: "Are reactants on the left or right side of the arrow? ¿Están los reactivos en el lado izquierdo o derecho de la flecha?", a: "Left side. Izquierdo." },
+        { value: 200, q: "What type of chemical reaction occurs when 1 reactant breaks down to form multiple products? ¿Qué tipo de reacción química ocurre cuando un reactivo se descompone para formar múltiples productos?", a: "Decomposition" },
+        { value: 300, q: "What type of chemical reaction is: 'NaCl + K → Na + KCl'? ¿Qué tipo de reacción química es: 'NaCl + K → Na + KCl'?", a: "Single Replacement. Sustitución Simple" },
+        { value: 400, q: "What are the products in a combustion reaction? ¿Cuáles son los productos en una reacción de combustión?", a: "CO₂ and H₂O." },
+        { value: 500, q: "Using letters (A, B, C, etc.), write a synthesis reaction. Utilizando letras (A, B, C, etc.), escribe una reacción de síntesis.", a: "A + B → C" }
       ]
     },
     {
-      name: "Ionic Bonding",
+      name: "Molar Mass",
       clues: [
-        { value: 100, q: "True or False: Ionic bonds only occur between 2 metals.", a: "False. Ionic bonds occur between a metal and a nonmetal." },
-        { value: 200, q: "What is a cation?", a: "A positively charged ion (an atom that lost electrons)." },
-        { value: 300, q: "Why do atoms form ions?", a: "To achieve a full valence shell (to become more stable)." },
-        { value: 400, q: "True or False: If a cation and anion don't gain/lose the exact same number of electrons, they CAN'T form an ionic bond.", a: "False." },
-        { value: 500, q: "When aluminum and sulfur combine to form an ionic compound, how many copies of each ion are required to create a NEUTRAL compound?", a: "2 Aluminum cations, 3 Sulfur anions." }
+        { value: 100, q: "Calculate the molar mass for NaCl. Calcula la masa molar del NaCl.", a: "58.44 g/mol" },
+        { value: 200, q: "Calculate the molar mass for CaCl₂. Calcule la masa molar del CaCl₂.", a: "110.98 g/mol" },
+        { value: 300, q: "Calculate the molar mass for Mg(CN)₂. Calcula la masa molar del Mg(CN)₂.", a: "76.34 g/mol" },
+        { value: 400, q: "Calculate the molar mass for Na₃PO₄. Calcule la masa molar del Na₃PO₄.", a: "163.94 g/mol" },
+        { value: 500, q: "Calculate the molar mass for (NH₄)₂O. Calcula la masa molar del (NH₄)₂O.", a: "52.08 g/mol" }
       ]
     },
     {
-      name: "Lewis Dot Diagrams",
+      name: "Mass ↔ Mole",
       clues: [
-        { value: 100, q: "Draw the Lewis Dot Diagram for Magnesium. What will the charge of a Magnesium ion be?", a: "Mg ion charge is +2." },
-        { value: 200, q: "Draw the Lewis Dot Diagram for Aluminum. What will the charge of an Aluminum ion be?", a: "Al ion charge is +3." },
-        { value: 300, q: "Draw the Lewis Dot Diagram for an atom with 5 valence electrons. When this atom forms an ion, what will the charge be?", a: "Ion charge is -3." },
-        { value: 400, q: "Consider a Lewis Dot Diagram that looks like this...  [ :C: ]. What is wrong with this diagram?", a: "Dots should be placed one on each side before pairing." },
-        { value: 500, q: "Draw the Lewis Dot Diagrams for an ionic compound containing Calcium and Nitrogen. How many copies of each ion are required to create a NEUTRAL compound?",
-          a: "3 Calcium cations, 2 Nitrogen anions." }
+        { value: 200, q: "Convert 58.44g of NaCl to moles of NaCl. Convierta 58,44 g de NaCl a moles de NaCl.", a: "1 mol NaCl"},
+        { value: 400, q: "Convert 3.5 moles of He to grams of He. Convierta 3.5 moles de He a gramos de He.", a: "14g He" },
+        { value: 600, q: "Convert 35g of CoCl₂ to moles of CoCl₂. Convierta 35 g de CoCl₂ a moles de CoCl₂.", a: "0.27 mol CoCl₂" },
+        { value: 800, q: "Convert 183g of Al₂O₃ to moles of Al₂O₃. Convierta 183 g de Al₂O₃ a moles de Al₂O₃.", a: "1.79 mol Al₂O₃" },
+        { value: 1000, q: "Convert 8.43 moles of Mg(CN)₂ to grams of Mg(CN)₂. Convierta 8.43 moles de Mg(CN)₂ a gramos de Mg(CN)₂.", a: "644g Mg(CN)₂" }
       ]
     },
     {
       name: "Misc",
       clues: [
-        { value: 100, q: "How many valence electrons does Fluorine have?", a: "7" },
-        { value: 200, q: "Will Be and I form an ionic bond?", a: "Yes. Be is a metal and I is a nonmetal." },
-        { value: 300, q: "What will the charge of an oxygen ion be?", a: "-2" },
-        { value: 400, q: "How many neutrons does Phosphorus have?", a: "16. 31 - 15 = 16." },
-        { value: 500, q: "When Lithium and Nitrogen combine to form an ionic compound, how many copies of each ion are required to create a NEUTRAL compound?", a: "3 Lithium cations, 1 Nitrogen anion." }
+        { value: 100, q: "True or False: A change in smell always means a chemical change has occurred. Verdadero o falso: Un cambio en el olor siempre significa que ha ocurrido un cambio químico.", a: "False | Falso" },
+        { value: 200, q: "What type of chemical reaction occurs when 1 product is created from multiple reactants. ¿Qué tipo de reacción química ocurre cuando se forma un solo producto a partir de múltiples reactivos?", a: "Synthesis" },
+        { value: 300, q: "How many grams are in 1 mole of Ne? ¿Cuántos gramos hay en 1 mol de Ne?", a: "20.18g Ne" },
+        { value: 400, q: "What type of chemical reaction is 'Na₂SO₄(aq) + BaCl₂(aq) → BaSO₄(s) + 2NaCl(aq)'? ¿Qué tipo de reacción química es 'Na₂SO₄(aq) + BaCl₂(aq) → BaSO₄(s) + 2NaCl(aq)'?", a: "Double Replacement" },
+        { value: 500, q: "Convert 540g of CaO to moles of CaO. Convierta 540 g de CaO a moles de CaO.", a: "9.63 mol CaO" }
       ]
     }
   ]
