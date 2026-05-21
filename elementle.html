@@ -1,0 +1,681 @@
+<!doctype html>
+<html lang="en')">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Elementle</title>
+  <style>
+:root{
+  --bg:#f7f4fb;
+  --card:#ffffff;
+  --ink:#231528;
+  --muted:#5a4a64;
+  --line: rgba(35,21,40,.12);
+
+  --accent:#eda6ff;   /* purple */
+  --accent2:#e9a9ff;  /* pink */
+
+  --good:#16a34a;
+  --bad:#dc2626;
+  --warn:#d97706;
+
+  --r:18px;
+  --shadow: 0 14px 40px rgba(35,21,40,.10);
+  --tileShadow: 0 10px 20px rgba(35,21,40,.10);
+
+  --font: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body{
+  margin:0;
+  min-height:100vh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  display:flex;
+  justify-content:center;
+  padding: 18px;
+}
+
+.app{
+  width: min(600px, 100%);
+  display:block;
+}
+
+.panel{
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  overflow:hidden;
+}
+
+header{
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.22);
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  color: #000000;
+  display:flex;
+  gap: 12px;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.title h1{
+  margin:0;
+  font-size: 18px;
+  letter-spacing: .2px;
+}
+
+.title p{
+  margin:0;
+  font-size: 12px;
+  color: #39136e;
+  line-height: 1.35;
+}
+
+.title{
+  display:flex;
+  flex-direction:column;
+  gap: 4px;
+  flex-grow: 1;
+}
+
+.hubLink{
+  display:inline-block;
+  margin-bottom:8px;
+  text-decoration:none;
+  font-weight:bold;
+  color: #39136e;
+}
+.hubLink:hover{ text-decoration:underline; }
+
+button{
+  appearance:none;
+  border: 1px solid rgba(255,255,255,.28);
+  background: rgba(255,255,255,.25);
+  color: #39136e;
+  padding: 10px 12px;
+  border-radius: 14px;
+  cursor:pointer;
+  font-weight: 750;
+  font-size: 13px;
+  transition: transform .05s ease, background .2s ease, border-color .2s ease;
+  user-select:none;
+}
+button:hover{ background: rgba(255,255,255,.40); border-color: rgba(255,255,255,.50); }
+button:active{ transform: translateY(1px); }
+button:disabled{ opacity:.55; cursor:not-allowed; }
+
+.main{ padding: 14px; }
+
+.statusArea{
+  display:flex;
+  flex-direction:column;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.pillRow{
+  display:flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pill{
+  padding: 6px 8px;
+  border-radius: 999px;
+  border:1px solid var(--line);
+  background: #fff;
+  font-size: 12px;
+  font-weight: 750;
+  color: var(--ink);
+  box-shadow: 0 6px 16px rgba(35,21,40,.06);
+}
+.pill em { color: var(--muted); font-style: normal; }
+.pill.points-bank { border-color: #16a34a; background: #f0fdf4; color: #14532d; }
+
+.msg{
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+  line-height: 1.35;
+  font-size: 12.5px;
+  min-height: 44px;
+  box-shadow: 0 6px 16px rgba(35,21,40,.06);
+}
+.msg.good{ border-color: rgba(22,163,74,.35); color: #14532d; background: #f0fdf4; }
+.msg.bad{ border-color: rgba(220,38,38,.35); color: #7f1d1d; background: #fef2f2; }
+.msg.warn{ border-color: rgba(217,119,6,.35); color: #7c2d12; background: #fffbeb; }
+
+.inputRow{
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+input[type="text"] {
+  flex-grow: 1;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  font-size: 16px;
+  font-weight: 600;
+  outline: none;
+  color: var(--ink);
+}
+input[type="text"]:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(237,166,255,0.3);
+}
+
+.tableContainer {
+  overflow-x: auto;
+  margin-bottom: 14px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+  font-size: 14px;
+}
+th {
+  padding: 10px;
+  font-weight: 800;
+  color: var(--muted);
+  border-bottom: 2px solid var(--line);
+}
+td {
+  padding: 12px 8px;
+  font-weight: 700;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink);
+}
+
+.match-yes { background-color: rgba(22, 163, 74, 0.15); color: #16a34a; }
+.match-higher { background-color: rgba(217, 119, 6, 0.12); color: #b45309; }
+.match-lower { background-color: rgba(37, 99, 235, 0.12); color: #1d4ed8; }
+
+.footerNote{
+  padding: 12px 14px 14px;
+  border-top:1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+/* ── Form Submission Modal ── */
+#submit-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(4px);
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+#submit-modal.open { display: flex; }
+
+.modal-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 32px 24px 24px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: 0 24px 48px rgba(0,0,0,0.18);
+  text-align: left;
+}
+.modal-card h2 { font-size: 20px; font-weight: 800; margin: 0 0 6px; color: var(--ink); }
+.modal-card .modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 22px; }
+.modal-label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.05em; }
+.modal-input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 1.5px solid #e2e8f0; font-size: 15px; color: var(--ink); outline: none; margin-bottom: 18px; font-family: inherit; }
+.modal-input:focus { border-color: var(--accent); }
+
+.teacher-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 22px; }
+.teacher-btn { padding: 13px 10px; border-radius: 12px; border: 1.5px solid #e2e8f0; background: #f8fafc; font-size: 14px; font-weight: 600; color: var(--ink); cursor: pointer; text-align: center; }
+.teacher-btn:hover { border-color: var(--accent); background: rgba(237,166,255,0.15); }
+.teacher-btn.selected { border-color: var(--accent); background: rgba(237,166,255,0.2); color: #39136e; }
+
+.modal-actions { display: flex; gap: 10px; }
+.modal-actions .btn { margin: 0; flex: 1; padding: 14px; font-size: 14px; border-radius: 14px; font-weight: 700; border: none; cursor: pointer; text-align: center; }
+.btn-cancel { background: #f1f5f9; color: var(--muted); }
+.btn-primary { background: #1e293b; color: white; }
+.modal-error { font-size: 12px; color: var(--bad); font-weight: 600; margin-bottom: 12px; min-height: 18px; }
+</style>
+</head>
+<body>
+  <div class="app">
+    <section class="panel">
+      <header>
+        <div class="title">
+          <a href="index.html" class="hubLink">← Back to Hub</a>
+          <h1>⚛️ Elementle</h1>
+          <p>Guess the hidden element. Play as many rounds as you want!</p>
+        </div>
+        <button id="btnNew">New Game</button>
+      </header>
+
+      <div class="main">
+        <div class="statusArea">
+          <div class="pillRow">
+            <div class="pill"><strong>Tries Left: </strong><em id="triesLeft">6</em></div>
+            <div class="pill"><strong>Status: </strong><em id="gameStatus">Playing</em></div>
+            <div class="pill points-bank"><strong>Score: </strong><span id="pointsBank">0</span></div>
+          </div>
+          <div id="message" class="msg">
+            Enter any element symbol (e.g., "Fe") or full name (e.g., "Iron") to start!
+          </div>
+        </div>
+
+        <div class="inputRow">
+          <input type="text" id="guessInput" placeholder="Type symbol or name..." autocomplete="off">
+          <button id="btnSubmit">Guess</button>
+        </div>
+
+        <div class="tableContainer">
+          <table>
+            <thead>
+              <tr>
+                <th>Guess</th>
+                <th>Atomic #</th>
+                <th>Period</th>
+                <th>Group</th>
+              </tr>
+            </thead>
+            <tbody id="historyBody">
+            </tbody>
+          </table>
+        </div>
+
+        <button id="btnReportScore" class="btn-primary" style="width:100%; padding:14px; margin-top:10px; border-radius:14px; border:none; font-weight:700; font-size:15px; color:#fff; background:#1e293b; cursor:pointer;">Submit Final Score</button>
+      </div>
+
+
+    </section>
+  </div>
+
+  <div id="submit-modal">
+    <div class="modal-card">
+        <h2>Submit Your Points</h2>
+        <p class="modal-sub">You are turning in a cumulative score of <strong id="modal-points-display">0</strong> points. Enter your info below.</p>
+
+        <label class="modal-label" for="student-id-input">Student ID</label>
+        <input class="modal-input" id="student-id-input" type="text" placeholder="e.g. 123456" autocomplete="off" />
+
+        <label class="modal-label" for="student-name-input">Your Name</label>
+        <input class="modal-input" id="student-name-input" type="text" placeholder="First and last name" autocomplete="off" />
+
+        <label class="modal-label">Your Teacher</label>
+        <div class="teacher-grid" id="teacher-grid"></div>
+
+        <div class="modal-error" id="modal-error"></div>
+
+        <div class="modal-actions">
+            <button class="btn btn-cancel" id="modal-cancel-btn">Cancel</button>
+            <button class="btn btn-primary" id="modal-confirm-btn">Submit Points</button>
+        </div>
+    </div>
+  </div>
+
+<script>
+// Classroom Teacher Mapping Variables from chemnections/focus structures
+const TEACHERS = {
+  "NOT THIS ONE": {
+    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSckXbWQsVWobjrktGMoF7AtY6gMch0eQMjsGlddVv1cxgNHgQ/formResponse",
+    entries: {
+      studentID: "entry.511300054",
+      displayName: "entry.366340186",
+      sim:         "entry.1832756779",
+      score:       "entry.221944829",
+      token:       "entry.1636605257",
+    }
+  },
+  "Mr. Cortez": {
+    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLScUSDCLLXqyxnJu8lVi0rW4virrOtmtEG_ubkoDAqbItt2cbA/formResponse",
+    entries: {
+      studentID: "entry.869186751",
+      displayName: "entry.366340186",
+      sim:         "entry.1832756779",
+      score:       "entry.221944829",
+      token:       "entry.1636605257",
+    }
+  },
+};
+
+const SIM_ID    = "elementle";
+const TOKEN_SALT = "MoLeCuTeOrG";
+
+// Elements database with complete main-group & transition metals, omitting f-block
+const ELEMENTS = [
+  { num: 1, sym: "H", name: "Hydrogen", period: 1, group: 1 },
+  { num: 2, sym: "He", name: "Helium", period: 1, group: 18 },
+  { num: 3, sym: "Li", name: "Lithium", period: 2, group: 1 },
+  { num: 4, sym: "Be", name: "Beryllium", period: 2, group: 2 },
+  { num: 5, sym: "B", name: "Boron", period: 2, group: 13 },
+  { num: 6, sym: "C", name: "Carbon", period: 2, group: 14 },
+  { num: 7, sym: "N", name: "Nitrogen", period: 2, group: 15 },
+  { num: 8, sym: "O", name: "Oxygen", period: 2, group: 16 },
+  { num: 9, sym: "F", name: "Fluorine", period: 2, group: 17 },
+  { num: 10, sym: "Ne", name: "Neon", period: 2, group: 18 },
+  { num: 11, sym: "Na", name: "Sodium", period: 3, group: 1 },
+  { num: 12, sym: "Mg", name: "Magnesium", period: 3, group: 2 },
+  { num: 13, sym: "Al", name: "Aluminum", period: 3, group: 13 },
+  { num: 14, sym: "Si", name: "Silicon", period: 3, group: 14 },
+  { num: 15, sym: "P", name: "Phosphorus", period: 3, group: 15 },
+  { num: 16, sym: "S", name: "Sulfur", period: 3, group: 16 },
+  { num: 17, sym: "Cl", name: "Chlorine", period: 3, group: 17 },
+  { num: 18, sym: "Ar", name: "Argon", period: 3, group: 18 },
+  { num: 19, sym: "K", name: "Potassium", period: 4, group: 1 },
+  { num: 20, sym: "Ca", name: "Calcium", period: 4, group: 2 },
+  { num: 21, sym: "Sc", name: "Scandium", period: 4, group: 3 },
+  { num: 22, sym: "Ti", name: "Titanium", period: 4, group: 4 },
+  { num: 23, sym: "V", name: "Vanadium", period: 4, group: 5 },
+  { num: 24, sym: "Cr", name: "Chromium", period: 4, group: 6 },
+  { num: 25, sym: "Mn", name: "Manganese", period: 4, group: 7 },
+  { num: 26, sym: "Fe", name: "Iron", period: 4, group: 8 },
+  { num: 27, sym: "Co", name: "Cobalt", period: 4, group: 9 },
+  { num: 28, sym: "Ni", name: "Nickel", period: 4, group: 10 },
+  { num: 29, sym: "Cu", name: "Copper", period: 4, group: 11 },
+  { num: 30, sym: "Zn", name: "Zinc", period: 4, group: 12 },
+  { num: 31, sym: "Ga", name: "Gallium", period: 4, group: 13 },
+  { num: 32, sym: "Ge", name: "Germanium", period: 4, group: 14 },
+  { num: 33, sym: "As", name: "Arsenic", period: 4, group: 15 },
+  { num: 34, sym: "Se", name: "Selenium", period: 4, group: 16 },
+  { num: 35, sym: "Br", name: "Bromine", period: 4, group: 17 },
+  { num: 36, sym: "Kr", name: "Krypton", period: 4, group: 18 },
+  { num: 37, sym: "Rb", name: "Rubidium", period: 5, group: 1 },
+  { num: 38, sym: "Sr", name: "Strontium", period: 5, group: 2 },
+  { num: 39, sym: "Y", name: "Yttrium", period: 5, group: 3 },
+  { num: 40, sym: "Zr", name: "Zirconium", period: 5, group: 4 },
+  { num: 41, sym: "Nb", name: "Niobium", period: 5, group: 5 },
+  { num: 42, sym: "Mo", name: "Molybdenum", period: 5, group: 6 },
+  { num: 43, sym: "Tc", name: "Technetium", period: 5, group: 7 },
+  { num: 44, sym: "Ru", name: "Ruthenium", period: 5, group: 8 },
+  { num: 45, sym: "Rh", name: "Rhodium", period: 5, group: 9 },
+  { num: 46, sym: "Pd", name: "Palladium", period: 5, group: 10 },
+  { num: 47, sym: "Ag", name: "Silver", period: 5, group: 11 },
+  { num: 48, sym: "Cd", name: "Cadmium", period: 5, group: 12 },
+  { num: 49, sym: "In", name: "Indium", period: 5, group: 13 },
+  { num: 50, sym: "Sn", name: "Tin", period: 5, group: 14 },
+  { num: 51, sym: "Sb", name: "Antimony", period: 5, group: 15 },
+  { num: 52, sym: "Te", name: "Tellurium", period: 5, group: 16 },
+  { num: 53, sym: "I", name: "Iodine", period: 5, group: 17 },
+  { num: 54, sym: "Xe", name: "Xenon", period: 5, group: 18 },
+  { num: 55, sym: "Cs", name: "Cesium", period: 6, group: 1 },
+  { num: 56, sym: "Ba", name: "Barium", period: 6, group: 2 },
+  { num: 72, sym: "Hf", name: "Hafnium", period: 6, group: 4 },
+  { num: 73, sym: "Ta", name: "Tantalum", period: 6, group: 5 },
+  { num: 74, sym: "W", name: "Tungsten", period: 6, group: 6 },
+  { num: 75, sym: "Re", name: "Rhenium", period: 6, group: 7 },
+  { num: 76, sym: "Os", name: "Osmium", period: 6, group: 8 },
+  { num: 77, sym: "Ir", name: "Iridium", period: 6, group: 9 },
+  { num: 78, sym: "Pt", name: "Platinum", period: 6, group: 10 },
+  { num: 79, sym: "Au", name: "Gold", period: 6, group: 11 },
+  { num: 80, sym: "Hg", name: "Mercury", period: 6, group: 12 },
+  { num: 81, sym: "Tl", name: "Thallium", period: 6, group: 13 },
+  { num: 82, sym: "Pb", name: "Lead", period: 6, group: 14 },
+  { num: 83, sym: "Bi", name: "Bismuth", period: 6, group: 15 },
+  { num: 84, sym: "Po", name: "Polonium", period: 6, group: 16 },
+  { num: 85, sym: "At", name: "Astatine", period: 6, group: 17 },
+  { num: 86, sym: "Rn", name: "Radon", period: 6, group: 18 },
+  { num: 87, sym: "Fr", name: "Francium", period: 7, group: 1 },
+  { num: 88, sym: "Ra", name: "Radium", period: 7, group: 2 }
+  
+];
+
+const msgEl = document.getElementById("message");
+const triesLeftEl = document.getElementById("triesLeft");
+const gameStatusEl = document.getElementById("gameStatus");
+const guessInput = document.getElementById("guessInput");
+const btnSubmit = document.getElementById("btnSubmit");
+const btnNew = document.getElementById("btnNew");
+const historyBody = document.getElementById("historyBody");
+const btnReportScore = document.getElementById("btnReportScore");
+const pointsBankEl = document.getElementById("pointsBank");
+
+// Modal DOM refs
+const submitModal        = document.getElementById('submit-modal');
+const modalPointsDisplay = document.getElementById('modal-points-display');
+const studentIdInput     = document.getElementById('student-id-input');
+const studentNameInput   = document.getElementById('student-name-input');
+const teacherGrid        = document.getElementById('teacher-grid');
+const modalError         = document.getElementById('modal-error');
+const modalCancelBtn     = document.getElementById('modal-cancel-btn');
+const modalConfirmBtn    = document.getElementById('modal-confirm-btn');
+
+let targetElement = null;
+let maxTries = 6;
+let currentTries = 0;
+let gameOver = false;
+let totalBankedPoints = 0;
+let selectedTeacher = null;
+
+function setMessage(text, tone="") {
+  msgEl.className = "msg" + (tone ? " " + tone : "");
+  msgEl.textContent = text;
+}
+
+function startNewGame() {
+  const randomIndex = Math.floor(Math.random() * ELEMENTS.length);
+  targetElement = ELEMENTS[randomIndex];
+  
+  currentTries = 0;
+  gameOver = false;
+  
+  triesLeftEl.textContent = maxTries;
+  gameStatusEl.textContent = "Playing";
+  guessInput.value = "";
+  guessInput.disabled = false;
+  btnSubmit.disabled = false;
+  historyBody.innerHTML = "";
+  
+  setMessage("Target picked! Enter a symbol or name to begin.", "");
+}
+
+function processGuess() {
+  if (gameOver) return;
+  
+  const rawInput = guessInput.value.trim().toLowerCase();
+  if (!rawInput) return;
+  
+  const guessedEl = ELEMENTS.find(e => 
+    e.sym.toLowerCase() === rawInput || 
+    e.name.toLowerCase() === rawInput
+  );
+  
+  if (!guessedEl) {
+    setMessage(`"${guessInput.value}" is not found or sits inside the omitted lanthanides/actinides blocks.`, "warn");
+    return;
+  }
+  
+  currentTries++;
+  const remaining = maxTries - currentTries;
+  triesLeftEl.textContent = remaining;
+  
+  const resultRow = document.createElement("tr");
+  
+  // 1. Name/Symbol
+  const tdName = document.createElement("td");
+  tdName.textContent = `${guessedEl.sym} (${guessedEl.name})`;
+  resultRow.appendChild(tdName);
+  
+  // 2. Atomic Number
+  const tdNum = document.createElement("td");
+  tdNum.textContent = guessedEl.num;
+  applyFeedbackClass(tdNum, guessedEl.num, targetElement.num);
+  resultRow.appendChild(tdNum);
+  
+  // 3. Period
+  const tdPeriod = document.createElement("td");
+  tdPeriod.textContent = guessedEl.period;
+  applyFeedbackClass(tdPeriod, guessedEl.period, targetElement.period);
+  resultRow.appendChild(tdPeriod);
+  
+  // 4. Group
+  const tdGroup = document.createElement("td");
+  tdGroup.textContent = guessedEl.group;
+  applyFeedbackClass(tdGroup, guessedEl.group, targetElement.group);
+  resultRow.appendChild(tdGroup);
+  
+  historyBody.insertBefore(resultRow, historyBody.firstChild);
+  guessInput.value = "";
+  guessInput.focus();
+  
+  if (guessedEl.num === targetElement.num) {
+    const roundPoints = (maxTries - currentTries) + 5; 
+    totalBankedPoints += roundPoints;
+    pointsBankEl.textContent = totalBankedPoints;
+    
+    setMessage(`🎉 Fantastic! You isolated ${targetElement.name} (${targetElement.sym}) and earned ${roundPoints} pts! Click "New Game" to play again.`, "good");
+    endRound("Won");
+  } else if (remaining <= 0) {
+    totalBankedPoints += 1; // 1 consolation point for participation completion
+    pointsBankEl.textContent = totalBankedPoints;
+    
+    setMessage(`❌ Out of tries! The correct element was ${targetElement.name} (Atomic #${targetElement.num}). Click "New Game" to try another!`, "bad");
+    endRound("Lost");
+  } else {
+    setMessage("Properties computed. Keep evaluating atomic trends!", "warn");
+  }
+}
+
+function applyFeedbackClass(element, guessedVal, targetVal) {
+  if (guessedVal === targetVal) {
+    element.className = "match-yes";
+    element.textContent += " (Match)";
+  } else if (guessedVal < targetVal) {
+    element.className = "match-higher";
+    element.textContent += " ⬆️";
+  } else {
+    element.className = "match-lower";
+    element.textContent += " ⬇️";
+  }
+}
+
+function endRound(status) {
+  gameOver = true;
+  gameStatusEl.textContent = status;
+  guessInput.disabled = true;
+  btnSubmit.disabled = true;
+  
+  // Keep the submission button fresh with updated accumulated results
+  btnReportScore.textContent = `Submit Final Score (${totalBankedPoints} Pts)`;
+}
+
+/* ── Graded Integration Infrastructure ── */
+function fnv1a(str) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = (h * 0x01000193) >>> 0;
+  }
+  return ("00000000" + h.toString(16)).slice(-8);
+}
+
+function makeToken(name, score) {
+  const payload = {
+    v: 1, sim: SIM_ID, name, score,
+    t: Date.now(),
+    nonce: Math.random().toString(36).slice(2, 10),
+  };
+  const core = JSON.stringify(payload);
+  payload.sig = fnv1a(core + "|" + TOKEN_SALT);
+  return btoa(JSON.stringify(payload));
+}
+
+// Dynamically compile Teacher Option Blocks
+Object.keys(TEACHERS).forEach(name => {
+  const btn = document.createElement('button');
+  btn.className = 'teacher-btn';
+  btn.textContent = name;
+  btn.type = "button";
+  btn.addEventListener('click', () => {
+    selectedTeacher = name;
+    document.querySelectorAll('.teacher-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    modalError.textContent = '';
+  });
+  teacherGrid.appendChild(btn);
+});
+
+// Modal Interaction
+btnReportScore.onclick = () => {
+  modalPointsDisplay.textContent = totalBankedPoints;
+  studentIdInput.value = '';
+  studentNameInput.value = '';
+  selectedTeacher = null;
+  modalError.textContent = '';
+  modalConfirmBtn.disabled = false;
+  modalConfirmBtn.textContent = 'Submit Points';
+  document.querySelectorAll('.teacher-btn').forEach(b => b.classList.remove('selected'));
+  submitModal.classList.add('open');
+  setTimeout(() => studentIdInput.focus(), 100);
+};
+
+modalCancelBtn.onclick = () => submitModal.classList.remove('open');
+
+modalConfirmBtn.onclick = async () => {
+  const id = studentIdInput.value.trim();
+  const name = studentNameInput.value.trim();
+
+  if (!id) {
+    modalError.textContent = "Please enter your student ID.";
+    studentIdInput.focus();
+    return;
+  }
+  if (!name) {
+    modalError.textContent = "Please enter your name.";
+    studentNameInput.focus();
+    return;
+  }
+  if (!selectedTeacher) {
+    modalError.textContent = "Please select your teacher.";
+    return;
+  }
+
+  modalError.textContent = '';
+  modalConfirmBtn.disabled = true;
+  modalConfirmBtn.textContent = 'Submitting…';
+
+  const teacher = TEACHERS[selectedTeacher];
+  const token   = makeToken(name, totalBankedPoints);
+
+  const body = new URLSearchParams();
+  body.set(teacher.entries.studentID, id);
+  body.set(teacher.entries.displayName, name);
+  body.set(teacher.entries.sim,         SIM_ID);
+  body.set(teacher.entries.score,       String(totalBankedPoints));
+  body.set(teacher.entries.token,       token);
+
+  try {
+    await fetch(teacher.formUrl, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+      body: body.toString(),
+    });
+    alert(`Points successfully submitted to ${selectedTeacher}! Screen will now refresh.`);
+  } catch (error) {
+    console.error(error);
+    alert("Network response failure. Please capture or show this screen to your teacher!");
+  } finally {
+    location.reload();
+  }
+};
+
+// Application Triggers
+btnSubmit.addEventListener("click", processGuess);
+btnNew.addEventListener("click", startNewGame);
+guessInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") processGuess();
+});
+
+startNewGame();
+</script>
+</body>
+</html>
