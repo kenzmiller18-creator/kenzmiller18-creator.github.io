@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Focus Mode Simulation</title>
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --ink: #1e293b;
+            --muted: #64748b;
+            --accent: #16a34a;
+            --accent-glow: rgba(22, 163, 74, 0.2);
+            --danger: #ef4444;
+            --shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.1);
+            --radius: 24px;
+        }
+
+        * { box-sizing: border-box; transition: background 0.4s, opacity 0.4s; }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        .container { width: 90%; max-width: 420px; text-align: center; }
+
+        .card {
+            background: var(--card);
+            padding: 40px 24px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(0,0,0,0.05);
+            position: relative;
+        }
+
+        .icon-circle {
+            width: 80px;
+            height: 80px;
+            background: var(--accent-glow);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        h1 { font-size: 24px; font-weight: 800; margin: 0 0 10px; }
+        p { color: var(--muted); font-size: 14px; line-height: 1.6; margin-bottom: 24px; }
+
+        .timer-display {
+            font-size: 72px;
+            font-weight: 900;
+            color: var(--accent);
+            margin: 20px 0;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -2px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .stat-box {
+            padding: 12px;
+            background: #f1f5f9;
+            border-radius: 12px;
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .stat-val {
+            display: block;
+            font-size: 20px;
+            color: var(--ink);
+            margin-top: 4px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 18px;
+            border-radius: 16px;
+            border: none;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 12px;
+        }
+
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-secondary { background: #1e293b; color: white; }
+        .btn-ghost { background: transparent; color: var(--muted); text-decoration: underline; font-size: 13px; }
+
+        #status-msg {
+            margin-top: 15px;
+            font-size: 13px;
+            font-weight: 600;
+            min-height: 40px;
+            padding: 0 10px;
+        }
+
+        .warning { color: var(--danger); animation: shake 0.5s; }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        /* Blackout Overlay */
+        #blackout-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: #000000;
+            z-index: 9999;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+        }
+
+        #blackout-overlay .overlay-content {
+            width: 100%;
+            max-width: 360px;
+            text-align: center;
+        }
+
+        #blackout-timer {
+            font-size: 64px;
+            font-weight: 900;
+            color: #34d399;
+            margin-bottom: 40px;
+            font-family: monospace;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid rgba(255,255,255,0.4);
+            color: rgba(255,255,255,0.8);
+        }
+        .btn-outline:active { background: rgba(255,255,255,0.1); }
+
+        /* ── Submit Modal ── */
+        #submit-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(4px);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        #submit-modal.open { display: flex; }
+
+        .modal-card {
+            background: #fff;
+            border-radius: 20px;
+            padding: 32px 24px 24px;
+            width: 100%;
+            max-width: 380px;
+            box-shadow: 0 24px 48px rgba(0,0,0,0.18);
+            text-align: left;
+        }
+
+        .modal-card h2 {
+            font-size: 20px;
+            font-weight: 800;
+            margin: 0 0 6px;
+            color: var(--ink);
+        }
+
+        .modal-card .modal-sub {
+            font-size: 13px;
+            color: var(--muted);
+            margin-bottom: 22px;
+        }
+
+        .modal-label {
+            display: block;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 6px;
+            letter-spacing: 0.05em;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 13px 14px;
+            border-radius: 12px;
+            border: 1.5px solid #e2e8f0;
+            font-size: 15px;
+            color: var(--ink);
+            outline: none;
+            margin-bottom: 18px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+        }
+        .modal-input:focus { border-color: var(--accent); }
+
+        .teacher-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 22px;
+        }
+
+        .teacher-btn {
+            padding: 13px 10px;
+            border-radius: 12px;
+            border: 1.5px solid #e2e8f0;
+            background: #f8fafc;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--ink);
+            cursor: pointer;
+            text-align: center;
+            transition: border-color 0.15s, background 0.15s;
+        }
+
+        .teacher-btn:hover { border-color: var(--accent); background: var(--accent-glow); }
+
+        .teacher-btn.selected {
+            border-color: var(--accent);
+            background: var(--accent-glow);
+            color: var(--accent);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-actions .btn {
+            margin: 0;
+            flex: 1;
+            padding: 14px;
+            font-size: 14px;
+        }
+
+        .btn-cancel {
+            background: #f1f5f9;
+            color: var(--muted);
+        }
+
+        .modal-error {
+            font-size: 12px;
+            color: var(--danger);
+            font-weight: 600;
+            margin-bottom: 12px;
+            min-height: 18px;
+        }
+    </style>
+</head>
+<body>
+
+<div id="blackout-overlay">
+    <div class="overlay-content">
+        <div id="blackout-timer">00:00</div>
+        <button class="btn btn-primary" id="overlay-submit-btn">Submit &amp; End Session</button>
+        <button class="btn btn-outline" id="exit-saver-btn">Exit Battery Saver</button>
+    </div>
+</div>
+
+<div id="submit-modal">
+    <div class="modal-card">
+        <h2>Submit Your Points</h2>
+        <p class="modal-sub">You earned <strong id="modal-points-display">0</strong> focus points. Enter your info below.</p>
+
+        <label class="modal-label" for="student-id-input">Student ID</label>
+        <input class="modal-input" id="student-id-input" type="text" placeholder="e.g. 123456" autocomplete="off" />
+
+        <label class="modal-label" for="student-name-input">Your Name</label>
+        <input class="modal-input" id="student-name-input" type="text" placeholder="First and last name" autocomplete="off" />
+
+        <label class="modal-label">Your Teacher</label>
+        <div class="teacher-grid" id="teacher-grid">
+            </div>
+
+        <div class="modal-error" id="modal-error"></div>
+
+        <div class="modal-actions">
+            <button class="btn btn-cancel" id="modal-cancel-btn">Cancel</button>
+            <button class="btn btn-primary" id="modal-confirm-btn">Submit Points</button>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <div class="card">
+        <div class="icon-circle">
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                <line x1="12" y1="18" x2="12.01" y2="18"></line>
+            </svg>
+        </div>
+        <h1>Focus &amp; Earn</h1>
+        <p>Keep this tab open and your screen on. If you leave to check another app, your progress resets!</p>
+
+        <div class="timer-display" id="timer">00:00</div>
+
+        <div class="stats">
+            <div class="stat-box">Points<span class="stat-val" id="points">0</span></div>
+            <div class="stat-box">Session<span class="stat-val" id="session-type">Active</span></div>
+        </div>
+
+        <button class="btn btn-primary" id="start-btn">Start Session</button>
+        <button class="btn btn-secondary" id="saver-btn" style="display:none;">Battery Saver (Blackout)</button>
+        <button class="btn btn-ghost" id="submit-btn" style="display:none;">Submit Early</button>
+
+        <div id="status-msg"></div>
+    </div>
+</div>
+
+<script>
+
+const TEACHERS = {
+  "NOT THIS ONE": {
+    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSckXbWQsVWobjrktGMoF7AtY6gMch0eQMjsGlddVv1cxgNHgQ/formResponse",
+    entries: {
+      studentID: "entry.511300054",
+      displayName: "entry.366340186",
+      sim:         "entry.1832756779",
+      score:       "entry.221944829",
+      token:       "entry.1636605257",
+    }
+  },
+  "Mr. Cortez": {
+    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLScUSDCLLXqyxnJu8lVi0rW4virrOtmtEG_ubkoDAqbItt2cbA/formResponse",
+    entries: {
+      studentID: "entry.869186751",
+      displayName: "entry.366340186",
+      sim:         "entry.1832756779",
+      score:       "entry.221944829",
+      token:       "entry.1636605257",
+    }
+  },
+};
+
+const SIM_ID    = "focus_mode";
+const TOKEN_SALT = "MoLeCuTeOrG";
+
+// Security Token 
+function fnv1a(str) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = (h * 0x01000193) >>> 0;
+  }
+  return ("00000000" + h.toString(16)).slice(-8);
+}
+
+function makeToken(name, score) {
+  const payload = {
+    v: 1, sim: SIM_ID, name, score,
+    t: Date.now(),
+    nonce: Math.random().toString(36).slice(2, 10),
+  };
+  const core = JSON.stringify(payload);
+  payload.sig = fnv1a(core + "|" + TOKEN_SALT);
+  return btoa(JSON.stringify(payload));
+}
+
+//  State
+let startTime     = null;
+let isActive      = false;
+let wakeLock      = null;
+let timerInterval = null;
+let totalMinutes  = 0;
+let selectedTeacher = null;
+
+//  DOM refs
+const timerEl          = document.getElementById('timer');
+const blackoutTimerEl  = document.getElementById('blackout-timer');
+const pointsEl         = document.getElementById('points');
+const startBtn         = document.getElementById('start-btn');
+const saverBtn         = document.getElementById('saver-btn');
+const submitBtn        = document.getElementById('submit-btn');
+const overlaySubmitBtn = document.getElementById('overlay-submit-btn');
+const exitSaverBtn     = document.getElementById('exit-saver-btn');
+const blackoutOverlay  = document.getElementById('blackout-overlay');
+const statusMsg        = document.getElementById('status-msg');
+
+const submitModal        = document.getElementById('submit-modal');
+const modalPointsDisplay = document.getElementById('modal-points-display');
+const studentIdInput     = document.getElementById('student-id-input');
+const studentNameInput   = document.getElementById('student-name-input');
+const teacherGrid        = document.getElementById('teacher-grid');
+const modalError         = document.getElementById('modal-error');
+const modalCancelBtn     = document.getElementById('modal-cancel-btn');
+const modalConfirmBtn    = document.getElementById('modal-confirm-btn');
+
+//  Build teacher buttons
+Object.keys(TEACHERS).forEach(name => {
+  const btn = document.createElement('button');
+  btn.className = 'teacher-btn';
+  btn.textContent = name;
+  btn.addEventListener('click', () => {
+    selectedTeacher = name;
+    document.querySelectorAll('.teacher-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    modalError.textContent = '';
+  });
+  teacherGrid.appendChild(btn);
+});
+
+//  Visibility guard
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden && isActive) {
+    failSession("It looks like you left the page. Timer paused.");
+  }
+});
+
+function failSession(msg) {
+  isActive = false;
+  clearInterval(timerInterval);
+  if (wakeLock) { wakeLock.release(); wakeLock = null; }
+  blackoutOverlay.style.display = 'none';
+  statusMsg.innerHTML = `<span class="warning">${msg}</span>`;
+  startBtn.disabled = false;
+  startBtn.textContent = "Restart Session";
+  saverBtn.style.display = "none";
+  submitBtn.style.display = "none";
+}
+
+async function requestWakeLock() {
+  if ('wakeLock' in navigator) {
+    try { wakeLock = await navigator.wakeLock.request('screen'); }
+    catch (err) { console.error("Wake Lock failed"); }
+  }
+}
+
+function updateTimer() {
+  const diffInSecs = Math.floor((Date.now() - startTime) / 1000);
+  totalMinutes = Math.floor(diffInSecs / 60);
+  const secs = diffInSecs % 60;
+  const timeString = `${totalMinutes.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+  timerEl.textContent = timeString;
+  blackoutTimerEl.textContent = timeString;
+  pointsEl.textContent = totalMinutes;
+}
+
+//  Start 
+startBtn.onclick = async () => {
+  isActive = true;
+  startTime = Date.now();
+  startBtn.disabled = true;
+  startBtn.textContent = "Focusing...";
+  saverBtn.style.display = "block";
+  submitBtn.style.display = "block";
+  statusMsg.innerHTML = "Screen lock disabled. Face down now.";
+  await requestWakeLock();
+  timerInterval = setInterval(updateTimer, 1000);
+};
+
+//  Battery saver 
+saverBtn.onclick   = () => { blackoutOverlay.style.display = 'flex'; };
+exitSaverBtn.onclick = () => { blackoutOverlay.style.display = 'none'; };
+
+//  Open submit modal 
+function openModal() {
+  updateTimer();
+  modalPointsDisplay.textContent = totalMinutes;
+  studentIdInput.value = '';
+  studentNameInput.value = '';
+  selectedTeacher = null;
+  modalError.textContent = '';
+  modalConfirmBtn.disabled = false;
+  modalConfirmBtn.textContent = 'Submit Points';
+  document.querySelectorAll('.teacher-btn').forEach(b => b.classList.remove('selected'));
+  submitModal.classList.add('open');
+  setTimeout(() => studentIdInput.focus(), 100);
+}
+
+submitBtn.onclick        = openModal;
+overlaySubmitBtn.onclick = openModal;
+modalCancelBtn.onclick   = () => submitModal.classList.remove('open');
+
+//  Confirm submission 
+modalConfirmBtn.onclick = async () => {
+  const id = studentIdInput.value.trim();
+  const name = studentNameInput.value.trim();
+
+  if (!id) {
+    modalError.textContent = "Please enter your student ID.";
+    studentIdInput.focus();
+    return;
+  }
+  if (!name) {
+    modalError.textContent = "Please enter your name.";
+    studentNameInput.focus();
+    return;
+  }
+  if (!selectedTeacher) {
+    modalError.textContent = "Please select your teacher.";
+    return;
+  }
+
+  modalError.textContent = '';
+  modalConfirmBtn.disabled = true;
+  modalConfirmBtn.textContent = 'Submitting…';
+
+  const teacher = TEACHERS[selectedTeacher];
+  const token   = makeToken(name, totalMinutes);
+
+  const body = new URLSearchParams();
+  body.set(teacher.entries.studentID, id);
+  body.set(teacher.entries.displayName, name);
+  body.set(teacher.entries.sim,         SIM_ID);
+  body.set(teacher.entries.score,       String(totalMinutes));
+  body.set(teacher.entries.token,       token);
+
+  try {
+    await fetch(teacher.formUrl, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+      body: body.toString(),
+    });
+    alert(`Points submitted to ${selectedTeacher}! Screen will now reset.`);
+  } catch (error) {
+    console.error(error);
+    alert("Network error. Please show your screen to your teacher before closing!");
+  } finally {
+    location.reload();
+  }
+};
+</script>
+</body>
+</html>
