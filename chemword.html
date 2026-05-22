@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Chemword Puzzle Board</title>
+  <style>
+:root{
+  --bg:#f7f4fb;
+  --card:#ffffff;
+  --ink:#231528;
+  --muted:#5a4a64;
+  --line: rgba(35,21,40,.12);
+  --accent:#eda6ff;   
+  --accent2:#e9a9ff;  
+  --highlight: #fef08a; 
+  --good:#16a34a;
+  --bad:#dc2626;
+  --r:18px;
+  --shadow: 0 14px 40px rgba(35,21,40,.10);
+  --font: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+body{ margin:0; min-height:100vh; background: var(--bg); color: var(--ink); font-family: var(--font); display:flex; justify-content:center; padding: 18px; }
+.app{ width: min(900px, 100%); display:block; }
+.panel{ background: var(--card); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); overflow:hidden; }
+header{ padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,.22); background: linear-gradient(90deg, var(--accent), var(--accent2)); color: #000000; display:flex; gap: 12px; align-items:center; justify-content:space-between; }
+.title h1{ margin:0; font-size: 18px; letter-spacing: .2px; }
+.title p{ margin:0; font-size: 12px; color: #39136e; line-height: 1.35; }
+.title{ display:flex; flex-direction:column; gap: 4px; flex-grow: 1; }
+.hubLink{ display:inline-block; margin-bottom:8px; text-decoration:none; font-weight:bold; color: #39136e; }
+.hubLink:hover{ text-decoration:underline; }
+button{ appearance:none; border: 1px solid rgba(255,255,255,.28); background: rgba(255,255,255,.25); color: #39136e; padding: 10px 12px; border-radius: 14px; cursor:pointer; font-weight: 750; font-size: 13px; transition: transform .05s ease, background .2s ease; user-select:none; }
+button:hover{ background: rgba(255,255,255,.40); }
+.main{ padding: 14px; }
+.statusArea{ display:flex; flex-direction:column; gap: 10px; margin-bottom: 14px; }
+.pillRow{ display:flex; gap: 8px; flex-wrap: wrap; }
+.pill{ padding: 6px 8px; border-radius: 999px; border:1px solid var(--line); background: #fff; font-size: 12px; font-weight: 750; color: var(--ink); box-shadow: 0 6px 16px rgba(35,21,40,.06); }
+.pill.points-bank { border-color: #16a34a; background: #f0fdf4; color: #14532d; }
+.msg{ padding: 10px; border-radius: 14px; border: 1px solid var(--line); background: #fff; color: var(--muted); line-height: 1.35; font-size: 12.5px; min-height: 44px; box-shadow: 0 6px 16px rgba(35,21,40,.06); }
+.msg.good{ border-color: rgba(22,163,74,.35); color: #14532d; background: #f0fdf4; }
+
+.game-container { display: grid; grid-template-columns: 1fr; gap: 24px; margin-bottom: 18px; }
+@media (min-width: 700px) { .game-container { grid-template-columns: auto 1fr; } }
+.grid-wrapper { display: flex; justify-content: center; align-items: flex-start; background: #231528; padding: 16px; border-radius: 12px; overflow-x: auto; }
+.crossword-grid { display: grid; gap: 2px; background-color: var(--ink); }
+.cell { position: relative; background-color: #fff; width: 34px; height: 34px; }
+.cell.black { background-color: var(--ink); }
+.cell-num { position: absolute; top: 1px; left: 2px; font-size: 8px; font-weight: 800; color: var(--muted); pointer-events: none; }
+.cell-input { width: 100%; height: 100%; border: none; text-align: center; font-size: 15px; font-weight: 700; text-transform: uppercase; color: var(--ink); padding-top: 8px; outline: none; background: transparent; }
+.cell-input:focus { background-color: var(--highlight); }
+.cell.correct { background-color: #f0fdf4; }
+.cell.correct .cell-input { color: var(--good); }
+
+.clues-sidebar { display: flex; flex-direction: column; gap: 14px; }
+.clue-section h3 { margin: 0 0 6px 0; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); border-bottom: 2px solid var(--line); padding-bottom: 4px; }
+.clue-list { display: flex; flex-direction: column; gap: 6px; }
+.clue-item { font-size: 13px; line-height: 1.4; padding: 4px 6px; border-radius: 6px; cursor: pointer; }
+.clue-item:hover { background: rgba(35,21,40,.04); }
+.clue-item.active-clue { background: var(--highlight); font-weight: 600; }
+.clue-item.solved { color: #a1a1aa; text-decoration: line-through; }
+
+/* ── Grading Submission Modal ── */
+#submit-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); z-index: 10000; align-items: center; justify-content: center; padding: 24px; }
+#submit-modal.open { display: flex; }
+.modal-card { background: #fff; border-radius: 20px; padding: 32px 24px 24px; width: 100%; max-width: 380px; box-shadow: 0 24px 48px rgba(0,0,0,0.18); text-align: left; }
+.modal-card h2 { font-size: 20px; font-weight: 800; margin: 0 0 6px; color: var(--ink); }
+.modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 22px; }
+.modal-label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.05em; }
+.modal-input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 1.5px solid #e2e8f0; font-size: 15px; color: var(--ink); outline: none; margin-bottom: 18px; font-family: inherit; }
+.teacher-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 22px; }
+.teacher-btn { padding: 13px 10px; border-radius: 12px; border: 1.5px solid #e2e8f0; background: #f8fafc; font-size: 14px; font-weight: 600; color: var(--ink); cursor: pointer; text-align: center; }
+.teacher-btn:hover { border-color: var(--accent); background: rgba(237,166,255,0.15); }
+.teacher-btn.selected { border-color: var(--accent); background: rgba(237,166,255,0.2); color: #39136e; }
+.modal-actions { display: flex; gap: 10px; }
+.modal-actions .btn { margin: 0; flex: 1; padding: 14px; font-size: 14px; border-radius: 14px; font-weight: 700; border: none; cursor: pointer; text-align: center; }
+.btn-cancel { background: #f1f5f9; color: var(--muted); }
+.btn-primary { background: #1e293b; color: white; }
+.modal-error { font-size: 12px; color: var(--bad); font-weight: 600; margin-bottom: 12px; min-height: 18px; }
+</style>
+</head>
+<body>
+  <div class="app">
+    <section class="panel">
+      <header>
+        <div class="title">
+          <a href="index.html" class="hubLink">← Back to Hub</a>
+          <h1 id="puzzleTitle">🧪 Chemword</h1>
+          <p id="puzzleSubtitle">Solve the custom chemistry vocabulary crossword board!</p>
+        </div>
+        <button id="btnCheck">Check Puzzle</button>
+      </header>
+
+      <div class="main">
+        <div class="statusArea">
+          <div class="pillRow">
+            <div class="pill"><strong>Words Solved: </strong><em id="solvedCount">0 / 0</em></div>
+            <div class="pill points-bank"><strong>Score: </strong><span id="pointsBank">0</span></div>
+          </div>
+          <div id="message" class="msg">Select a crossword cell or clue item to begin.</div>
+        </div>
+
+        <div class="game-container">
+          <div class="grid-wrapper">
+            <div class="crossword-grid" id="crosswordGrid"></div>
+          </div>
+
+          <div class="clues-sidebar">
+            <div class="clue-section">
+              <h3>Across</h3>
+              <div class="clue-list" id="acrossClues"></div>
+            </div>
+            <div class="clue-section">
+              <h3>Down</h3>
+              <div class="clue-list" id="downClues"></div>
+            </div>
+          </div>
+        </div>
+
+        <button id="btnReportScore" class="btn-primary" style="width:100%; padding:14px; margin-top:10px; border-radius:14px; border:none; font-weight:700; font-size:15px; color:#fff; background:#1e293b; cursor:pointer;">Submit Final Score</button>
+      </div>
+    </section>
+  </div>
+
+  <div id="submit-modal">
+    <div class="modal-card">
+        <h2>Submit Your Points</h2>
+        <p class="modal-sub">You are turning in a cumulative score of <strong id="modal-points-display">0</strong> points.</p>
+        <label class="modal-label" for="student-id-input">Student ID</label>
+        <input class="modal-input" id="student-id-input" type="text" placeholder="e.g. 123456" />
+        <label class="modal-label" for="student-name-input">Your Name</label>
+        <input class="modal-input" id="student-name-input" type="text" placeholder="First and last name" />
+        <label class="modal-label">Your Teacher</label>
+        <div class="teacher-grid" id="teacher-grid"></div>
+        <div class="modal-error" id="modal-error"></div>
+        <div class="modal-actions">
+            <button class="btn btn-cancel" id="modal-cancel-btn">Cancel</button>
+            <button class="btn btn-primary" id="modal-confirm-btn">Submit Points</button>
+        </div>
+    </div>
+  </div>
+
+<script>
+// ── TEACHER / GOOGLE FORMS INTEGRATION CONFIG ──
+const TEACHERS = {
+  "NOT THIS ONE": {
+    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSckXbWQsVWobjrktGMoF7AtY6gMch0eQMjsGlddVv1cxgNHgQ/formResponse",
+    entries: { studentID: "entry.511300054", displayName: "entry.366340186", sim: "entry.1832756779", score: "entry.221944829", token: "entry.1636605257" }
+  },
+  "Mr. Cortez": {
+    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLScUSDCLLXqyxnJu8lVi0rW4virrOtmtEG_ubkoDAqbItt2cbA/formResponse",
+    entries: { studentID: "entry.869186751", displayName: "entry.366340186", sim: "entry.1832756779", score: "entry.221944829", token: "entry.1636605257" }
+  },
+};
+
+const SIM_ID = "chemword";
+const TOKEN_SALT = "MoLeCuTeOrG";
+
+// ── CUSTOM PUZZLE CREATION MATRIX ──
+// You can build, add, or alter items inside this array.
+// Rows and Cols are 0-indexed (0 to dim-1).
+const PUZZLES = [
+{
+  "title": "🌡️❄️",
+  "subtitle": "Custom vocabulary matrix puzzle.",
+  "dim": 10,
+  "words": [
+    {
+      "num": 1,
+      "dir": "across",
+      "word": "HOT",
+      "row": 2,
+      "col": 1,
+      "clue": "What something with high KE feels like."
+    },
+    {
+      "num": 2,
+      "dir": "across",
+      "word": "SOLID",
+      "row": 4,
+      "col": 1,
+      "clue": "State of matter where particles are closest together."
+    },
+    {
+      "num": 3,
+      "dir": "across",
+      "word": "ENERGY",
+      "row": 6,
+      "col": 2,
+      "clue": "See 2 down."
+    },
+    {
+      "num": 4,
+      "dir": "across",
+      "word": "COLD",
+      "row": 9,
+      "col": 4,
+      "clue": "What something with low KE feels like."
+    },
+    {
+      "num": 5,
+      "dir": "down",
+      "word": "PHASE",
+      "row": 1,
+      "col": 1,
+      "clue": "A ________ Diagram plots temperature v. time, as heat is added or removed from a substance."
+    },
+    {
+      "num": 6,
+      "dir": "down",
+      "word": "KINETIC",
+      "row": 3,
+      "col": 4,
+      "clue": "With 3 across. Relates to the temperature of a substance. "
+    }
+  ]
+},
+  {
+    title: "⚛️ Periodic Table",
+    subtitle: "Elements",
+    dim: 9,
+    words: [
+      { num: 1, dir: "across", word: "CARBON",   row: 0, col: 2, clue: "Atomic Number #6 (Period 2, Group 14)." },
+      { num: 1, dir: "down",   word: "CL",   row: 0, col: 2, clue: "Cl" },
+      { num: 2, dir: "across",   word: "BORON",   row: 4, col: 0, clue: "Boron" },
+      { num: 3, dir: "across", word: "LI", row:6, col: 0, clue: "Li"},
+      {num: 4, dir: "across", word: "GA", row:3, col: 7, clue: "Ga"},
+      {num: 5, dir: "across", word: "NE", row:5, col: 6, clue: "Ne"},
+      {num: 2, dir: "down", word: "RADON", row:0, col: 4, clue: "Radon"},
+      {num: 3, dir: "down", word: "OXYGEN", row:0, col:6, clue: "Oxygen"},
+      {num: 4, dir: "down", word: "IODINE", row: 3, col: 1, clue: "Iodine"}
+    ]
+  },
+  {
+  "title": "🧪 Atomic Structure",
+  "subtitle": "Custom vocabulary matrix puzzle.",
+  "dim": 10,
+  "words": [
+    {
+      "num": 1,
+      "dir": "across",
+      "word": "ANION",
+      "row": 0,
+      "col": 0,
+      "clue": "A negatively charged ion."
+    },
+    {
+      "num": 2,
+      "dir": "across",
+      "word": "CORE",
+      "row": 2,
+      "col": 4,
+      "clue": "The center of an atom."
+    },
+    {
+      "num": 3,
+      "dir": "across",
+      "word": "ION",
+      "row": 3,
+      "col": 0,
+      "clue": "This forms when atoms lose or gain electrons."
+    },
+    {
+      "num": 4,
+      "dir": "across",
+      "word": "ELECTRON",
+      "row": 4,
+      "col": 2,
+      "clue": "A negatively charged particle."
+    },
+    {
+      "num": 5,
+      "dir": "across",
+      "word": "BOHR",
+      "row": 8,
+      "col": 1,
+      "clue": "The _____ Model is also called the Planetary Model."
+    },
+    {
+      "num": 6,
+      "dir": "down",
+      "word": "NEUTRON",
+      "row": 3,
+      "col": 2,
+      "clue": "A neutral particle."
+    },
+    {
+      "num": 7,
+      "dir": "down",
+      "word": "NUCLEUS",
+      "row": 0,
+      "col": 4,
+      "clue": "Protons and neutrons are inside the _________."
+    },
+    {
+      "num": 8,
+      "dir": "down",
+      "word": "PROTON",
+      "row": 1,
+      "col": 6,
+      "clue": "A positively charged particle."
+    },
+    {
+      "num": 9,
+      "dir": "down",
+      "word": "ORBIT",
+      "row": 4,
+      "col": 8,
+      "clue": "Electrons do this around the nucleus."
+    }
+  ]
+}
+];
+
+let activePuzzle = null;
+let totalBankedPoints = 0;
+let solvedWords = new Set();
+let selectedTeacher = null;
+
+const gridEl = document.getElementById("crosswordGrid");
+const acrossCluesEl = document.getElementById("acrossClues");
+const downCluesEl = document.getElementById("downClues");
+const solvedCountEl = document.getElementById("solvedCount");
+const pointsBankEl = document.getElementById("pointsBank");
+const msgEl = document.getElementById("message");
+
+function loadGame() {
+  // Pull a random puzzle from your blueprint array above
+  activePuzzle = PUZZLES[Math.floor(Math.random() * PUZZLES.length)];
+  
+  document.getElementById("puzzleTitle").textContent = activePuzzle.title;
+  document.getElementById("puzzleSubtitle").textContent = activePuzzle.subtitle;
+  
+  gridEl.style.gridTemplateColumns = `repeat(${activePuzzle.dim}, 34px)`;
+  gridEl.style.gridTemplateRows = `repeat(${activePuzzle.dim}, 34px)`;
+  
+  buildGrid();
+  renderClues();
+  updateScores();
+}
+
+function buildGrid() {
+  gridEl.innerHTML = "";
+  const activeCells = {};
+  const numberAssignments = {};
+
+  activePuzzle.words.forEach(w => {
+    const wordStr = w.word.toUpperCase();
+    const cellKey = `${w.row}-${w.col}`;
+    
+    if (!numberAssignments[cellKey]) {
+      numberAssignments[cellKey] = [];
+    }
+    numberAssignments[cellKey].push(w.num);
+
+    for (let i = 0; i < wordStr.length; i++) {
+      let r = w.row + (w.dir === "down" ? i : 0);
+      let c = w.col + (w.dir === "across" ? i : 0);
+      const key = `${r}-${c}`;
+      
+      if (!activeCells[key]) {
+        activeCells[key] = { char: wordStr[i], wordIds: [] };
+      }
+      activeCells[key].wordIds.push(`${w.num}${w.dir === 'across' ? 'A' : 'D'}`);
+    }
+  });
+
+  for (let r = 0; r < activePuzzle.dim; r++) {
+    for (let c = 0; c < activePuzzle.dim; c++) {
+      const cellKey = `${r}-${c}`;
+      const cellData = activeCells[cellKey];
+      const cellDiv = document.createElement("div");
+
+      if (!cellData) {
+        cellDiv.className = "cell black";
+      } else {
+        cellDiv.className = "cell";
+        cellDiv.dataset.row = r;
+        cellDiv.dataset.col = c;
+        cellDiv.dataset.answer = cellData.char;
+
+        if (numberAssignments[cellKey]) {
+          const numLabel = document.createElement("span");
+          numLabel.className = "cell-num";
+          numLabel.textContent = Math.min(...numberAssignments[cellKey]);
+          cellDiv.appendChild(numLabel);
+        }
+
+        const input = document.createElement("input");
+        input.className = "cell-input";
+        input.type = "text";
+        input.maxLength = 1;
+        input.autocomplete = "off";
+
+        input.addEventListener("focus", () => highlightCluesForCell(cellData.wordIds));
+        input.addEventListener("input", (e) => {
+          e.target.value = e.target.value.toUpperCase();
+          if (e.target.value) focusNextCell(r, c);
+        });
+
+        cellDiv.appendChild(input);
+      }
+      gridEl.appendChild(cellDiv);
+    }
+  }
+}
+
+function renderClues() {
+  acrossCluesEl.innerHTML = "";
+  downCluesEl.innerHTML = "";
+
+  activePuzzle.words.forEach(w => {
+    const item = document.createElement("div");
+    item.className = "clue-item";
+    const uniqueId = `${w.num}${w.dir === 'across' ? 'A' : 'D'}`;
+    item.id = `clue-${uniqueId}`;
+    item.innerHTML = `<strong>${w.num}.</strong> ${w.clue}`;
+    item.onclick = () => highlightGridForClue(w, uniqueId);
+
+    if (w.dir === "across") acrossCluesEl.appendChild(item);
+    else downCluesEl.appendChild(item);
+  });
+}
+
+function highlightCluesForCell(wordIds) {
+  document.querySelectorAll(".clue-item").forEach(el => el.classList.remove("active-clue"));
+  wordIds.forEach(id => {
+    const clueEl = document.getElementById(`clue-${id}`);
+    if (clueEl) clueEl.classList.add("active-clue");
+  });
+}
+
+function highlightGridForClue(wordObj, uniqueId) {
+  document.querySelectorAll(".clue-item").forEach(el => el.classList.remove("active-clue"));
+  document.getElementById(`clue-${uniqueId}`).classList.add("active-clue");
+  const targetInput = document.querySelector(`.cell[data-row='${wordObj.row}'][data-col='${wordObj.col}'] .cell-input`);
+  if (targetInput) targetInput.focus();
+}
+
+function focusNextCell(r, c) {
+  const activeClue = document.querySelector(".clue-item.active-clue");
+  let isDown = activeClue ? activeClue.id.endsWith("D") : false;
+  let nextInput = isDown 
+    ? document.querySelector(`.cell[data-row='${r+1}'][data-col='${c}'] .cell-input`)
+    : document.querySelector(`.cell[data-row='${r}'][data-col='${c+1}'] .cell-input`);
+  if (nextInput) nextInput.focus();
+}
+
+function checkPuzzle() {
+  let solvedThisTurn = 0;
+
+  activePuzzle.words.forEach(w => {
+    let wordIsCorrect = true;
+    const wordStr = w.word.toUpperCase();
+    const uniqueId = `${w.num}${w.dir === 'across' ? 'A' : 'D'}`;
+
+    for (let i = 0; i < wordStr.length; i++) {
+      let r = w.row + (w.dir === "down" ? i : 0);
+      let c = w.col + (w.dir === "across" ? i : 0);
+      const cell = document.querySelector(`.cell[data-row='${r}'][data-col='${c}']`);
+      const input = cell.querySelector(".cell-input");
+
+      if (input.value.toUpperCase() !== cell.dataset.answer) {
+        wordIsCorrect = false;
+      }
+    }
+
+    if (wordIsCorrect) {
+      document.getElementById(`clue-${uniqueId}`).classList.add("solved");
+      if (!solvedWords.has(uniqueId)) {
+        solvedWords.add(uniqueId);
+        solvedThisTurn++;
+        totalBankedPoints += 15;
+      }
+      for (let i = 0; i < wordStr.length; i++) {
+        let r = w.row + (w.dir === "down" ? i : 0);
+        let c = w.col + (w.dir === "across" ? i : 0);
+        document.querySelector(`.cell[data-row='${r}'][data-col='${c}']`).classList.add("correct");
+      }
+    }
+  });
+
+  updateScores();
+
+  if (solvedWords.size === activePuzzle.words.length) {
+    msgEl.className = "msg good";
+    msgEl.textContent = "🎉 Spectacular! The full crossword matrix has been verified as authentic.";
+  } else if (solvedThisTurn > 0) {
+    msgEl.className = "msg good";
+    msgEl.textContent = "Correct validation confirmed! Keep tracing vocabulary coordinates.";
+  } else {
+    msgEl.className = "msg";
+    msgEl.textContent = "Some letters are empty or misplaced. Double-check your alignments!";
+  }
+}
+
+function updateScores() {
+  solvedCountEl.textContent = `${solvedWords.size} / ${activePuzzle.words.length}`;
+  pointsBankEl.textContent = totalBankedPoints;
+  document.getElementById("btnReportScore").textContent = `Submit Final Score (${totalBankedPoints} Pts)`;
+}
+
+/* ── Standard Token Submission System ── */
+function fnv1a(str) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = (h * 0x01000193) >>> 0;
+  }
+  return ("00000000" + h.toString(16)).slice(-8);
+}
+
+function makeToken(name, score) {
+  const payload = { v: 1, sim: SIM_ID, name, score, t: Date.now(), nonce: Math.random().toString(36).slice(2, 10) };
+  const core = JSON.stringify(payload);
+  payload.sig = fnv1a(core + "|" + TOKEN_SALT);
+  return btoa(JSON.stringify(payload));
+}
+
+Object.keys(TEACHERS).forEach(name => {
+  const btn = document.createElement('button');
+  btn.className = 'teacher-btn';
+  btn.textContent = name;
+  btn.type = "button";
+  btn.addEventListener('click', () => {
+    selectedTeacher = name;
+    document.querySelectorAll('.teacher-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  });
+  document.getElementById('teacher-grid').appendChild(btn);
+});
+
+document.getElementById("btnReportScore").onclick = () => {
+  document.getElementById('modal-points-display').textContent = totalBankedPoints;
+  document.getElementById('submit-modal').classList.add('open');
+};
+document.getElementById("modal-cancel-btn").onclick = () => document.getElementById('submit-modal').classList.remove('open');
+
+document.getElementById("modal-confirm-btn").onclick = async () => {
+  const id = document.getElementById('student-id-input').value.trim();
+  const name = document.getElementById('student-name-input').value.trim();
+  if (!id || !name || !selectedTeacher) return;
+
+  const teacher = TEACHERS[selectedTeacher];
+  const token = makeToken(name, totalBankedPoints);
+  const body = new URLSearchParams();
+  body.set(teacher.entries.studentID, id);
+  body.set(teacher.entries.displayName, name);
+  body.set(teacher.entries.sim, SIM_ID);
+  body.set(teacher.entries.score, String(totalBankedPoints));
+  body.set(teacher.entries.token, token);
+
+  try {
+    await fetch(teacher.formUrl, { method: "POST", mode: "no-cors", body: body.toString() });
+    alert("Points successfully submitted!");
+  } catch (e) {
+    console.error(e);
+  } finally {
+    location.reload();
+  }
+};
+
+document.getElementById("btnCheck").addEventListener("click", checkPuzzle);
+loadGame();
+</script>
+</body>
+</html>
