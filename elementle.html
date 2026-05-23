@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en')">
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -11,23 +11,17 @@
   --ink:#231528;
   --muted:#5a4a64;
   --line: rgba(35,21,40,.12);
-
-  --accent:#eda6ff;   /* purple */
-  --accent2:#e9a9ff;  /* pink */
-
+  --accent:#eda6ff;
+  --accent2:#e9a9ff;
   --good:#16a34a;
   --bad:#dc2626;
   --warn:#d97706;
-
   --r:18px;
   --shadow: 0 14px 40px rgba(35,21,40,.10);
   --tileShadow: 0 10px 20px rgba(35,21,40,.10);
-
   --font: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
 }
-
 * { box-sizing: border-box; }
-
 body{
   margin:0;
   min-height:100vh;
@@ -38,12 +32,10 @@ body{
   justify-content:center;
   padding: 18px;
 }
-
 .app{
   width: min(600px, 100%);
   display:block;
 }
-
 .panel{
   background: var(--card);
   border: 1px solid var(--line);
@@ -51,7 +43,6 @@ body{
   box-shadow: var(--shadow);
   overflow:hidden;
 }
-
 header{
   padding: 14px 16px;
   border-bottom: 1px solid rgba(255,255,255,.22);
@@ -62,27 +53,23 @@ header{
   align-items:center;
   justify-content:space-between;
 }
-
 .title h1{
   margin:0;
   font-size: 18px;
   letter-spacing: .2px;
 }
-
 .title p{
   margin:0;
   font-size: 12px;
   color: #39136e;
   line-height: 1.35;
 }
-
 .title{
   display:flex;
   flex-direction:column;
   gap: 4px;
   flex-grow: 1;
 }
-
 .hubLink{
   display:inline-block;
   margin-bottom:8px;
@@ -91,7 +78,12 @@ header{
   color: #39136e;
 }
 .hubLink:hover{ text-decoration:underline; }
-
+.header-btns {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
 button{
   appearance:none;
   border: 1px solid rgba(255,255,255,.28);
@@ -109,21 +101,38 @@ button:hover{ background: rgba(255,255,255,.40); border-color: rgba(255,255,255,
 button:active{ transform: translateY(1px); }
 button:disabled{ opacity:.55; cursor:not-allowed; }
 
-.main{ padding: 14px; }
+/* Bot Button */
+#btnBot {
+  font-size: 20px;
+  padding: 6px 10px;
+  border-radius: 50%;
+  line-height: 1;
+  position: relative;
+  transition: transform .15s ease, background .2s ease;
+}
+#btnBot:hover { transform: scale(1.15) rotate(-5deg); }
+#btnBot.has-insight::after {
+  content: '';
+  position: absolute;
+  top: 2px; right: 2px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #ef4444;
+  border: 1.5px solid white;
+}
 
+.main{ padding: 14px; }
 .statusArea{
   display:flex;
   flex-direction:column;
   gap: 10px;
   margin-bottom: 14px;
 }
-
 .pillRow{
   display:flex;
   gap: 8px;
   flex-wrap: wrap;
 }
-
 .pill{
   padding: 6px 8px;
   border-radius: 999px;
@@ -136,7 +145,6 @@ button:disabled{ opacity:.55; cursor:not-allowed; }
 }
 .pill em { color: var(--muted); font-style: normal; }
 .pill.points-bank { border-color: #16a34a; background: #f0fdf4; color: #14532d; }
-
 .msg{
   padding: 10px;
   border-radius: 14px;
@@ -151,7 +159,6 @@ button:disabled{ opacity:.55; cursor:not-allowed; }
 .msg.good{ border-color: rgba(22,163,74,.35); color: #14532d; background: #f0fdf4; }
 .msg.bad{ border-color: rgba(220,38,38,.35); color: #7f1d1d; background: #fef2f2; }
 .msg.warn{ border-color: rgba(217,119,6,.35); color: #7c2d12; background: #fffbeb; }
-
 .inputRow{
   display: flex;
   gap: 8px;
@@ -171,7 +178,6 @@ input[type="text"]:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(237,166,255,0.3);
 }
-
 .tableContainer {
   overflow-x: auto;
   margin-bottom: 14px;
@@ -194,17 +200,106 @@ td {
   border-bottom: 1px solid var(--line);
   color: var(--ink);
 }
-
 .match-yes { background-color: rgba(22, 163, 74, 0.15); color: #16a34a; }
 .match-higher { background-color: rgba(217, 119, 6, 0.12); color: #b45309; }
 .match-lower { background-color: rgba(37, 99, 235, 0.12); color: #1d4ed8; }
-
 .footerNote{
   padding: 12px 14px 14px;
   border-top:1px solid var(--line);
   color: var(--muted);
   font-size: 12px;
   line-height: 1.35;
+}
+
+/* ── Bot Panel ── */
+#bot-panel {
+  display: none;
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: min(340px, calc(100vw - 48px));
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(35,21,40,.22);
+  border: 1.5px solid var(--line);
+  z-index: 9000;
+  overflow: hidden;
+  animation: botSlideIn .25s ease;
+}
+#bot-panel.open { display: block; }
+@keyframes botSlideIn {
+  from { opacity: 0; transform: translateY(16px) scale(.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.bot-header {
+  background: linear-gradient(135deg, #231528, #3d1f5e);
+  color: white;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: space-between;
+}
+.bot-header-left { display: flex; align-items: center; gap: 10px; }
+.bot-avatar {
+  font-size: 26px;
+  animation: botPulse 2.5s ease-in-out infinite;
+}
+@keyframes botPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+.bot-header h3 { margin: 0; font-size: 15px; font-weight: 800; }
+.bot-header p  { margin: 0; font-size: 11px; opacity: .7; }
+#btnBotClose {
+  background: rgba(255,255,255,.15);
+  border: none;
+  color: white;
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 16px;
+  cursor: pointer;
+}
+#btnBotClose:hover { background: rgba(255,255,255,.28); }
+.bot-body {
+  padding: 16px;
+  max-height: 380px;
+  overflow-y: auto;
+}
+.bot-stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f8f5fc;
+  border: 1px solid var(--line);
+}
+.bot-stat-label { font-size: 13px; font-weight: 700; color: var(--ink); }
+.bot-stat-bar-wrap { flex: 1; margin: 0 10px; height: 7px; background: #e9dff5; border-radius: 99px; overflow: hidden; }
+.bot-stat-bar { height: 100%; border-radius: 99px; transition: width .5s ease; }
+.bar-good { background: #16a34a; }
+.bar-warn { background: #d97706; }
+.bar-bad  { background: #dc2626; }
+.bot-stat-pct { font-size: 12px; font-weight: 800; color: var(--muted); min-width: 32px; text-align: right; }
+.bot-insight {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #fdf4ff, #f0ebff);
+  border: 1px solid rgba(237,166,255,.5);
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+.bot-insight strong { color: #39136e; }
+.bot-no-data {
+  text-align: center;
+  padding: 20px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 /* ── Form Submission Modal ── */
@@ -220,7 +315,6 @@ td {
   padding: 24px;
 }
 #submit-modal.open { display: flex; }
-
 .modal-card {
   background: #fff;
   border-radius: 20px;
@@ -229,24 +323,45 @@ td {
   max-width: 380px;
   box-shadow: 0 24px 48px rgba(0,0,0,0.18);
   text-align: left;
+  max-height: 90vh;
+  overflow-y: auto;
 }
 .modal-card h2 { font-size: 20px; font-weight: 800; margin: 0 0 6px; color: var(--ink); }
 .modal-card .modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 22px; }
 .modal-label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.05em; }
 .modal-input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 1.5px solid #e2e8f0; font-size: 15px; color: var(--ink); outline: none; margin-bottom: 18px; font-family: inherit; }
 .modal-input:focus { border-color: var(--accent); }
-
 .teacher-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 22px; }
 .teacher-btn { padding: 13px 10px; border-radius: 12px; border: 1.5px solid #e2e8f0; background: #f8fafc; font-size: 14px; font-weight: 600; color: var(--ink); cursor: pointer; text-align: center; }
 .teacher-btn:hover { border-color: var(--accent); background: rgba(237,166,255,0.15); }
 .teacher-btn.selected { border-color: var(--accent); background: rgba(237,166,255,0.2); color: #39136e; }
-
 .modal-actions { display: flex; gap: 10px; }
 .modal-actions .btn { margin: 0; flex: 1; padding: 14px; font-size: 14px; border-radius: 14px; font-weight: 700; border: none; cursor: pointer; text-align: center; }
 .btn-cancel { background: #f1f5f9; color: var(--muted); }
 .btn-primary { background: #1e293b; color: white; }
 .modal-error { font-size: 12px; color: var(--bad); font-weight: 600; margin-bottom: 12px; min-height: 18px; }
-</style>
+
+/* Bot summary in modal */
+.bot-modal-summary {
+  background: linear-gradient(135deg, #fdf4ff, #f0ebff);
+  border: 1px solid rgba(237,166,255,.5);
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 18px;
+  font-size: 12.5px;
+  color: var(--ink);
+  line-height: 1.5;
+}
+.bot-modal-summary h4 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #39136e;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+  </style>
 </head>
 <body>
   <div class="app">
@@ -257,7 +372,10 @@ td {
           <h1>⚛️ Elementle</h1>
           <p>Guess the hidden element. Play as many rounds as you want!</p>
         </div>
-        <button id="btnNew">New Game</button>
+        <div class="header-btns">
+          <button id="btnBot" title="Elementle Bot — get feedback on your guesses!">🤖</button>
+          <button id="btnNew">New Game</button>
+        </div>
       </header>
 
       <div class="main">
@@ -294,15 +412,36 @@ td {
 
         <button id="btnReportScore" class="btn-primary" style="width:100%; padding:14px; margin-top:10px; border-radius:14px; border:none; font-weight:700; font-size:15px; color:#fff; background:#1e293b; cursor:pointer;">Submit Final Score</button>
       </div>
-
-
     </section>
   </div>
 
+  <!-- ── Bot Panel ── -->
+  <div id="bot-panel">
+    <div class="bot-header">
+      <div class="bot-header-left">
+        <div class="bot-avatar">🤖</div>
+        <div>
+          <h3>Elementle Bot</h3>
+          <p>Your personal performance coach</p>
+        </div>
+      </div>
+      <button id="btnBotClose">✕</button>
+    </div>
+    <div class="bot-body" id="bot-body">
+      <div class="bot-no-data">Make a few guesses and I'll analyze your patterns! 🔬</div>
+    </div>
+  </div>
+
+  <!-- ── Submit Modal ── -->
   <div id="submit-modal">
     <div class="modal-card">
         <h2>Submit Your Points</h2>
         <p class="modal-sub">You are turning in a cumulative score of <strong id="modal-points-display">0</strong> points. Enter your info below.</p>
+
+        <div class="bot-modal-summary" id="bot-modal-summary" style="display:none;">
+          <h4>🤖 Your Bot Analysis</h4>
+          <div id="bot-modal-text"></div>
+        </div>
 
         <label class="modal-label" for="student-id-input">Student ID</label>
         <input class="modal-input" id="student-id-input" type="text" placeholder="e.g. 123456" autocomplete="off" />
@@ -323,26 +462,27 @@ td {
   </div>
 
 <script>
-// Classroom Teacher Mapping Variables from chemnections/focus structures
 const TEACHERS = {
   "NOT THIS ONE": {
     formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSckXbWQsVWobjrktGMoF7AtY6gMch0eQMjsGlddVv1cxgNHgQ/formResponse",
     entries: {
-      studentID: "entry.511300054",
+      studentID:   "entry.511300054",
       displayName: "entry.366340186",
       sim:         "entry.1832756779",
       score:       "entry.221944829",
       token:       "entry.1636605257",
+      botAnalysis: "entry.1474089185",
     }
   },
   "Mr. Cortez": {
     formUrl: "https://docs.google.com/forms/d/e/1FAIpQLScUSDCLLXqyxnJu8lVi0rW4virrOtmtEG_ubkoDAqbItt2cbA/formResponse",
     entries: {
-      studentID: "entry.869186751",
+      studentID:   "entry.869186751",
       displayName: "entry.366340186",
       sim:         "entry.1832756779",
       score:       "entry.221944829",
       token:       "entry.1636605257",
+      botAnalysis: "entry.728557600",
     }
   },
 };
@@ -350,7 +490,6 @@ const TEACHERS = {
 const SIM_ID    = "elementle";
 const TOKEN_SALT = "MoLeCuTeOrG";
 
-// Elements database with complete main-group & transition metals, omitting f-block
 const ELEMENTS = [
   { num: 1, sym: "H", name: "Hydrogen", period: 1, group: 1 },
   { num: 2, sym: "He", name: "Helium", period: 1, group: 18 },
@@ -425,20 +564,19 @@ const ELEMENTS = [
   { num: 86, sym: "Rn", name: "Radon", period: 6, group: 18 },
   { num: 87, sym: "Fr", name: "Francium", period: 7, group: 1 },
   { num: 88, sym: "Ra", name: "Radium", period: 7, group: 2 }
-  
 ];
 
-const msgEl = document.getElementById("message");
-const triesLeftEl = document.getElementById("triesLeft");
-const gameStatusEl = document.getElementById("gameStatus");
-const guessInput = document.getElementById("guessInput");
-const btnSubmit = document.getElementById("btnSubmit");
-const btnNew = document.getElementById("btnNew");
-const historyBody = document.getElementById("historyBody");
+// ── DOM refs ──
+const msgEl          = document.getElementById("message");
+const triesLeftEl    = document.getElementById("triesLeft");
+const gameStatusEl   = document.getElementById("gameStatus");
+const guessInput     = document.getElementById("guessInput");
+const btnSubmit      = document.getElementById("btnSubmit");
+const btnNew         = document.getElementById("btnNew");
+const historyBody    = document.getElementById("historyBody");
 const btnReportScore = document.getElementById("btnReportScore");
-const pointsBankEl = document.getElementById("pointsBank");
+const pointsBankEl   = document.getElementById("pointsBank");
 
-// Modal DOM refs
 const submitModal        = document.getElementById('submit-modal');
 const modalPointsDisplay = document.getElementById('modal-points-display');
 const studentIdInput     = document.getElementById('student-id-input');
@@ -448,13 +586,35 @@ const modalError         = document.getElementById('modal-error');
 const modalCancelBtn     = document.getElementById('modal-cancel-btn');
 const modalConfirmBtn    = document.getElementById('modal-confirm-btn');
 
-let targetElement = null;
-let maxTries = 6;
-let currentTries = 0;
-let gameOver = false;
-let totalBankedPoints = 0;
-let selectedTeacher = null;
+const btnBot      = document.getElementById('btnBot');
+const botPanel    = document.getElementById('bot-panel');
+const btnBotClose = document.getElementById('btnBotClose');
+const botBody     = document.getElementById('bot-body');
 
+// ── Game state ──
+let targetElement     = null;
+let maxTries          = 6;
+let currentTries      = 0;
+let gameOver          = false;
+let totalBankedPoints = 0;
+let selectedTeacher   = null;
+
+// ── Bot clue-violation tracking 
+let lastClues = { atomicNum: null, period: null, group: null };
+
+let botStats = {
+  // Total guesses where there was a prior clue to follow 
+  opportunitiesToFollow: 0,
+  atomicNum: { violations: 0, opportunities: 0 },
+  period:    { violations: 0, opportunities: 0 },
+  group:     { violations: 0, opportunities: 0 },
+  // violated ALL three clues on the same guess
+  allThreeViolations: 0,
+  roundsPlayed: 0,
+  roundsWon: 0,
+};
+
+// ── Utility ──
 function setMessage(text, tone="") {
   msgEl.className = "msg" + (tone ? " " + tone : "");
   msgEl.textContent = text;
@@ -463,80 +623,256 @@ function setMessage(text, tone="") {
 function startNewGame() {
   const randomIndex = Math.floor(Math.random() * ELEMENTS.length);
   targetElement = ELEMENTS[randomIndex];
-  
   currentTries = 0;
   gameOver = false;
-  
+  // Reset per-round clue state so prior-round hints don't bleed into the new round
+  lastClues = { atomicNum: null, period: null, group: null };
   triesLeftEl.textContent = maxTries;
   gameStatusEl.textContent = "Playing";
   guessInput.value = "";
   guessInput.disabled = false;
   btnSubmit.disabled = false;
   historyBody.innerHTML = "";
-  
   setMessage("Target picked! Enter a symbol or name to begin.", "");
 }
 
+function applyFeedbackClass(element, guessedVal, targetVal) {
+  if (guessedVal === targetVal) {
+    element.className = "match-yes";
+    element.textContent += " ✓";
+    return "match";
+  } else if (guessedVal < targetVal) {
+    element.className = "match-higher";
+    element.textContent += " ⬆️";
+    return "low";
+  } else {
+    element.className = "match-lower";
+    element.textContent += " ⬇️";
+    return "high";
+  }
+}
+
+
+function recordBotGuess(guessedVals, results) {
+  // Check violations against lastClues (only if this isn't the first guess of the round)
+  let violatedNum = false, violatedPeriod = false, violatedGroup = false;
+
+  if (lastClues.atomicNum && lastClues.atomicNum !== "matched") {
+    botStats.atomicNum.opportunities++;
+    botStats.opportunitiesToFollow++;
+    // "go-higher" means student needed a bigger atomic number — violation = they went lower or same (not higher)
+    if (lastClues.atomicNum === "go-higher" && results.atomicNum !== "match" && guessedVals.atomicNum <= lastClues._prevNum) {
+      botStats.atomicNum.violations++;
+      violatedNum = true;
+    }
+    if (lastClues.atomicNum === "go-lower" && results.atomicNum !== "match" && guessedVals.atomicNum >= lastClues._prevNum) {
+      botStats.atomicNum.violations++;
+      violatedNum = true;
+    }
+  }
+
+  if (lastClues.period && lastClues.period !== "matched") {
+    botStats.period.opportunities++;
+    if (lastClues.period === "go-higher" && results.period !== "match" && guessedVals.period <= lastClues._prevPeriod) {
+      botStats.period.violations++;
+      violatedPeriod = true;
+    }
+    if (lastClues.period === "go-lower" && results.period !== "match" && guessedVals.period >= lastClues._prevPeriod) {
+      botStats.period.violations++;
+      violatedPeriod = true;
+    }
+  }
+
+  if (lastClues.group && lastClues.group !== "matched") {
+    botStats.group.opportunities++;
+    if (lastClues.group === "go-higher" && results.group !== "match" && guessedVals.group <= lastClues._prevGroup) {
+      botStats.group.violations++;
+      violatedGroup = true;
+    }
+    if (lastClues.group === "go-lower" && results.group !== "match" && guessedVals.group >= lastClues._prevGroup) {
+      botStats.group.violations++;
+      violatedGroup = true;
+    }
+  }
+
+  if (violatedNum && violatedPeriod && violatedGroup) botStats.allThreeViolations++;
+
+  // Update lastClues for next guess, storing the values so we can compare direction
+  lastClues = {
+    atomicNum: results.atomicNum === "match" ? "matched" : results.atomicNum === "low" ? "go-higher" : "go-lower",
+    period:    results.period    === "match" ? "matched" : results.period    === "low" ? "go-higher" : "go-lower",
+    group:     results.group     === "match" ? "matched" : results.group     === "low" ? "go-higher" : "go-lower",
+    _prevNum:    guessedVals.atomicNum,
+    _prevPeriod: guessedVals.period,
+    _prevGroup:  guessedVals.group,
+  };
+
+  // Light up the bot button once there's something meaningful to show
+  const totalViolations = botStats.atomicNum.violations + botStats.period.violations + botStats.group.violations;
+  if (totalViolations > 0 || botStats.opportunitiesToFollow >= 3) {
+    btnBot.classList.add('has-insight');
+  }
+}
+
+// ── Bot Analysis ──
+function getBotAnalysis() {
+  const totalOpps = botStats.opportunitiesToFollow;
+  if (totalOpps === 0) return null;
+
+  const dims = [
+    { key: "atomicNum", label: "Atomic Number", stat: botStats.atomicNum },
+    { key: "period",    label: "Period",         stat: botStats.period },
+    { key: "group",     label: "Group",          stat: botStats.group },
+  ];
+
+  // Only include dims where there was at least one opportunity
+  const activeDims = dims.filter(d => d.stat.opportunities > 0).map(d => ({
+    ...d,
+    violationRate: Math.round((d.stat.violations / d.stat.opportunities) * 100),
+    followRate:    Math.round(((d.stat.opportunities - d.stat.violations) / d.stat.opportunities) * 100),
+  }));
+
+  if (activeDims.length === 0) return null;
+
+  // Sort worst (most violations) first
+  const sorted = [...activeDims].sort((a, b) => b.violationRate - a.violationRate);
+  const worst = sorted[0];
+
+  let insight = "";
+  const totalViolations = botStats.atomicNum.violations + botStats.period.violations + botStats.group.violations;
+
+  if (totalViolations === 0) {
+    insight = `Great clue-following! You're consistently using the ⬆️/⬇️ arrows to narrow down your answer. Keep it up!`;
+  } else if (worst.violationRate >= 50) {
+    insight = `You're ignoring the <strong>${worst.label}</strong> clue more than half the time — after the game tells you to go higher or lower, your next guess doesn't follow that direction. Try focusing on one clue at a time!`;
+  } else if (worst.violationRate >= 25) {
+    insight = `Watch the <strong>${worst.label}</strong> clue more carefully. About ${worst.violationRate}% of the time, you guessed in the wrong direction after being given a ⬆️ or ⬇️ hint.`;
+  } else {
+    insight = `You're mostly reading the clues well! Minor slips on <strong>${worst.label}</strong> (${worst.violationRate}% clue-ignore rate). Keep using the arrows to zero in.`;
+  }
+
+  if (botStats.allThreeViolations > 0) {
+    insight += ` On ${botStats.allThreeViolations} occasion${botStats.allThreeViolations > 1 ? 's' : ''}, you ignored all three clues at once — slow down and check each arrow before guessing!`;
+  }
+
+  return { dims: activeDims, insight, worst, totalOpps, totalViolations };
+}
+
+function renderBotPanel() {
+  const analysis = getBotAnalysis();
+  if (!analysis) {
+    botBody.innerHTML = '<div class="bot-no-data">Play a couple of guesses and I\'ll check if you\'re following the ⬆️⬇️ clues! 🔬</div>';
+    return;
+  }
+
+  const { dims, insight, totalOpps, totalViolations } = analysis;
+  let html = '';
+
+  dims.forEach(d => {
+    const followPct = d.followRate;
+    const barClass = followPct >= 80 ? 'bar-good' : followPct >= 50 ? 'bar-warn' : 'bar-bad';
+    const label = d.stat.opportunities === 0
+      ? 'No clues yet'
+      : `${d.stat.violations} ignored / ${d.stat.opportunities} clues`;
+    html += `
+      <div class="bot-stat-row">
+        <span class="bot-stat-label">${d.label}</span>
+        <div class="bot-stat-bar-wrap">
+          <div class="bot-stat-bar ${barClass}" style="width:${followPct}%"></div>
+        </div>
+        <span class="bot-stat-pct" title="${label}">${followPct}%</span>
+      </div>`;
+  });
+
+  const overallFollow = totalOpps > 0 ? Math.round(((totalOpps - totalViolations) / totalOpps) * 100) : 100;
+  html += `<div style="font-size:11px; color:var(--muted); text-align:center; margin-bottom:10px;">Clue-following rate: <strong>${overallFollow}%</strong> across ${totalOpps} opportunities</div>`;
+  html += `<div class="bot-insight">💡 ${insight}</div>`;
+  html += `<div style="font-size:11px; color:var(--muted); margin-top:10px; text-align:center;">${botStats.roundsPlayed} round${botStats.roundsPlayed===1?'':'s'} played · ${botStats.roundsWon} won</div>`;
+
+  botBody.innerHTML = html;
+}
+
+function getBotSummaryText() {
+  const analysis = getBotAnalysis();
+  if (!analysis) return "no data";
+  const { dims } = analysis;
+  // Only report dimensions where the student had a >25% clue-ignore rate
+  const struggled = dims
+    .filter(d => d.violationRate > 25)
+    .map(d => {
+      if (d.key === "atomicNum") return "atomic structure";
+      if (d.key === "period")    return "period";
+      if (d.key === "group")     return "group";
+    });
+  return struggled.length > 0 ? struggled.join(" and/or ") : "none";
+}
+
+// ── Gameplay ──
 function processGuess() {
   if (gameOver) return;
-  
   const rawInput = guessInput.value.trim().toLowerCase();
   if (!rawInput) return;
-  
-  const guessedEl = ELEMENTS.find(e => 
-    e.sym.toLowerCase() === rawInput || 
+
+  const guessedEl = ELEMENTS.find(e =>
+    e.sym.toLowerCase() === rawInput ||
     e.name.toLowerCase() === rawInput
   );
-  
+
   if (!guessedEl) {
     setMessage(`"${guessInput.value}" is not found or sits inside the omitted lanthanides/actinides blocks.`, "warn");
     return;
   }
-  
+
   currentTries++;
   const remaining = maxTries - currentTries;
   triesLeftEl.textContent = remaining;
-  
+
   const resultRow = document.createElement("tr");
-  
-  // 1. Name/Symbol
+
   const tdName = document.createElement("td");
   tdName.textContent = `${guessedEl.sym} (${guessedEl.name})`;
   resultRow.appendChild(tdName);
-  
-  // 2. Atomic Number
+
   const tdNum = document.createElement("td");
   tdNum.textContent = guessedEl.num;
-  applyFeedbackClass(tdNum, guessedEl.num, targetElement.num);
+  const numResult = applyFeedbackClass(tdNum, guessedEl.num, targetElement.num);
   resultRow.appendChild(tdNum);
-  
-  // 3. Period
+
   const tdPeriod = document.createElement("td");
   tdPeriod.textContent = guessedEl.period;
-  applyFeedbackClass(tdPeriod, guessedEl.period, targetElement.period);
+  const periodResult = applyFeedbackClass(tdPeriod, guessedEl.period, targetElement.period);
   resultRow.appendChild(tdPeriod);
-  
-  // 4. Group
+
   const tdGroup = document.createElement("td");
   tdGroup.textContent = guessedEl.group;
-  applyFeedbackClass(tdGroup, guessedEl.group, targetElement.group);
+  const groupResult = applyFeedbackClass(tdGroup, guessedEl.group, targetElement.group);
   resultRow.appendChild(tdGroup);
-  
+
   historyBody.insertBefore(resultRow, historyBody.firstChild);
   guessInput.value = "";
   guessInput.focus();
-  
+
+  // Record for bot: check if student followed prior clues, then update lastClues.
+  if (guessedEl.num !== targetElement.num) {
+    recordBotGuess(
+      { atomicNum: guessedEl.num, period: guessedEl.period, group: guessedEl.group },
+      { atomicNum: numResult, period: periodResult, group: groupResult }
+    );
+  } else {
+    // Winning guess — reset clues; startNewGame will also reset on next round
+    lastClues = { atomicNum: null, period: null, group: null };
+  }
+
   if (guessedEl.num === targetElement.num) {
-    const roundPoints = (maxTries - currentTries) + 5; 
+    const roundPoints = (maxTries - currentTries) + 5;
     totalBankedPoints += roundPoints;
     pointsBankEl.textContent = totalBankedPoints;
-    
+    botStats.roundsWon++;
     setMessage(`🎉 Fantastic! You isolated ${targetElement.name} (${targetElement.sym}) and earned ${roundPoints} pts! Click "New Game" to play again.`, "good");
     endRound("Won");
   } else if (remaining <= 0) {
-    totalBankedPoints += 1; // 1 consolation point for participation completion
+    totalBankedPoints += 1;
     pointsBankEl.textContent = totalBankedPoints;
-    
     setMessage(`❌ Out of tries! The correct element was ${targetElement.name} (Atomic #${targetElement.num}). Click "New Game" to try another!`, "bad");
     endRound("Lost");
   } else {
@@ -544,30 +880,16 @@ function processGuess() {
   }
 }
 
-function applyFeedbackClass(element, guessedVal, targetVal) {
-  if (guessedVal === targetVal) {
-    element.className = "match-yes";
-    element.textContent += " (Match)";
-  } else if (guessedVal < targetVal) {
-    element.className = "match-higher";
-    element.textContent += " ⬆️";
-  } else {
-    element.className = "match-lower";
-    element.textContent += " ⬇️";
-  }
-}
-
 function endRound(status) {
   gameOver = true;
+  botStats.roundsPlayed++;
   gameStatusEl.textContent = status;
   guessInput.disabled = true;
   btnSubmit.disabled = true;
-  
-  // Keep the submission button fresh with updated accumulated results
   btnReportScore.textContent = `Submit Final Score (${totalBankedPoints} Pts)`;
 }
 
-/* ── Graded Integration Infrastructure ── */
+// ── Token ──
 function fnv1a(str) {
   let h = 0x811c9dc5;
   for (let i = 0; i < str.length; i++) {
@@ -578,17 +900,13 @@ function fnv1a(str) {
 }
 
 function makeToken(name, score) {
-  const payload = {
-    v: 1, sim: SIM_ID, name, score,
-    t: Date.now(),
-    nonce: Math.random().toString(36).slice(2, 10),
-  };
+  const payload = { v: 1, sim: SIM_ID, name, score, t: Date.now(), nonce: Math.random().toString(36).slice(2, 10) };
   const core = JSON.stringify(payload);
   payload.sig = fnv1a(core + "|" + TOKEN_SALT);
   return btoa(JSON.stringify(payload));
 }
 
-// Dynamically compile Teacher Option Blocks
+// ── Teacher buttons ──
 Object.keys(TEACHERS).forEach(name => {
   const btn = document.createElement('button');
   btn.className = 'teacher-btn';
@@ -603,7 +921,18 @@ Object.keys(TEACHERS).forEach(name => {
   teacherGrid.appendChild(btn);
 });
 
-// Modal Interaction
+// ── Bot panel toggle ──
+btnBot.onclick = () => {
+  if (botPanel.classList.contains('open')) {
+    botPanel.classList.remove('open');
+  } else {
+    renderBotPanel();
+    botPanel.classList.add('open');
+  }
+};
+btnBotClose.onclick = () => botPanel.classList.remove('open');
+
+// ── Submit modal ──
 btnReportScore.onclick = () => {
   modalPointsDisplay.textContent = totalBankedPoints;
   studentIdInput.value = '';
@@ -613,6 +942,18 @@ btnReportScore.onclick = () => {
   modalConfirmBtn.disabled = false;
   modalConfirmBtn.textContent = 'Submit Points';
   document.querySelectorAll('.teacher-btn').forEach(b => b.classList.remove('selected'));
+
+  // Show bot summary in modal
+  const analysis = getBotAnalysis();
+  const botModalSummary = document.getElementById('bot-modal-summary');
+  const botModalText    = document.getElementById('bot-modal-text');
+  if (analysis) {
+    botModalText.innerHTML = analysis.insight;
+    botModalSummary.style.display = 'block';
+  } else {
+    botModalSummary.style.display = 'none';
+  }
+
   submitModal.classList.add('open');
   setTimeout(() => studentIdInput.focus(), 100);
 };
@@ -620,23 +961,12 @@ btnReportScore.onclick = () => {
 modalCancelBtn.onclick = () => submitModal.classList.remove('open');
 
 modalConfirmBtn.onclick = async () => {
-  const id = studentIdInput.value.trim();
+  const id   = studentIdInput.value.trim();
   const name = studentNameInput.value.trim();
 
-  if (!id) {
-    modalError.textContent = "Please enter your student ID.";
-    studentIdInput.focus();
-    return;
-  }
-  if (!name) {
-    modalError.textContent = "Please enter your name.";
-    studentNameInput.focus();
-    return;
-  }
-  if (!selectedTeacher) {
-    modalError.textContent = "Please select your teacher.";
-    return;
-  }
+  if (!id)   { modalError.textContent = "Please enter your student ID."; studentIdInput.focus(); return; }
+  if (!name) { modalError.textContent = "Please enter your name."; studentNameInput.focus(); return; }
+  if (!selectedTeacher) { modalError.textContent = "Please select your teacher."; return; }
 
   modalError.textContent = '';
   modalConfirmBtn.disabled = true;
@@ -644,13 +974,18 @@ modalConfirmBtn.onclick = async () => {
 
   const teacher = TEACHERS[selectedTeacher];
   const token   = makeToken(name, totalBankedPoints);
+  const botText = getBotSummaryText();
 
   const body = new URLSearchParams();
-  body.set(teacher.entries.studentID, id);
+  body.set(teacher.entries.studentID,   id);
   body.set(teacher.entries.displayName, name);
   body.set(teacher.entries.sim,         SIM_ID);
   body.set(teacher.entries.score,       String(totalBankedPoints));
   body.set(teacher.entries.token,       token);
+  // Only include botAnalysis if this teacher's form has that field configured
+  if (teacher.entries.botAnalysis) {
+    body.set(teacher.entries.botAnalysis, botText);
+  }
 
   try {
     await fetch(teacher.formUrl, {
@@ -668,12 +1003,10 @@ modalConfirmBtn.onclick = async () => {
   }
 };
 
-// Application Triggers
+// ── Event listeners ──
 btnSubmit.addEventListener("click", processGuess);
 btnNew.addEventListener("click", startNewGame);
-guessInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") processGuess();
-});
+guessInput.addEventListener("keydown", (e) => { if (e.key === "Enter") processGuess(); });
 
 startNewGame();
 </script>
