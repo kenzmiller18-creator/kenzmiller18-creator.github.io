@@ -1,1155 +1,778 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8"/>
 <title>Ionic Bonding Simulator</title>
-
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
-:root { --unit: 40px; }
+:root {
+  --cation:   #4ECDC4;
+  --anion:    #FF6B6B;
+  --locked:   #d1d5db;
+  --accent1:  #f873ff;
+  --accent2:  #FF6B9D;
+  --accent3:  #C3F584;
+  --accent4:  #B8A9FF;
+  --bg:       #FFF9F0;
+  --card:     #FFFFFF;
+  --border:   #1a1a2e;
+  --shadow:   4px 4px 0px #1a1a2e;
+  --radius:   14px;
+  --unit:     40px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  margin: 0;
-  font-family: Georgia, serif;
-  background: #f7e8ff;
- 
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  background-image: radial-gradient(#e0d4c8 1.5px, transparent 1.5px);
+  background-size: 28px 28px;
+  min-height: 100vh;
+  color: var(--border);
 }
 
-
-h1 { text-align: center; }
-
-/* ===== TOOLBAR ===== */
-#toolbar {
+/* ── HEADER ── */
+#header {
+  background: var(--border);
+  padding: 14px 24px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  background: #efd7ff;
-  border-bottom: 3px solid #000;
-  box-sizing: border-box;
-  margin-bottom: 8px;
+  gap: 16px;
+  flex-wrap: wrap;
 }
-#page-content {
-  padding: 20px;
-}
-
-/* Sections */
-.toolbar-left,
-.toolbar-center,
-.toolbar-right {
-  display: flex;
-  align-items: center;
-  padding: 5px;
-}
-
-/* Center title */
-.toolbar-center {
-  flex: 1;
-  justify-content: center;
-  font-size: 20px;
-  font-weight: bold;
-  color: #370047;
-}
-
-/* Right buttons */
-.toolbar-right button {
-  margin-left: 10px;
-}
-
-/* Hub link */
-.hub-link {
-  font-size: 18px;
-  font-weight: bold;
+#backToHub {
+  background: var(--accent1);
+  color: var(--border);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 6px 14px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 #fff3;
+  transition: transform .1s, box-shadow .1s;
   text-decoration: none;
-  color: #4f2f92;
 }
+#backToHub:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 #fff4; }
 
-.hub-link:hover {
-  text-decoration: underline;
+#header h1 {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  flex: 1;
 }
+#header h1 span { color: var(--accent1); }
 
-
-
-
-/* ===== LAYOUT ===== */
-#container {
-  display: grid;
-  grid-template-columns: 360px 1fr 360px;
-  gap: 30px;
-}
-
-#cation-bank,
-#anion-bank {
-  width: 360px;   /* ← THIS is the key */
-}
-.charge-group {
-  display: grid;
-  row-gap: 16px;
-  grid-template-columns: repeat(2, max-content);
-  column-gap: 60px;
-}
-
-.ion-column {
+/* score hud */
+#scoreHud {
+  background: rgba(255,255,255,.1);
+  border: 2px solid rgba(255,255,255,.25);
+  border-radius: 10px;
+  padding: 6px 16px;
+  color: #fff;
+  font-weight: 800;
+  font-size: 15px;
   display: flex;
-  flex-direction: column;
-  gap: 14px;
-  width: 320px;
+  align-items: center;
+  gap: 10px;
+  font-family: 'Space Mono', monospace;
+}
+#scoreMsg { font-size: 13px; font-weight: 400; opacity: .8; min-width: 50px; }
+
+/* ── BUTTONS ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 15px;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: transform .1s, box-shadow .1s;
+  white-space: nowrap;
+}
+.btn:hover  { transform: translate(-1px,-1px); box-shadow: 5px 5px 0 var(--border); }
+.btn:active { transform: translate(2px,2px);   box-shadow: 1px 1px 0 var(--border); }
+
+.btn-unlock   { background: var(--accent4); color: var(--border); }
+.btn-sandbox  { background: var(--cation);  color: var(--border); }
+.btn-challenge{ background: var(--accent2); color: #fff; }
+.btn-clear    { background: var(--border);  color: #fff; }
+.btn-submit   { background: var(--accent3); color: var(--border); }
+.btn-check    { background: var(--accent2); color: #fff; }
+.btn-unlock-check { background: var(--accent4); color: var(--border); }
+
+/* ── MODE PILL ── */
+#modePill {
+  background: var(--accent1);
+  color: var(--border);
+  border: 2px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 14px;
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  box-shadow: 2px 2px 0 var(--border);
 }
 
-.column-title {
+/* ── APP LAYOUT ── */
+#app {
+  display: grid;
+  grid-template-columns: 260px 1fr 260px;
+  grid-template-rows: auto 1fr;
+  gap: 20px;
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* ── TOOLBAR BAR ── */
+#toolbarRow {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* ── ION BANKS ── */
+.ion-bank {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px 14px;
+}
+.bank-title {
   text-align: center;
-  font-weight: bold;
+  font-size: 13px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 14px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+}
+.cation-title { background: var(--cation); color: var(--border); }
+.anion-title  { background: var(--anion);  color: #fff; }
+
+.charge-section { margin-bottom: 12px; }
+.charge-label {
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  opacity: .5;
+  margin-bottom: 6px;
+}
+.ions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
 }
 
-/* ===== IONS ===== */
+/* ── ION CHIP ── */
 .ion {
   position: relative;
-  width: 120px;          /* fixed width = allows side-by-side */
-  max-width: 120px;
   height: calc(var(--charge) * var(--unit));
-  border-radius: 18px;
+  min-height: 42px;
+  width: 70px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22px;
-  font-weight: bold;
+  font-size: 16px;
+  font-weight: 900;
+  font-family: 'Space Mono', monospace;
   cursor: grab;
+  border: 2px solid var(--border);
+  box-shadow: 3px 3px 0 var(--border);
+  transition: transform .1s, box-shadow .1s;
+  user-select: none;
+}
+.ion:hover:not(.locked) { transform: translate(-1px,-2px); box-shadow: 4px 5px 0 var(--border); }
+.ion:active:not(.locked) { transform: translate(1px,1px); box-shadow: 1px 1px 0 var(--border); }
+
+.ion.cation { background: var(--cation); }
+.ion.anion  { background: var(--anion);  color: #fff; }
+
+.ion.locked.unknown {
+  background: var(--locked) !important;
+  color: #555 !important;
+  height: 60px;
+  cursor: not-allowed;
+  opacity: .75;
+  box-shadow: 2px 2px 0 #aaa;
+}
+.ion.locked.unknown .connectors { display: none; }
+.ion.locked.unknown::after {
+  content: "?";
+  position: absolute;
+  right: 8px; top: 6px;
+  font-size: 14px;
+  opacity: .5;
 }
 
-.cation { background: #79f1f6; }
-.anion { background: #fe4164; }
+sup { font-size: 60%; }
 
-sup { font-size: 65%; }
-
+/* connectors */
 .connectors {
   position: absolute;
-  top: 0;
-  bottom: 0;
+  top: 0; bottom: 0;
   display: grid;
   grid-template-rows: repeat(var(--charge), var(--unit));
   align-items: center;
 }
-
-.cation .connectors { right: -22px; }
-.anion .connectors { left: -22px; }
+.cation .connectors { right: -14px; }
+.anion  .connectors { left:  -14px; }
 
 .slot, .plug {
-  width: 16px;
-  height: 16px;
+  width: 12px; height: 12px;
   border-radius: 50%;
 }
+.slot { border: 2.5px dashed var(--border); }
+.plug { background: var(--anion); border: 2px solid var(--border); }
 
-.slot { border: 3px dashed #000; }
-.plug { background: #ef5a6f; }
-
-/* ===== BONDING ===== */
-.bonding-wrapper {
-  width: 500px;
-  justify-self: center;
-}
-
-#bonding-area {
-  border: 3px dashed #eca0ff;
-  background: white;
-  border-radius: 18px;
-  padding: 20px;
-  min-height: 320px;
-  display: grid;
-  grid-template-columns: 1fr 61px 1fr;
-  margin-bottom: 24px;
-}
-
-#bonding-area.neutral {
-  background: #b6f5c6;
-  border-color: #16a34a;
-}
-
-.bond-cations,
-.bond-anions {
+/* ── CENTER COLUMN ── */
+#center {
   display: flex;
   flex-direction: column;
+  gap: 16px;
 }
 
-.bond-cations { align-items: flex-end; }
-.bond-anions { align-items: flex-start; }
-
-.bond-cations .ion { margin-right: -18px; }
-.bond-anions .ion { margin-left: -18px; }
-
-/* ===== CONTROLS ===== */
-.controls {
-  margin-top: 12px;
-  text-align: center;
-  display: none;
-
-
-}
-
-#challengeBox {
-  display: none;
-  margin-top: 10px;
-}
-
-#challengePrompt {
-  font-weight: bold;
-  margin-bottom: 6px;
+/* ── UNLOCK AREA ── */
+#unlock-area {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   align-items: center;
 }
-
-#challenge-answer {
-  width: 260px;
+#unlock-area h2 {
+  font-size: 17px;
+  font-weight: 900;
+  text-align: center;
+  color: var(--border);
+}
+.styled-input {
+  width: 100%;
+  max-width: 260px;
   padding: 10px 14px;
-  font-size: 18px;
-  border-radius: 8px;
-  border: 2px solid #999;
+  font-size: 16px;
+  font-family: 'Space Mono', monospace;
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 3px 3px 0 var(--border);
+  outline: none;
+  background: var(--bg);
 }
-button {
-  border-radius: 10px;          /* rounded rectangle */
-  border: 2px solid transparent;
-  padding: 10px 18px;
-  font-size: 18px;
-  font-family: Georgia, serif;
-  cursor: pointer;
+.styled-input:focus { box-shadow: 4px 4px 0 var(--border); }
+
+/* ── BONDING AREA ── */
+#bonding-area {
+  background: var(--card);
+  border: 2px dashed #bbb;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  min-height: 260px;
+  display: grid;
+  grid-template-columns: 1fr 50px 1fr;
+  padding: 16px;
+  transition: background .3s, border-color .3s, box-shadow .3s;
+}
+#bonding-area.neutral {
+  background: #d4fce3;
+  border-color: #3bd672;
+  border-style: solid;
+  box-shadow: 0 0 0 3px #3bd672, 4px 4px 0 var(--border);
 }
 
-/* Mode buttons */
-#submitScoreBtn {
-  background: rgb(103, 255, 156);
-  color: black;
-  border-color: rgb(103, 255, 156);
-}
+.bond-cations { display: flex; flex-direction: column; align-items: flex-end;    }
+.bond-anions  { display: flex; flex-direction: column; align-items: flex-start;  }
+.bond-cations .ion { margin-right: -14px; }
+.bond-anions  .ion { margin-left:  -14px; }
 
-#unlockBtn {
-  background: rgb(245, 103, 255);
-  color: white;
-  border-color: rgb(245, 103, 255);
-}
-#sandboxBtn {
-  background: #4c17b0;
-  color: white;
-  border-color: #4c17b0;
-}
-
-#challengeBtn {
-  background: #530c5e;
-  color: white;
-  border-color: #530c5e;
-}
-
-/* Check Answer */
-#check-challenge {
-  background: #c084fc;          /* purple example */
-  color: white;
-}
-
-/* Clear */
-#clear {
-  background: #25202c;          /* red example */
-  color: white;
-}
-button:hover {
-  filter: brightness(1.05);
-}
-#challenge-feedback {
-  font-size: 20px;        /* adjust as needed */
-  font-weight: bold;
-  margin-top: 10px;
-}
-#challenge-feedback:empty {
-  display: none;
-}
-
-#result {
-  font-size: 18px;        /* sandbox + challenge balance message */
-  font-weight: bold;
-  margin-top: 8px;
-}
-/* ===== LOCKED / UNKNOWN IONS ===== */
-
-.ion.locked.unknown {
-  height: 60px !important;      /* same size for all */
-  background: #d1d5db !important;
-  color: #111;
-  cursor: not-allowed;
-}
-
-/* Hide slots / plugs */
-.ion.locked.unknown .connectors {
-  display: none;
-}
-
-/* Hide charge superscripts */
-.ion.locked.unknown sup {
-  display: none;
-}
-
-/* Hide visual stacking clues */
-.ion.locked.unknown {
+.midline {
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 26px;
+  color: #ccc;
+  font-weight: 900;
+  user-select: none;
 }
 
-/* Add mystery marker */
-.ion.locked.unknown::after {
-  content: "?";
-  position: absolute;
-  right: 10px;
-  top: 8px;
+/* ── BALANCE INDICATOR ── */
+#balanceBar {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-weight: 800;
+  font-size: 14px;
+}
+.charge-counter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.charge-counter .label {
+  font-size: 10px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .8px;
+  opacity: .5;
+}
+.charge-counter .val {
+  font-family: 'Space Mono', monospace;
   font-size: 22px;
-  font-weight: bold;
-  opacity: 0.7;
+  font-weight: 700;
 }
+.cation-val { color: #1a8a84; }
+.anion-val  { color: var(--anion); }
+#resultText { font-size: 15px; font-weight: 800; text-align: center; flex: 1; }
 
-/* ===== UNLOCK AREA ===== */
-#unlock-area {
-  
- 
-  border-radius: 18px;
-  padding: 10px;
-  max-width: 500px;
-  margin: 0 auto 20px auto;
-  display: grid;
-  row-gap: 12px;
+/* ── CHALLENGE AREA ── */
+#challenge-area {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px 24px;
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
 }
-
-#unlock-area h2 {
-  font-weight: bold;
-  padding: 20px;
-  font-size: 20px;
-  margin: 0;
+#challenge-area h2 {
+  font-size: 17px;
+  font-weight: 900;
   text-align: center;
-  color: #370047;
 }
 
-#unlock-answer {
-  width: 260px;
-  padding: 10px 14px;
-  font-size: 18px;
-  border-radius: 8px;
-  border: 2px solid #999;
-  justify-self: center;
-}
-
-#unlock-check {
-  background: #c084fc;
-  color: white;
-  font-size: 18px;
+/* ── FEEDBACK ── */
+.feedback {
+  font-size: 14px;
+  font-weight: 800;
+  text-align: center;
+  padding: 8px 16px;
   border-radius: 10px;
-  padding: 10px 18px;
   border: 2px solid transparent;
-  cursor: pointer;
-  justify-self: center;
-}
-
-#unlock-feedback {
-  font-size: 20px;
-  font-weight: bold;
-  text-align: center;
-  color: #16a34a;
-}
-
-#unlock-feedback:empty {
   display: none;
 }
+.feedback.ok  { display: block; background: #d4fce3; color: #1a7a40; border-color: #3bd672; }
+.feedback.err { display: block; background: #fde0e0; color: #c0392b; border-color: var(--anion); }
 
-
+/* ── MODAL ── */
+#nameModal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+#nameModal.open { display: flex; }
+.modal-box {
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 6px 6px 0 var(--border);
+  padding: 28px;
+  width: min(400px, 92vw);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.modal-box h3 { font-size: 18px; font-weight: 900; }
+.modal-box p  { font-size: 14px; opacity: .7; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; }
 </style>
 </head>
-
 <body>
 
-<div id="toolbar">
-  <div class="toolbar-left">
-    <a href="index.html" class="hub-link">← Hub</a>
-  </div>
-   <div class="toolbar-center">
-    Ionic Bonding Simulator
-  </div>
-
-
-
-
-  <div class="toolbar-right">
-    <div id="scoreHud" style="margin-right:14px; font-weight:bold; color:#370047;">
-  Score: <span id="scoreValue">0</span>
-  <span id="scoreMsg" style="margin-left:10px; font-weight:normal; opacity:0.85;"></span>
-</div>
-
-    <button id="unlockBtn">Unlock Mode</button>
-
-    <button id="sandboxBtn">Sandbox</button>
-    <button id="challengeBtn">Challenge</button>
-    <button id="clear">Clear</button>
-    <button id="submitScoreBtn">Submit Score</button>
-
-
+<!-- HEADER -->
+<div id="header">
+  <a href="index.html" id="backToHub">← Hub</a>
+  <h1>Ionic <span>Bonding</span> Simulator</h1>
+  <div id="modePill">Unlock</div>
+  <div id="scoreHud">
+    Score: <span id="scoreValue" style="font-size:18px;">0</span>
+    <span id="scoreMsg"></span>
   </div>
 </div>
 
+<div id="app">
 
+  <!-- TOOLBAR ROW -->
+  <div id="toolbarRow">
+    <button class="btn btn-unlock"    id="unlockBtn">🔒 Unlock Mode</button>
+    <button class="btn btn-sandbox"   id="sandboxBtn">🧪 Sandbox</button>
+    <button class="btn btn-challenge" id="challengeBtn">⚡ Challenge</button>
+    <button class="btn btn-clear"     id="clearBtn">↺ Clear</button>
+    <button class="btn btn-submit"    id="submitScoreBtn">↑ Submit Score</button>
+  </div>
 
-<div id="page-content">
-<div id="container">
-  <div id="cation-bank">
-    <div class="ion-column">
-      <div class="column-title">CATIONS (+)</div>
+  <!-- CATION BANK -->
+  <div class="ion-bank">
+    <div class="bank-title cation-title">Cations (+)</div>
 
-      <div class="charge-group">
-        <!-- +1 -->
-        <div class="ion cation locked unknown" draggable="false" data-element="Li" data-charge="1" style="--charge:1">
-          <div class="connectors"><div class="slot"></div></div>
-          Li<sup>+</sup>
-        </div>
-        <div class="ion cation locked unknown" draggable="false" data-element="Na" data-charge="1" style="--charge:1">
-          <div class="connectors"><div class="slot"></div></div>
-          Na<sup>+</sup>
-        </div>
-        <div class="ion cation locked unknown" draggable="false" data-element="K" data-charge="1" style="--charge:1">
-          <div class="connectors"><div class="slot"></div></div>
-          K<sup>+</sup>
-        </div>
-        <div class="ion cation locked unknown" draggable="false" data-element="Rb" data-charge="1" style="--charge:1">
-          <div class="connectors"><div class="slot"></div></div>
-          Rb<sup>+</sup>
-        </div>
-        <div class="ion cation locked unknown" draggable="false" data-element="Cs" data-charge="1" style="--charge:1">
-          <div class="connectors"><div class="slot"></div></div>
-          Cs<sup>+</sup>
-        </div>
+    <div class="charge-section">
+   
+      <div class="ions-row">
+        <div class="ion cation locked unknown" draggable="false" data-element="Li" data-charge="1" style="--charge:1"><div class="connectors"><div class="slot"></div></div>Li<sup>+</sup></div>
+        <div class="ion cation locked unknown" draggable="false" data-element="Na" data-charge="1" style="--charge:1"><div class="connectors"><div class="slot"></div></div>Na<sup>+</sup></div>
+        <div class="ion cation locked unknown" draggable="false" data-element="K"  data-charge="1" style="--charge:1"><div class="connectors"><div class="slot"></div></div>K<sup>+</sup></div>
+        <div class="ion cation locked unknown" draggable="false" data-element="Rb" data-charge="1" style="--charge:1"><div class="connectors"><div class="slot"></div></div>Rb<sup>+</sup></div>
+        <div class="ion cation locked unknown" draggable="false" data-element="Cs" data-charge="1" style="--charge:1"><div class="connectors"><div class="slot"></div></div>Cs<sup>+</sup></div>
+      </div>
+    </div>
 
-        <!-- +2 -->
-        <div class="ion cation locked unknown" draggable="false" data-element="Be" data-charge="2" style="--charge:2">
-          <div class="connectors"><div class="slot"></div><div class="slot"></div></div>
-          Be<sup>2+</sup>
-        </div>
-        <div class="ion cation locked unknown" draggable="false" data-element="Mg" data-charge="2" style="--charge:2">
-          <div class="connectors"><div class="slot"></div><div class="slot"></div></div>
-          Mg<sup>2+</sup>
-        </div>
-        <div class="ion cation locked unknown" draggable="false" data-element="Ca" data-charge="2" style="--charge:2">
-          <div class="connectors"><div class="slot"></div><div class="slot"></div></div>
-          Ca<sup>2+</sup>
-        </div>
-        <div class="ion cation locked unknown" draggable="false" data-element="Sr" data-charge="2" style="--charge:2">
-          <div class="connectors"><div class="slot"></div><div class="slot"></div></div>
-          Sr<sup>2+</sup>
-        </div>
-        <div class="ion cation locked unknown" draggable="false" data-element="Ba" data-charge="2" style="--charge:2">
-          <div class="connectors"><div class="slot"></div><div class="slot"></div></div>
-          Ba<sup>2+</sup>
-        </div>
-        <div class="ion cation locked unknown" draggable="false" data-element="Ra" data-charge="2" style="--charge:2">
-          <div class="connectors"><div class="slot"></div><div class="slot"></div></div>
-          Ra<sup>2+</sup>
-        </div>
+    <div class="charge-section">
+ 
+      <div class="ions-row">
+        <div class="ion cation locked unknown" draggable="false" data-element="Be" data-charge="2" style="--charge:2"><div class="connectors"><div class="slot"></div><div class="slot"></div></div>Be<sup>2+</sup></div>
+        <div class="ion cation locked unknown" draggable="false" data-element="Mg" data-charge="2" style="--charge:2"><div class="connectors"><div class="slot"></div><div class="slot"></div></div>Mg<sup>2+</sup></div>
+        <div class="ion cation locked unknown" draggable="false" data-element="Ca" data-charge="2" style="--charge:2"><div class="connectors"><div class="slot"></div><div class="slot"></div></div>Ca<sup>2+</sup></div>
+        <div class="ion cation locked unknown" draggable="false" data-element="Sr" data-charge="2" style="--charge:2"><div class="connectors"><div class="slot"></div><div class="slot"></div></div>Sr<sup>2+</sup></div>
+        <div class="ion cation locked unknown" draggable="false" data-element="Ba" data-charge="2" style="--charge:2"><div class="connectors"><div class="slot"></div><div class="slot"></div></div>Ba<sup>2+</sup></div>
+        <div class="ion cation locked unknown" draggable="false" data-element="Ra" data-charge="2" style="--charge:2"><div class="connectors"><div class="slot"></div><div class="slot"></div></div>Ra<sup>2+</sup></div>
+      </div>
+    </div>
 
-        <!-- +3 -->
-        <div class="ion cation locked unknown" draggable="false" data-element="B" data-charge="3" style="--charge:3">
-          <div class="connectors"><div class="slot"></div><div class="slot"></div><div class="slot"></div></div>
-          B<sup>3+</sup>
-        </div>
-        <div class="ion cation locked unknown" draggable="false" data-element="Al" data-charge="3" style="--charge:3">
-          <div class="connectors"><div class="slot"></div><div class="slot"></div><div class="slot"></div></div>
-          Al<sup>3+</sup>
-        </div>
-        <div class="ion cation locked unknown" draggable="false" data-element="Ga" data-charge="3" style="--charge:3">
-          <div class="connectors"><div class="slot"></div><div class="slot"></div><div class="slot"></div></div>
-          Ga<sup>3+</sup>
-        </div>
+    <div class="charge-section">
+
+      <div class="ions-row">
+        <div class="ion cation locked unknown" draggable="false" data-element="B"  data-charge="3" style="--charge:3"><div class="connectors"><div class="slot"></div><div class="slot"></div><div class="slot"></div></div>B<sup>3+</sup></div>
+        <div class="ion cation locked unknown" draggable="false" data-element="Al" data-charge="3" style="--charge:3"><div class="connectors"><div class="slot"></div><div class="slot"></div><div class="slot"></div></div>Al<sup>3+</sup></div>
+        <div class="ion cation locked unknown" draggable="false" data-element="Ga" data-charge="3" style="--charge:3"><div class="connectors"><div class="slot"></div><div class="slot"></div><div class="slot"></div></div>Ga<sup>3+</sup></div>
       </div>
     </div>
   </div>
-  <div class="bonding-wrapper">
-<div id="unlock-area" style="display:block; margin-top:20px;">
-  <h2 id="unlock-prompt">Predict the charge of ...</h2>
 
-  <input
-    id="unlock-answer"
-    placeholder="Enter the charge (e.g., 2+ or -2)"
-  />
+  <!-- CENTER -->
+  <div id="center">
 
-  <button id="unlock-check">Check Answer</button>
-  <div id="unlock-feedback"></div>
-</div>
+    <!-- UNLOCK AREA -->
+    <div id="unlock-area">
+      <h2 id="unlock-prompt">Predict the charge of ...</h2>
+      <input class="styled-input" id="unlock-answer" placeholder="e.g. 2+ or -2"/>
+      <button class="btn btn-unlock-check" id="unlock-check">Check Answer</button>
+      <div class="feedback" id="unlock-feedback"></div>
+    </div>
 
+    <!-- CHALLENGE AREA -->
+    <div id="challenge-area">
+      <h2 id="challenge-prompt"></h2>
+      <input class="styled-input" id="challenge-answer" placeholder="Enter formula e.g. NaCl"/>
+      <button class="btn btn-check" id="check-challenge">Check Answer</button>
+      <div class="feedback" id="challenge-feedback"></div>
+    </div>
 
- <div id="bonding-area">
+    <!-- BONDING AREA -->
+    <div id="bonding-area">
       <div class="bond-cations"></div>
-      <div class="midline"></div>
+      <div class="midline">⟷</div>
       <div class="bond-anions"></div>
     </div>
 
-<div id="challenge-area" style="display:none;">
-  <h2 id="challenge-prompt"></h2>
-
-  <input
-    id="challenge-answer"
-    placeholder="Enter formula or name"
-  />
-
-  <button id="check-challenge">Check Answer</button>
-  <div id="challenge-feedback"></div>
-</div>
-
-
-    <div class="controls">
-      
-      <div id="result"></div>
+    <!-- BALANCE BAR -->
+    <div id="balanceBar">
+      <div class="charge-counter">
+        <div class="label">+ charge</div>
+        <div class="val cation-val" id="posVal">0</div>
+      </div>
+      <div id="resultText">Drop ions above to bond</div>
+      <div class="charge-counter">
+        <div class="label">− charge</div>
+        <div class="val anion-val" id="negVal">0</div>
+      </div>
     </div>
 
   </div>
-  
-  
-<!-- ===== ION BANK ===== -->
-  <div id="anion-bank">
 
+  <!-- ANION BANK -->
+  <div class="ion-bank">
+    <div class="bank-title anion-title">Anions (−)</div>
 
+    <div class="charge-section">
 
-    <!-- ANIONS -->
-    <div class="ion-column">
-      <div class="column-title">ANIONS (−)</div>
+      <div class="ions-row">
+        <div class="ion anion locked unknown" draggable="false" data-element="F"  data-charge="-1" style="--charge:1"><div class="connectors"><div class="plug"></div></div>F<sup>−</sup></div>
+        <div class="ion anion locked unknown" draggable="false" data-element="Cl" data-charge="-1" style="--charge:1"><div class="connectors"><div class="plug"></div></div>Cl<sup>−</sup></div>
+        <div class="ion anion locked unknown" draggable="false" data-element="Br" data-charge="-1" style="--charge:1"><div class="connectors"><div class="plug"></div></div>Br<sup>−</sup></div>
+        <div class="ion anion locked unknown" draggable="false" data-element="I"  data-charge="-1" style="--charge:1"><div class="connectors"><div class="plug"></div></div>I<sup>−</sup></div>
+      </div>
+    </div>
 
-      <div class="charge-group">
-        <!-- −1 -->
-        <div class="ion anion locked unknown" draggable="false" data-element= "F" data-charge="-1" style="--charge:1">
-          <div class="connectors"><div class="plug"></div></div>
-          F<sup>−</sup>
-        </div>
-        <div class="ion anion locked unknown" draggable="false" data-element="Cl" data-charge="-1" style="--charge:1">
-          <div class="connectors"><div class="plug"></div></div>
-          Cl<sup>−</sup>
-        </div>
-        <div class="ion anion locked unknown" draggable="false" data-element="Br" data-charge="-1" style="--charge:1">
-          <div class="connectors"><div class="plug"></div></div>
-          Br<sup>−</sup>
-        </div>
-        <div class="ion anion locked unknown" draggable="false" data-element="I" data-charge="-1" style="--charge:1">
-          <div class="connectors"><div class="plug"></div></div>
-          I<sup>−</sup>
-        </div>
+    <div class="charge-section">
 
-        <!-- −2 -->
-        <div class="ion anion locked unknown" draggable="false" data-element="O" data-charge="-2" style="--charge:2">
-          <div class="connectors"><div class="plug"></div><div class="plug"></div></div>
-          O<sup>2−</sup>
-        </div>
-        <div class="ion anion locked unknown" draggable="false" data-element="S" data-charge="-2" style="--charge:2">
-          <div class="connectors"><div class="plug"></div><div class="plug"></div></div>
-          S<sup>2−</sup>
-        </div>
-        <div class="ion anion locked unknown" draggable="false" data-element="Se" data-charge="-2" style="--charge:2">
-          <div class="connectors"><div class="plug"></div><div class="plug"></div></div>
-          Se<sup>2−</sup>
-        </div>
+      <div class="ions-row">
+        <div class="ion anion locked unknown" draggable="false" data-element="O"  data-charge="-2" style="--charge:2"><div class="connectors"><div class="plug"></div><div class="plug"></div></div>O<sup>2−</sup></div>
+        <div class="ion anion locked unknown" draggable="false" data-element="S"  data-charge="-2" style="--charge:2"><div class="connectors"><div class="plug"></div><div class="plug"></div></div>S<sup>2−</sup></div>
+        <div class="ion anion locked unknown" draggable="false" data-element="Se" data-charge="-2" style="--charge:2"><div class="connectors"><div class="plug"></div><div class="plug"></div></div>Se<sup>2−</sup></div>
+      </div>
+    </div>
 
-        <!-- −3 -->
-        <div class="ion anion locked unknown" draggable="false" data-element="N" data-charge="-3" style="--charge:3">
-          <div class="connectors"><div class="plug"></div><div class="plug"></div><div class="plug"></div></div>
-          N<sup>3−</sup>
-        </div>
-        <div class="ion anion locked unknown" draggable="false" data-element="P" data-charge="-3" style="--charge:3">
-          <div class="connectors"><div class="plug"></div><div class="plug"></div><div class="plug"></div></div>
-          P<sup>3−</sup>
-        </div>
+    <div class="charge-section">
 
+      <div class="ions-row">
+        <div class="ion anion locked unknown" draggable="false" data-element="N"  data-charge="-3" style="--charge:3"><div class="connectors"><div class="plug"></div><div class="plug"></div><div class="plug"></div></div>N<sup>3−</sup></div>
+        <div class="ion anion locked unknown" draggable="false" data-element="P"  data-charge="-3" style="--charge:3"><div class="connectors"><div class="plug"></div><div class="plug"></div><div class="plug"></div></div>P<sup>3−</sup></div>
       </div>
     </div>
   </div>
-</div>
 
-<div id="nameModal" style="
-  display:none;
-  position:fixed; inset:0;
-  background:rgba(0,0,0,.35);
-  align-items:center; justify-content:center;
-  z-index:9999;
-">
-  <div style="
-    width:min(420px, 92vw);
-    background:#fff;
-    border:3px solid #000;
-    border-radius:16px;
-    padding:16px;
-    font-family: Georgia, serif;
-  ">
-    <div style="font-weight:bold; font-size:18px; margin-bottom:8px;">
-      Leaderboard name (optional)
-    </div>
-    <div style="opacity:.85; margin-bottom:10px;">
-      Nickname / initials. Leave blank to stay anonymous.
-    </div>
-    <input id="displayNameInput" maxlength="20" placeholder="e.g., Nik / NV / ChemQueen"
-      style="width:90%; padding:10px 12px; font-size:18px; border-radius:10px; border:2px solid #999;"
-    />
-    <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:12px;">
-      <button id="cancelName" style="background:#eee;">Cancel</button>
-      <button id="continueName" style="background:#c084fc; color:white;">Continue</button>
+</div><!-- /app -->
+
+<!-- NAME MODAL -->
+<div id="nameModal">
+  <div class="modal-box">
+    <h3>Leaderboard name</h3>
+    <p>Nickname or initials — leave blank to stay anonymous.</p>
+    <input class="styled-input" id="displayNameInput" maxlength="20" placeholder="e.g. Nik / NV / ChemQueen"/>
+    <div class="modal-actions">
+      <button class="btn btn-clear" id="cancelName">Cancel</button>
+      <button class="btn btn-check" id="continueName">Continue →</button>
     </div>
   </div>
 </div>
 
-
 <script>
-const bondCations = document.querySelector(".bond-cations");
-const bondAnions = document.querySelector(".bond-anions");
-const bondingArea = document.getElementById("bonding-area");
-const result = document.getElementById("result");
+// ── ELEMENTS ──
+const bondingArea  = document.getElementById("bonding-area");
+const bondCations  = document.querySelector(".bond-cations");
+const bondAnions   = document.querySelector(".bond-anions");
+const posValEl     = document.getElementById("posVal");
+const negValEl     = document.getElementById("negVal");
+const resultText   = document.getElementById("resultText");
+const modePill     = document.getElementById("modePill");
 
-const sandboxBtn = document.getElementById("sandboxBtn");
-const challengeBtn = document.getElementById("challengeBtn");
+let pos = 0, neg = 0, mode = "unlock";
 
-const challengeArea = document.getElementById("challenge-area");
-const challengePrompt = document.getElementById("challenge-prompt");
-const challengeAnswer = document.getElementById("challenge-answer");
-const challengeFeedback = document.getElementById("challenge-feedback");
-
-// ===== SCORE ENGINE (Ionic Bonding) =====
+// ── SCORE ──
 const score = {
-  value: 0,
-  mode: "unlock",
-  // stats
-  unlockCorrect: 0,
-  unlockWrong: 0,
-  challengeCorrect: 0,
-  challengeWrong: 0,
-  notBalanced: 0,
-  startedAt: Date.now(),
-  events: [],
+  value:0, mode:"unlock",
+  unlockCorrect:0, unlockWrong:0,
+  challengeCorrect:0, challengeWrong:0,
+  notBalanced:0,
+  startedAt: Date.now(), events:[]
 };
+const RULES = { unlockCorrect:5, unlockWrong:-1, challengeCorrect:15, challengeWrong:-2, notBalanced:-1, minScore:0 };
 
-const SCORE_RULES = {
-  unlockCorrect: 5,
-  unlockWrong: -1,         // set to 0 if you want no penalty
-  challengeCorrect: 15,
-  challengeWrong: -2,
-  notBalanced: -1,
-  minScore: 0,
-};
-
-function setScoreMode(m) {
-  score.mode = m;
-}
-
-function clampScore() {
-  if (score.value < SCORE_RULES.minScore) score.value = SCORE_RULES.minScore;
-}
-
-function flashMsg(text) {
-  const el = document.getElementById("scoreMsg");
-  if (!el) return;
-  el.textContent = text;
-  clearTimeout(flashMsg._t);
-  flashMsg._t = setTimeout(() => (el.textContent = ""), 1200);
-}
-
-function renderScore() {
-  const el = document.getElementById("scoreValue");
-  if (el) el.textContent = score.value;
-}
-
-function addScore(type, delta, meta = {}) {
-  score.value += delta;
-  clampScore();
-  score.events.push({ t: Date.now(), type, delta, scoreAfter: score.value, ...meta });
-  renderScore();
-
-  const sign = delta > 0 ? "+" : "";
-  if (delta !== 0) flashMsg(`${sign}${delta}`);
-}
-
-function scoreUnlockCorrect(meta = {}) {
-  score.unlockCorrect++;
-  addScore("unlock_correct", SCORE_RULES.unlockCorrect, meta);
-}
-
-function scoreUnlockWrong(meta = {}) {
-  score.unlockWrong++;
-  addScore("unlock_wrong", SCORE_RULES.unlockWrong, meta);
-}
-
-function scoreChallengeCorrect(meta = {}) {
-  score.challengeCorrect++;
-  addScore("challenge_correct", SCORE_RULES.challengeCorrect, meta);
-}
-
-function scoreChallengeWrong(meta = {}) {
-  score.challengeWrong++;
-  addScore("challenge_wrong", SCORE_RULES.challengeWrong, meta);
-}
-
-function scoreNotBalanced(meta = {}) {
-  score.notBalanced++;
-  addScore("not_balanced", SCORE_RULES.notBalanced, meta);
-}
-
-function scoreSummary() {
-  return {
-    score: score.value,
-    mode: score.mode,
-    unlockCorrect: score.unlockCorrect,
-    unlockWrong: score.unlockWrong,
-    challengeCorrect: score.challengeCorrect,
-    challengeWrong: score.challengeWrong,
-    notBalanced: score.notBalanced,
-    seconds: Math.floor((Date.now() - score.startedAt) / 1000),
-    events: score.events,
-  };
-}
-
-// initialize HUD
+function renderScore(){ document.getElementById("scoreValue").textContent = score.value; }
+function flashMsg(t){ const el=document.getElementById("scoreMsg"); el.textContent=t; clearTimeout(flashMsg._t); flashMsg._t=setTimeout(()=>el.textContent="",1200); }
+function addScore(type,delta,meta={}){ score.value=Math.max(RULES.minScore,score.value+delta); score.events.push({t:Date.now(),type,delta,scoreAfter:score.value,...meta}); renderScore(); if(delta!==0) flashMsg((delta>0?"+":"")+delta); }
+function scoreUnlockCorrect(m)  { score.unlockCorrect++;   addScore("unlock_correct",  RULES.unlockCorrect,  m); }
+function scoreUnlockWrong(m)    { score.unlockWrong++;     addScore("unlock_wrong",    RULES.unlockWrong,    m); }
+function scoreChallengeCorrect(m){ score.challengeCorrect++; addScore("challenge_correct",RULES.challengeCorrect,m); }
+function scoreChallengeWrong(m) { score.challengeWrong++;  addScore("challenge_wrong", RULES.challengeWrong, m); }
+function scoreNotBalanced(m)    { score.notBalanced++;     addScore("not_balanced",    RULES.notBalanced,    m); }
+function scoreSummary(){ return { score:score.value, mode:score.mode, unlockCorrect:score.unlockCorrect, unlockWrong:score.unlockWrong, challengeCorrect:score.challengeCorrect, challengeWrong:score.challengeWrong, notBalanced:score.notBalanced, seconds:Math.floor((Date.now()-score.startedAt)/1000), events:score.events }; }
 renderScore();
 
-
-let pos = 0;
-let neg = 0;
-let mode = "unlock";
-
-let unlockQueue = [
-  { element: "Li", charge: ["1+", "+1"] },
-  { element: "Na", charge: ["1+", "+1"] },
-  { element: "K", charge: ["1+", "+1"] },
-  { element: "Rb", charge: ["1+", "+1"] },
-  { element: "Cs", charge: ["1+", "+1"] },
-
-  { element: "Be", charge: ["2+", "+2"] },
-  { element: "Mg", charge: ["2+", "+2"] },
-  { element: "Ca", charge: ["2+", "+2"] },
-  { element: "Sr", charge: ["2+", "+2"] },
-  { element: "Ba", charge: ["2+", "+2"] },
-  { element: "Ra", charge: ["2+", "+2"] },
-
-  { element: "B", charge: ["3+", "+3"] },
-  { element: "Al", charge: ["3+", "+3"] },
-  { element: "Ga", charge: ["3+", "+3"] },
-
-  { element: "F", charge: ["1-", "-1"] },
-  { element: "Cl", charge: ["1-", "-1"] },
-  { element: "Br", charge: ["1-", "-1"] },
-  { element: "I", charge: ["1-", "-1"] },
-
-  { element: "O", charge: ["2-", "-2"] },
-  { element: "S", charge: ["2-", "-2"] },
-  { element: "Se", charge: ["2-", "-2"] },
-
-  { element: "N", charge: ["3-", "-3"] },
-  { element: "P", charge: ["3-", "-3"] }
+// ── UNLOCK QUEUE ──
+const unlockData = [
+  {element:"Li",charge:["1+","+1"]},{element:"Na",charge:["1+","+1"]},{element:"K",charge:["1+","+1"]},
+  {element:"Rb",charge:["1+","+1"]},{element:"Cs",charge:["1+","+1"]},
+  {element:"Be",charge:["2+","+2"]},{element:"Mg",charge:["2+","+2"]},{element:"Ca",charge:["2+","+2"]},
+  {element:"Sr",charge:["2+","+2"]},{element:"Ba",charge:["2+","+2"]},{element:"Ra",charge:["2+","+2"]},
+  {element:"B", charge:["3+","+3"]},{element:"Al",charge:["3+","+3"]},{element:"Ga",charge:["3+","+3"]},
+  {element:"F", charge:["1-","-1"]},{element:"Cl",charge:["1-","-1"]},{element:"Br",charge:["1-","-1"]},{element:"I",charge:["1-","-1"]},
+  {element:"O", charge:["2-","-2"]},{element:"S", charge:["2-","-2"]},{element:"Se",charge:["2-","-2"]},
+  {element:"N", charge:["3-","-3"]},{element:"P", charge:["3-","-3"]}
 ];
-
-unlockQueue = shuffleArray(unlockQueue);
-
-
-
+function shuffle(a){ for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a; }
+let unlockQueue = shuffle([...unlockData]);
 let currentUnlock = null;
 
-const unlockBtn = document.getElementById("unlockBtn");
-const unlockArea = document.getElementById("unlock-area");
-
-unlockBtn.onclick = () => {
-  mode = "unlock";                // set mode
-  unlockArea.style.display = "block";  // show unlock area
-  challengeArea.style.display = "none"; // hide challenge area
-  document.querySelector(".controls").style.display = "none"; // hide challenge controls
-  clearAll(); 
-  lockAllIons();                    
-  loadNextUnlock();              
-};
-
-const challenges = [
-  { prompt: "Build aluminum oxide", answer: "Al2O3" },
-  { prompt: "Build magnesium chloride", answer: "MgCl2" },
-  { prompt: "Build calcium nitride", answer: "Ca3N2" },
-  { prompt: "Build sodium sulfide", answer: "Na2S" },
-  { prompt: "Build barium bromide", answer: "BaBr2" },
-  { prompt: "Build lithium nitride", answer: "Li3N" },
-  { prompt: "Build cesium iodide", answer: "CsI" },
-  { prompt: "Build radium selenide", answer: "RaSe" },
-  { prompt: "Build aluminum sulfide", answer: "Al2S3" },
-  { prompt: "Build sodium chloride", answer: "NaCl" },
-  { prompt: "Build strontium phosphide", answer: "Sr3P2" },
-  { prompt: "Build potassium oxide", answer: "K2O" },
-  { prompt: "Build calcium fluoride", answer: "CaF2" },
-];
-
-let currentChallenge = null;
-
-function shuffleArray(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
-}
-
-
-function normalizeCharge(str) {
-  return str
-    .replace(/−/g, "-")
-    .replace(/＋/g, "+")
-    .replace(/\s+/g, "")
-    .toUpperCase();
-}
-
-
-
-/* ===== DRAG ===== */
-document.addEventListener("dragstart", e => {
-  if (e.target.classList.contains("locked")) {
-    e.preventDefault();
-  }
-});
-
-
-document.querySelectorAll(".ion").forEach(ion => {
-  ion.addEventListener("dragstart", e => {
-    e.dataTransfer.setData("html", ion.outerHTML);
-    e.dataTransfer.setData("charge", ion.dataset.charge);
-  });
-});
-
-bondingArea.addEventListener("dragover", e => e.preventDefault());
-
-bondingArea.addEventListener("drop", e => {
-  if (e.target.classList.contains("locked")) return;
-
-  e.preventDefault();
-
-  const html = e.dataTransfer.getData("html");
-  const charge = Number(e.dataTransfer.getData("charge"));
-
-  if (charge > 0) {
-    bondCations.insertAdjacentHTML("beforeend", html);
-    pos += charge;
-  } else {
-    bondAnions.insertAdjacentHTML("beforeend", html);
-    neg += Math.abs(charge);
-  }
-
-  updateCharge();
-});
-
-function updateCharge() {
-  if (pos === neg && pos > 0) {
-    result.textContent = "✔ Charges balanced";
-
-    if (mode === "sandbox") {
-      bondingArea.classList.add("neutral");
-    }
-
-  } else {
-    result.textContent = "⚠ Charges not balanced";
-    bondingArea.classList.remove("neutral");
-  }
-}
-function loadNextUnlock() {
+function loadNextUnlock(){
   currentUnlock = unlockQueue.shift();
-
-    if (!currentUnlock) {
+  if(!currentUnlock){
     document.getElementById("unlock-prompt").textContent = "✅ All ions unlocked!";
     document.getElementById("unlock-answer").style.display = "none";
     document.getElementById("unlock-check").style.display = "none";
-    document.getElementById("unlock-feedback").textContent = "Nice work.";
+    showFeedback("unlock-feedback","Great work — all ions unlocked!",true);
     return;
   }
-
-
-  document.getElementById("unlock-prompt").textContent =
-    `Predict the charge of ${currentUnlock.element}`;
+  document.getElementById("unlock-prompt").textContent = `What is the charge of ${currentUnlock.element}?`;
   document.getElementById("unlock-answer").value = "";
-  document.getElementById("unlock-feedback").textContent = "";
+  clearFeedback("unlock-feedback");
 }
 
+// ── CHALLENGES ──
+const challenges = [
+  {prompt:"Build aluminum oxide",     answer:"Al2O3"},
+  {prompt:"Build magnesium chloride", answer:"MgCl2"},
+  {prompt:"Build calcium nitride",    answer:"Ca3N2"},
+  {prompt:"Build sodium sulfide",     answer:"Na2S"},
+  {prompt:"Build barium bromide",     answer:"BaBr2"},
+  {prompt:"Build lithium nitride",    answer:"Li3N"},
+  {prompt:"Build cesium iodide",      answer:"CsI"},
+  {prompt:"Build radium selenide",    answer:"RaSe"},
+  {prompt:"Build aluminum sulfide",   answer:"Al2S3"},
+  {prompt:"Build sodium chloride",    answer:"NaCl"},
+  {prompt:"Build strontium phosphide",answer:"Sr3P2"},
+  {prompt:"Build potassium oxide",    answer:"K2O"},
+  {prompt:"Build calcium fluoride",   answer:"CaF2"},
+];
+let currentChallenge = null;
 
-/* ===== MODES ===== */
-sandboxBtn.onclick = () => {
-  mode = "sandbox";
-  unlockArea.style.display = "none";    // hide unlock area
-  challengeArea.style.display = "none"; // hide challenge area
-  document.querySelector(".controls").style.display = "none";
+function loadChallenge(){
   clearAll();
-  unlockAllIons();
-};
-
-challengeBtn.onclick = () => {
-  mode = "challenge";
-  unlockArea.style.display = "none";    // hide unlock area
-  challengeArea.style.display = "block"; 
-  document.querySelector(".controls").style.display = "block";
-  clearAll();
-  loadChallenge();
-  unlockAllIons();
-};
-
-
-
-/* ===== CHALLENGE ===== */
-function loadChallenge() {
-  clearAll();
-  currentChallenge =
-    challenges[Math.floor(Math.random() * challenges.length)];
-  challengePrompt.textContent = currentChallenge.prompt;
-  challengeFeedback.textContent = "";
+  currentChallenge = challenges[Math.floor(Math.random()*challenges.length)];
+  document.getElementById("challenge-prompt").textContent = currentChallenge.prompt;
+  document.getElementById("challenge-answer").value = "";
+  clearFeedback("challenge-feedback");
 }
+
+// ── MODE BUTTONS ──
+document.getElementById("unlockBtn").onclick = () => {
+  mode = "unlock"; modePill.textContent = "Unlock";
+  document.getElementById("unlock-area").style.display = "flex";
+  document.getElementById("challenge-area").style.display = "none";
+  clearAll(); lockAllIons(); loadNextUnlock();
+};
+document.getElementById("sandboxBtn").onclick = () => {
+  mode = "sandbox"; modePill.textContent = "Sandbox";
+  document.getElementById("unlock-area").style.display = "none";
+  document.getElementById("challenge-area").style.display = "none";
+  clearAll(); unlockAllIons();
+};
+document.getElementById("challengeBtn").onclick = () => {
+  mode = "challenge"; modePill.textContent = "Challenge";
+  document.getElementById("unlock-area").style.display = "none";
+  document.getElementById("challenge-area").style.display = "flex";
+  clearAll(); unlockAllIons(); loadChallenge();
+};
+document.getElementById("clearBtn").onclick = clearAll;
+
+// ── DRAG & DROP ──
+document.addEventListener("dragstart", e => {
+  if(e.target.classList.contains("ion")){
+    if(e.target.classList.contains("locked")){ e.preventDefault(); return; }
+    e.dataTransfer.setData("html", e.target.outerHTML);
+    e.dataTransfer.setData("charge", e.target.dataset.charge);
+  }
+});
+bondingArea.addEventListener("dragover", e => e.preventDefault());
+bondingArea.addEventListener("drop", e => {
+  e.preventDefault();
+  const html   = e.dataTransfer.getData("html");
+  const charge = Number(e.dataTransfer.getData("charge"));
+  if(charge > 0){ bondCations.insertAdjacentHTML("beforeend", html); pos += charge; }
+  else           { bondAnions.insertAdjacentHTML("beforeend", html);  neg += Math.abs(charge); }
+  updateCharge();
+});
+
+function updateCharge(){
+  posValEl.textContent = pos;
+  negValEl.textContent = neg;
+  if(pos>0 && pos===neg){
+    resultText.textContent = "✓ Charges balanced!";
+    resultText.style.color = "#1a7a40";
+    bondingArea.classList.add("neutral");
+  } else if(pos===0 && neg===0){
+    resultText.textContent = "Drop ions above to bond";
+    resultText.style.color = "#aaa";
+    bondingArea.classList.remove("neutral");
+  } else {
+    resultText.textContent = `⚠ Not balanced (${pos > neg ? "+" : ""}${pos-neg})`;
+    resultText.style.color = "#c0392b";
+    bondingArea.classList.remove("neutral");
+  }
+}
+
+// ── CHECK BUTTONS ──
+document.getElementById("unlock-check").onclick = () => {
+  const userNorm = normalizeCharge(document.getElementById("unlock-answer").value);
+  const correctNorms = currentUnlock.charge.map(normalizeCharge);
+  if(correctNorms.includes(userNorm)){
+    scoreUnlockCorrect({element:currentUnlock.element});
+    unlockIon(currentUnlock.element);
+    showFeedback("unlock-feedback","✓ Correct!",true);
+    setTimeout(loadNextUnlock, 600);
+  } else {
+    scoreUnlockWrong({element:currentUnlock.element});
+    showFeedback("unlock-feedback","✗ Try again",false);
+  }
+};
 
 document.getElementById("check-challenge").onclick = () => {
-  setScoreMode("challenge");
-  if (!currentChallenge) return;
-
-  const userAnswer = challengeAnswer.value.replace(/\s+/g, "");
-
-  if (pos !== neg || pos === 0) {
-    scoreNotBalanced({ prompt: currentChallenge.prompt, pos, neg });
-    challengeFeedback.textContent = "❌ Charges not balanced";
+  if(!currentChallenge) return;
+  const userAnswer = document.getElementById("challenge-answer").value.replace(/\s+/g,"");
+  if(pos!==neg || pos===0){
+    scoreNotBalanced({prompt:currentChallenge.prompt,pos,neg});
+    showFeedback("challenge-feedback","❌ Charges not balanced — fix your ions first",false);
     bondingArea.classList.remove("neutral");
     return;
   }
-
-  if (userAnswer === currentChallenge.answer) {
-    scoreChallengeCorrect({ prompt: currentChallenge.prompt, answer: userAnswer });
-    challengeFeedback.textContent = "✔ Correct!";
+  if(userAnswer===currentChallenge.answer){
+    scoreChallengeCorrect({prompt:currentChallenge.prompt});
+    showFeedback("challenge-feedback","✓ Correct! Formula matches.",true);
     bondingArea.classList.add("neutral");
   } else {
-    scoreChallengeWrong({ prompt: currentChallenge.prompt, answer: userAnswer });
-    challengeFeedback.textContent = "✘ Try again";
-    bondingArea.classList.remove("neutral");
+    scoreChallengeWrong({prompt:currentChallenge.prompt});
+    showFeedback("challenge-feedback",`✗ Not quite — check your formula`,false);
   }
 };
 
+// ── HELPERS ──
+function normalizeCharge(s){ return s.replace(/−/g,"-").replace(/＋/g,"+").replace(/\s+/g,"").toUpperCase(); }
+function showFeedback(id,msg,ok){ const el=document.getElementById(id); el.textContent=msg; el.className="feedback "+(ok?"ok":"err"); }
+function clearFeedback(id){ const el=document.getElementById(id); el.textContent=""; el.className="feedback"; }
+function clearAll(){ bondCations.innerHTML=""; bondAnions.innerHTML=""; pos=0; neg=0; updateCharge(); if(document.getElementById("challenge-answer")) document.getElementById("challenge-answer").value=""; clearFeedback("challenge-feedback"); }
+function unlockIon(el){ document.querySelectorAll(`.ion[data-element="${el}"]`).forEach(i=>{ i.classList.remove("locked","unknown"); i.setAttribute("draggable","true"); }); }
+function unlockAllIons(){ document.querySelectorAll(".ion").forEach(i=>{ i.classList.remove("locked","unknown"); i.setAttribute("draggable","true"); }); }
+function lockAllIons(){ document.querySelectorAll(".ion").forEach(i=>{ i.classList.add("locked","unknown"); i.setAttribute("draggable","false"); }); }
 
-document.getElementById("unlock-check").onclick = () => {
-  setScoreMode("unlock");
-
-  const userNorm = normalizeCharge(
-    document.getElementById("unlock-answer").value
-  );
-
-  const correctNorms = currentUnlock.charge.map(normalizeCharge);
-
-  if (correctNorms.includes(userNorm)) {
-    scoreUnlockCorrect({ element: currentUnlock.element, guess: userNorm });
-    unlockIon(currentUnlock.element);
-    document.getElementById("unlock-feedback").textContent = "✔ Correct!";
-    loadNextUnlock();
-  } else {
-    scoreUnlockWrong({ element: currentUnlock.element, guess: userNorm });
-    document.getElementById("unlock-feedback").textContent = "✘ Try again";
-  }
-};
-
-const copyBtn = document.getElementById("copyProgressBtn");
-if (copyBtn) {
-  copyBtn.onclick = async () => {
-    const s = scoreSummary();
-    const text =
-      `Ionic Bonding Progress\n` +
-      `Score: ${s.score}\n` +
-      `Unlock correct/wrong: ${s.unlockCorrect}/${s.unlockWrong}\n` +
-      `Challenge correct/wrong: ${s.challengeCorrect}/${s.challengeWrong}\n` +
-      `Not balanced checks: ${s.notBalanced}\n` +
-      `Time: ${s.seconds}s\n`;
-
-    try {
-      await navigator.clipboard.writeText(text);
-      flashMsg("Copied!");
-    } catch {
-      prompt("Copy this:", text);
-    }
-  };
-}
-
-
-
-function unlockIon(element) {
-  document
-    .querySelectorAll(`.ion[data-element="${element}"]`)
-    .forEach(ion => {
-      ion.classList.remove("locked", "unknown");
-      ion.setAttribute("draggable", "true");
-    });
-}
-function unlockAllIons() {
-  document.querySelectorAll(".ion").forEach(ion => {
-    ion.classList.remove("locked", "unknown");
-    ion.setAttribute("draggable", "true");
-  });
-}
-function lockAllIons() {
-  document.querySelectorAll(".ion").forEach(ion => {
-    ion.classList.add("locked", "unknown");
-    ion.setAttribute("draggable", "false");
-  });
-}
-
-// ===== GOOGLE FORM EXPORT (Model A) =====
-
-// 1) Paste your prefill base URL here (from Google Forms "Get pre-filled link")
-const FORM_BASE_URL =
-  "https://docs.google.com/forms/d/e/1FAIpQLSckXbWQsVWobjrktGMoF7AtY6gMch0eQMjsGlddVv1cxgNHgQ/formResponse";
-
-// 2) Paste the entry IDs here (from that link)
-const FORM_ENTRIES = {
-  displayName: "entry.366340186",
-  sim: "entry.1832756779",
-  
-  score: "entry.221944829",
-  token: "entry.1636605257",
-};
-
-// Keep these sim IDs short and consistent across your site
+// ── SCORE SUBMISSION ──
+const FORM_BASE_URL = "https://docs.google.com/forms/d/e/1FAIpQLSckXbWQsVWobjrktGMoF7AtY6gMch0eQMjsGlddVv1cxgNHgQ/formResponse";
+const FORM_ENTRIES = { displayName:"entry.366340186", sim:"entry.1832756779", score:"entry.221944829", token:"entry.1636605257" };
 const SIM_ID = "ionic_bonding";
-
-// Not “secure” (students can view source), but good enough as tamper-evidence + deterrence
 const TOKEN_SALT = "MoLeCuTeOrG";
+function fnv1a(s){ let h=0x811c9dc5; for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=(h*0x01000193)>>>0;} return ("00000000"+h.toString(16)).slice(-8); }
+function makeToken(summary){ const p={v:1,sim:SIM_ID,score:summary.score,uc:summary.unlockCorrect,uw:summary.unlockWrong,cc:summary.challengeCorrect,cw:summary.challengeWrong,nb:summary.notBalanced,seconds:summary.seconds,t:Date.now(),nonce:Math.random().toString(36).slice(2,10)}; const core=JSON.stringify(p); p.sig=fnv1a(core+"|"+TOKEN_SALT); return btoa(JSON.stringify(p)); }
+function buildPrefillUrl({displayName="",sim,score,token}){ const params=new URLSearchParams(); if(displayName) params.set(FORM_ENTRIES.displayName,displayName); params.set(FORM_ENTRIES.sim,sim); params.set(FORM_ENTRIES.score,String(score)); params.set(FORM_ENTRIES.token,token); return FORM_BASE_URL+"?"+params.toString(); }
 
-// Small hash (FNV-1a) for a quick checksum
-function fnv1a(str) {
-  let h = 0x811c9dc5;
-  for (let i = 0; i < str.length; i++) {
-    h ^= str.charCodeAt(i);
-    h = (h * 0x01000193) >>> 0;
-  }
-  return ("00000000" + h.toString(16)).slice(-8);
-}
+function askDisplayName(){ return new Promise(resolve=>{ const modal=document.getElementById("nameModal"); const input=document.getElementById("displayNameInput"); const cancel=document.getElementById("cancelName"); const cont=document.getElementById("continueName"); function close(val){ modal.classList.remove("open"); cancel.onclick=null; cont.onclick=null; modal.onclick=null; document.onkeydown=null; resolve(val); } input.value=""; modal.classList.add("open"); input.focus(); cancel.onclick=()=>close(null); cont.onclick=()=>close(input.value.trim()); modal.onclick=e=>{if(e.target===modal)close(null);}; document.onkeydown=e=>{if(e.key==="Escape")close(null);if(e.key==="Enter")close(input.value.trim());}; }); }
 
-function makeToken(summary) {
-  const payload = {
-    v: 1,
-    sim: SIM_ID,
-    
-    score: summary.score,
-    uc: summary.unlockCorrect,
-    uw: summary.unlockWrong,
-    cc: summary.challengeCorrect,
-    cw: summary.challengeWrong,
-    nb: summary.notBalanced,
-    seconds: summary.seconds,
-    t: Date.now(),
-    nonce: Math.random().toString(36).slice(2, 10),
-  };
-
-  // checksum over the payload + salt
-  const core = JSON.stringify(payload);
-  payload.sig = fnv1a(core + "|" + TOKEN_SALT);
-
-  // base64 token
-  return btoa(JSON.stringify(payload));
-}
-
-function buildPrefillUrl({ displayName = "", sim, score, token }) {
-  const params = new URLSearchParams();
-
-  // Only include nickname if provided (keeps the form clean)
-  if (displayName) params.set(FORM_ENTRIES.displayName, displayName);
-
-  params.set(FORM_ENTRIES.sim, sim);
-  
-  params.set(FORM_ENTRIES.score, String(score));
-  params.set(FORM_ENTRIES.token, token);
-
-  // If your FORM_BASE_URL already has params, URLSearchParams will append fine
-  const joiner = FORM_BASE_URL.includes("?") ? "&" : "?";
-  return FORM_BASE_URL + joiner + params.toString();
-}
-
-function askDisplayName() {
-  return new Promise((resolve) => {
-    const modal = document.getElementById("nameModal");
-    const input = document.getElementById("displayNameInput");
-    const cancel = document.getElementById("cancelName");
-    const cont = document.getElementById("continueName");
-
-    function close(val) {
-      modal.style.display = "none";
-      cancel.onclick = null;
-      cont.onclick = null;
-      modal.onclick = null;
-      document.onkeydown = null;
-      resolve(val);
-    }
-
-    input.value = "";
-    modal.style.display = "flex";
-    input.focus();
-
-    cancel.onclick = () => close(null);
-    cont.onclick = () => close(input.value.trim());
-
-    modal.onclick = (e) => {
-      if (e.target === modal) close(null);
-    };
-
-    document.onkeydown = (e) => {
-      if (e.key === "Escape") close(null);
-      if (e.key === "Enter") close(input.value.trim());
-    };
-  });
-}
-
-const submitBtn = document.getElementById("submitScoreBtn");
-if (submitBtn) {
-  submitBtn.onclick = async () => {
+document.getElementById("submitScoreBtn").onclick = async () => {
   try {
     const summary = scoreSummary();
-    const token = makeToken(summary);
-
-    const displayName = await askDisplayName(); // or prompt version
-    if (displayName === null) return;
-
-    const url = buildPrefillUrl({
-      displayName,
-      sim: SIM_ID,
-      score: summary.score,
-      token,
-    });
-
-    window.open(url, "_blank", "noopener,noreferrer");
-
-    // ✅ reset AFTER opening the form
-    resetScoreSession();
-
-  } catch (err) {
-    console.error(err);
-    alert("Submit failed. Open DevTools Console to see the error.");
-  }
+    const token   = makeToken(summary);
+    const displayName = await askDisplayName();
+    if(displayName===null) return;
+    const url = buildPrefillUrl({displayName, sim:SIM_ID, score:summary.score, token});
+    window.open(url,"_blank","noopener,noreferrer");
+    // reset
+    Object.assign(score,{value:0,unlockCorrect:0,unlockWrong:0,challengeCorrect:0,challengeWrong:0,notBalanced:0,startedAt:Date.now(),events:[],mode:"unlock"});
+    renderScore(); flashMsg("Submitted ✔");
+  } catch(err){ console.error(err); alert("Submit failed — check DevTools console."); }
 };
 
-}
-
-function resetScoreSession() {
-  score.value = 0;
-  score.unlockCorrect = 0;
-  score.unlockWrong = 0;
-  score.challengeCorrect = 0;
-  score.challengeWrong = 0;
-  score.notBalanced = 0;
-  score.startedAt = Date.now();
-  score.events = [];
-  score.mode = "unlock";
-
-  renderScore();
-  flashMsg("Submitted ✔");
-  setTimeout(() => flashMsg("New run started"), 800);
-
-}
-
-
-/* ===== CLEAR ===== */
-function clearAll() {
-  bondCations.innerHTML = "";
-  bondAnions.innerHTML = "";
-  pos = 0;
-  neg = 0;
-  result.textContent = "";
-  bondingArea.classList.remove("neutral");
-  challengeAnswer.value = "";
-  challengeFeedback.textContent = "";
-}
-
-document.getElementById("clear").onclick = clearAll;
-
+// ── INIT ──
 loadNextUnlock();
-
 </script>
-
-
 </body>
 </html>
