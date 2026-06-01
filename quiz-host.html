@@ -381,8 +381,7 @@ function showLobby() {
   const teacher = TEACHERS[TEACHER_SLUG];
   if (teacher) {
     document.querySelector('.lobby-players-card h2').textContent = `👥 ${teacher.name}'s Lobby`;
-    document.getElementById('lobby-url-display').textContent = STUDENT_URL.replace('https://www.','');
-    document.getElementById('lobby-url-text').innerHTML = `or go to<br><strong>${STUDENT_URL.replace('https://www.','')}</strong>`;
+    document.getElementById('lobby-url-text').innerHTML = `or go to<br><strong>molecute.org/clicker.html</strong>`;
   }
 
   // Generate QR code once (regenerate if URL changed)
