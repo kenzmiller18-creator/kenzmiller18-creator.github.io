@@ -1,0 +1,914 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Quiz Host Dashboard</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Space+Mono:wght@400;700&display=swap');
+    :root {
+      --bg:#f6d2ff; --panel:#f9f4fd; --ink:#1f1f1f; --muted:#40334f;
+      --accent:#4c13a8; --accent2:#f04bd8; --good:#2ecc71; --bad:#ff6b6b;
+      --a:#e74c3c; --b:#3498db; --c:#f39c12; --d:#2ecc71;
+      --shadow:0 10px 30px rgba(0,0,0,.10); --radius:18px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
+
+    /* SETUP */
+    #setup-screen{max-width:740px;margin:0 auto;padding:40px 20px;}
+    #setup-screen h1{font-size:2rem;font-weight:900;color:var(--accent);margin-bottom:6px;}
+    .setup-card{background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px;margin-bottom:20px;border:1px solid rgba(0,0,0,.06);}
+    .setup-card h2{font-size:1.05rem;font-weight:900;color:var(--accent);margin-bottom:16px;}
+    .step{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px;}
+    .step-num{background:var(--accent);color:white;font-weight:900;font-size:.85rem;min-width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-top:2px;flex-shrink:0;}
+    .step p{font-size:.9rem;line-height:1.6;}
+    .step code{background:#ede7f6;color:var(--accent);padding:2px 6px;border-radius:5px;font-family:'Space Mono',monospace;font-size:.8rem;}
+    label{display:block;font-weight:800;margin-bottom:6px;font-size:.85rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;}
+    input[type="text"],input[type="url"]{width:100%;padding:12px 14px;border:2px solid #ddd;border-radius:10px;font-family:'Space Mono',monospace;font-size:.82rem;margin-bottom:16px;outline:none;transition:border-color .2s;}
+    input:focus{border-color:var(--accent2);}
+    .btn{background:var(--accent);color:white;border:none;padding:14px 28px;border-radius:12px;font-family:'Nunito',sans-serif;font-weight:800;font-size:1rem;cursor:pointer;transition:transform .1s,box-shadow .1s;box-shadow:0 4px 14px rgba(76,19,168,.3);}
+    .btn:hover{transform:translateY(-1px);}
+    .btn:active{transform:scale(.98);}
+    .btn.pink{background:var(--accent2);box-shadow:0 4px 14px rgba(240,75,216,.3);}
+    .btn.gray{background:var(--muted);box-shadow:none;}
+    .btn.sm{padding:10px 20px;font-size:.9rem;}
+
+    /* GAME */
+    #game-screen{display:none;}
+    .game-header{background:rgb(230,173,255);border-bottom:1px solid #ddd;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;}
+    .game-header h1{font-size:1.3rem;font-weight:900;color:var(--accent);}
+    .progress-pill{background:var(--accent);color:white;padding:6px 16px;border-radius:20px;font-weight:800;font-size:.9rem;}
+    .game-layout{display:grid;grid-template-columns:1fr 340px;gap:20px;max-width:1300px;margin:20px auto;padding:0 20px;}
+    .card{background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px;border:1px solid rgba(0,0,0,.05);}
+
+    /* Question */
+    .question-box{background:linear-gradient(135deg,var(--accent) 0%,#7b2ff7 100%);color:white;border-radius:var(--radius);padding:32px;margin-bottom:20px;min-height:140px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;}
+    #question-image{max-width:100%;max-height:220px;border-radius:12px;object-fit:contain;display:none;}
+    #question-text{font-size:1.6rem;font-weight:800;text-align:center;line-height:1.3;}
+    .answers-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
+    .answer-chip{padding:16px 20px;border-radius:14px;font-weight:800;font-size:1rem;color:white;display:flex;align-items:center;gap:10px;}
+    .answer-chip.a{background:var(--a);} .answer-chip.b{background:var(--b);}
+    .answer-chip.c{background:var(--c);} .answer-chip.d{background:var(--d);}
+    .answer-chip.correct-highlight{outline:4px solid #fff;box-shadow:0 0 0 7px rgba(255,255,255,.3);}
+    .answer-chip.dimmed{opacity:.35;}
+    .letter-badge{background:rgba(255,255,255,.25);width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:1rem;flex-shrink:0;}
+    .controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
+
+    /* Chart */
+    .chart-title{font-weight:900;font-size:.85rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:16px;}
+    .bar-row{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+    .bar-label{font-weight:900;font-size:.9rem;width:22px;text-align:center;color:white;background:var(--muted);border-radius:6px;padding:3px 0;}
+    .bar-label.a{background:var(--a);} .bar-label.b{background:var(--b);}
+    .bar-label.c{background:var(--c);} .bar-label.d{background:var(--d);}
+    .bar-track{flex:1;background:#ede7f6;border-radius:8px;height:32px;overflow:hidden;}
+    .bar-fill{height:100%;border-radius:8px;transition:width .6s cubic-bezier(.4,0,.2,1);width:0%;}
+    .bar-fill.a{background:var(--a);} .bar-fill.b{background:var(--b);}
+    .bar-fill.c{background:var(--c);} .bar-fill.d{background:var(--d);}
+    .bar-count{font-weight:900;font-size:.9rem;width:28px;text-align:right;color:var(--muted);}
+
+    /* Response counter */
+    .response-counter{text-align:center;padding:14px;background:#ede7f6;border-radius:12px;margin-bottom:16px;}
+    #response-count{font-size:1.8rem;font-weight:900;color:var(--accent);}
+    .response-label{font-size:.8rem;color:var(--muted);font-weight:700;text-transform:uppercase;}
+
+    /* Respondent pills */
+    .respondent-list{max-height:180px;overflow-y:auto;margin-top:8px;}
+    .respondent-pill{display:inline-block;background:#ede7f6;border-radius:20px;padding:4px 10px;font-size:.75rem;font-weight:700;margin:3px;color:var(--muted);}
+
+    /* Scoreboard */
+    .score-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f0e8f8;}
+    .score-rank{font-weight:900;font-size:1rem;width:24px;color:var(--accent2);}
+    .score-name{flex:1;font-weight:700;}
+    .score-pts{font-weight:900;font-family:'Space Mono',monospace;color:var(--accent);}
+
+    /* Poll status */
+    .poll-status{display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--muted);font-weight:700;}
+    .dot{width:8px;height:8px;border-radius:50%;background:var(--good);animation:pulse 1.5s infinite;}
+    @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+    /* Waiting */
+    .waiting-state{text-align:center;padding:60px 20px;color:var(--muted);}
+    .waiting-state .big{font-size:3rem;margin-bottom:10px;}
+    .waiting-state p{font-weight:700;font-size:1.1rem;}
+    .section-label{font-weight:900;font-size:.8rem;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:12px;display:block;}
+    hr{border:0;border-top:1px solid #eee;margin:20px 0;}
+
+    /* Status badge */
+    .status-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:.8rem;font-weight:800;margin-bottom:12px;}
+    .status-badge.open{background:#d4edda;color:#155724;}
+    .status-badge.revealed{background:#fff3cd;color:#856404;}
+    .status-badge.done{background:#f8d7da;color:#721c24;}
+
+    /* Lobby */
+    #lobby-screen{display:none;max-width:1100px;margin:0 auto;padding:24px 20px;}
+    .lobby-layout{display:grid;grid-template-columns:280px 1fr;gap:24px;align-items:start;}
+    .lobby-qr-card{background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px;text-align:center;border:1px solid rgba(0,0,0,.05);}
+    .lobby-qr-card h2{font-size:1rem;font-weight:900;color:var(--accent);margin-bottom:4px;}
+    .lobby-url{font-size:.75rem;color:var(--muted);font-weight:700;word-break:break-all;margin-bottom:16px;background:#ede7f6;padding:6px 10px;border-radius:8px;}
+    #qr-container{margin:0 auto 16px;width:180px;height:180px;}
+    #qr-container canvas,#qr-container img{width:180px!important;height:180px!important;}
+    .lobby-players-card{background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px;border:1px solid rgba(0,0,0,.05);}
+    .lobby-players-card h2{font-size:1rem;font-weight:900;color:var(--accent);margin-bottom:4px;}
+    .player-count{font-size:.8rem;color:var(--muted);font-weight:700;margin-bottom:16px;}
+    .player-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;}
+    .player-tile{background:#ede7f6;border-radius:12px;padding:12px 8px;text-align:center;animation:popIn .3s ease;}
+    @keyframes popIn{from{transform:scale(.7);opacity:0;}to{transform:scale(1);opacity:1;}}
+    .player-tile .p-icon{font-size:1.8rem;margin-bottom:4px;}
+    .player-tile .p-name{font-size:.8rem;font-weight:800;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .lobby-empty{color:var(--muted);font-size:.9rem;font-weight:700;padding:30px;text-align:center;}
+    .start-btn{width:100%;margin-top:20px;padding:18px;font-size:1.1rem;}
+
+    /* Music player */
+    .music-bar{background:var(--panel);border-bottom:1px solid #e8e0f0;padding:8px 24px;display:flex;align-items:center;gap:12px;font-size:.85rem;font-weight:700;color:var(--muted);}
+    .music-bar input[type=range]{flex:1;max-width:120px;accent-color:var(--accent2);}
+    .music-bar label{text-transform:none;letter-spacing:0;font-size:.82rem;margin:0;}
+    .btn-music{background:var(--accent2);color:white;border:none;padding:6px 14px;border-radius:8px;font-family:'Nunito',sans-serif;font-weight:800;font-size:.8rem;cursor:pointer;}
+
+    /* Host timer */
+    .host-timer{margin-bottom:12px;}
+    .timer-track{background:#ede7f6;border-radius:8px;height:10px;overflow:hidden;}
+    .timer-fill{height:100%;border-radius:8px;background:var(--accent2);transition:width 1s linear;width:100%;}
+    .timer-label{font-size:.8rem;font-weight:800;color:var(--muted);margin-bottom:4px;}
+  </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div id="setup-screen" style="display:none;">
+  <h1>🧪 Quiz Host Setup</h1>
+  <p style="color:var(--muted);font-weight:700;margin-bottom:24px;">Complete these steps once. Your questions live in a Google Sheet — no more editing JSON!</p>
+
+  <div class="setup-card">
+    <h2>📋 Step 1 — Set up your Google Sheet</h2>
+    <div class="step"><div class="step-num">1</div>
+      <p>Open your <strong>Quiz Responses</strong> Google Sheet. Click the <strong>+</strong> tab at the bottom to add a new sheet. Name it exactly: <code>Questions</code></p>
+    </div>
+    <div class="step"><div class="step-num">2</div>
+      <p>In the <strong>Questions</strong> tab, add these column headers in row 1 (exact spelling):<br>
+      <code>Question</code> &nbsp;|&nbsp; <code>A</code> &nbsp;|&nbsp; <code>B</code> &nbsp;|&nbsp; <code>C</code> &nbsp;|&nbsp; <code>D</code> &nbsp;|&nbsp; <code>Correct</code> &nbsp;|&nbsp; <code>Completed</code></p>
+    </div>
+    <div class="step"><div class="step-num">3</div>
+      <p>Fill in your questions starting from row 2. The <strong>Correct</strong> column should be one letter: <code>A</code>, <code>B</code>, <code>C</code>, or <code>D</code>. Leave the <strong>Completed</strong> column empty — the host will fill it in during the game.</p>
+    </div>
+    <div class="step"><div class="step-num">4</div>
+      <p>Make sure the sheet is shared: <strong>Share → Anyone with the link → Viewer</strong>.</p>
+    </div>
+  </div>
+
+  <div class="setup-card">
+    <h2>⚙️ Step 2 — Set up the Apps Script webhook</h2>
+    <div class="step"><div class="step-num">1</div>
+      <p>In your Sheet: click <strong>Extensions → Apps Script</strong>. Delete any existing code and paste in the script from the <code>apps-script.gs</code> file provided.</p>
+    </div>
+    <div class="step"><div class="step-num">2</div>
+      <p>Click <strong>Deploy → New deployment → Web app</strong>. Set <em>Execute as</em>: <strong>Me</strong>. Set <em>Who has access</em>: <strong>Anyone</strong>. Click Deploy and copy the web app URL.</p>
+    </div>
+    <div class="step"><div class="step-num">3</div>
+      <p>Paste that URL below.</p>
+    </div>
+  </div>
+
+  <div class="setup-card">
+    <h2>🔗 Step 3 — Paste your URLs</h2>
+    <label>Google Sheet URL (browser address bar when sheet is open)</label>
+    <input type="url" id="sheet-url-input" placeholder="https://docs.google.com/spreadsheets/d/YOUR_ID/edit">
+
+    <label>Questions Tab URL <span style="font-weight:400;text-transform:none;">(click the Questions tab, copy the URL from your browser — it will contain <code>gid=XXXXXXX</code>)</span></label>
+    <input type="text" id="questions-gid-input" placeholder="https://docs.google.com/spreadsheets/d/YOUR_ID/edit#gid=123456789">
+
+    <label>Apps Script Web App URL</label>
+    <input type="url" id="script-url-input" placeholder="https://script.google.com/macros/s/YOUR_DEPLOYMENT/exec">
+
+    <label>Answer Form action URL (your existing form)</label>
+    <input type="url" id="form-url-input" value="https://docs.google.com/forms/d/e/1FAIpQLScCzC88F2wg29MX79Bts5kCfDxhaw6MQQjLr8V0I7_82bH5sA/formResponse">
+
+    <button class="btn pink" onclick="launchGame()">🚀 Launch Game Dashboard</button>
+  </div>
+</div>
+
+<!-- LOBBY SCREEN -->
+<div id="lobby-screen">
+  <div class="lobby-layout">
+    <div class="lobby-qr-card">
+      <h2>📱 Join on your phone</h2>
+      <div class="lobby-url" id="lobby-url-display">molecute.org/clicker.html</div>
+      <div id="qr-container"></div>
+      <div style="font-size:.75rem;color:var(--muted);font-weight:700;" id="lobby-url-text">or type the URL above</div>
+    </div>
+    <div class="lobby-players-card">
+      <h2>👥 Students joined</h2>
+      <div class="player-count" id="lobby-count">Waiting for students…</div>
+      <div class="player-grid" id="player-grid">
+        <div class="lobby-empty">No one yet — students scan the QR code to join!</div>
+      </div>
+      <button class="btn pink start-btn" onclick="startGame()">🚀 Start Game</button>
+      <button class="btn gray" style="width:100%;margin-top:10px;padding:12px;" onclick="clearLobby()">🗑 Clear Responses & Reset Lobby</button>
+    </div>
+  </div>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="game-screen" style="display:none;">
+  <div class="game-header">
+    <h1>🧪 Quiz Host Dashboard</h1>
+    <div style="display:flex;align-items:center;gap:14px;">
+      <div class="poll-status"><div class="dot" id="poll-dot"></div><span id="poll-label">Connecting…</span></div>
+      <div class="progress-pill" id="progress-pill">Q — / —</div>
+      <button class="btn sm gray" onclick="backToSetup()">⚙️ Setup</button>
+    </div>
+  </div>
+
+  <!-- Music bar -->
+  <div class="music-bar">
+    <span>🎵 Music:</span>
+    <button class="btn-music" id="music-toggle-btn" onclick="toggleMusic()">⏸ Pause</button>
+    <label>Vol <input type="range" id="music-vol" min="0" max="1" step="0.05" value="0.4" oninput="setVolume(this.value)"></label>
+    <audio id="music-player" src="Quiz.mp3" loop></audio>
+  </div>
+
+  <div class="game-layout">
+    <main>
+      <!-- Waiting (before game starts) -->
+      <div class="card" id="waiting-card">
+        <div class="waiting-state">
+          <div class="big">⏳</div>
+          <p>Waiting for questions to load…</p>
+        </div>
+      </div>
+
+      <!-- Active question -->
+      <div class="card" id="question-card" style="display:none;">
+        <div id="q-status-badge" class="status-badge open">🟢 Accepting answers</div>
+        <div id="host-timer" class="host-timer" style="display:none;">
+          <div class="timer-label" id="host-timer-label">⏱ 30s</div>
+          <div class="timer-track"><div class="timer-fill" id="host-timer-fill"></div></div>
+        </div>
+        <div class="question-box">
+          <img id="question-image" src="" alt="" style="display:none;max-width:100%;max-height:220px;border-radius:12px;margin-bottom:14px;object-fit:contain;">
+          <div id="question-text">—</div>
+        </div>
+        <div class="answers-grid">
+          <div class="answer-chip a" id="chip-a"><div class="letter-badge">A</div><span id="ans-a"></span></div>
+          <div class="answer-chip b" id="chip-b"><div class="letter-badge">B</div><span id="ans-b"></span></div>
+          <div class="answer-chip c" id="chip-c"><div class="letter-badge">C</div><span id="ans-c"></span></div>
+          <div class="answer-chip d" id="chip-d"><div class="letter-badge">D</div><span id="ans-d"></span></div>
+        </div>
+        <div class="controls">
+          <button class="btn pink" id="reveal-btn" onclick="revealAnswer()">✅ Reveal Answer</button>
+          <button class="btn" id="next-btn" onclick="nextQuestion()" style="display:none;">▶ Next Question</button>
+          <button class="btn gray sm" onclick="clearResponses()">🗑 Clear Responses</button>
+        </div>
+      </div>
+
+      <!-- Scoreboard -->
+      <div class="card" id="scoreboard-card" style="display:none;margin-top:20px;">
+        <span class="section-label">🏆 Scoreboard</span>
+        <div id="scoreboard-list"></div>
+      </div>
+    </main>
+
+    <aside>
+      <div class="card" style="margin-bottom:20px;">
+        <div class="response-counter">
+          <div id="response-count">0</div>
+          <div class="response-label">Responses received</div>
+        </div>
+        <div id="chart-section" style="display:none;">
+          <div class="chart-title">Response Distribution</div>
+          <div class="bar-row"><div class="bar-label a">A</div><div class="bar-track"><div class="bar-fill a" id="bar-a"></div></div><div class="bar-count" id="count-a">0</div></div>
+          <div class="bar-row"><div class="bar-label b">B</div><div class="bar-track"><div class="bar-fill b" id="bar-b"></div></div><div class="bar-count" id="count-b">0</div></div>
+          <div class="bar-row"><div class="bar-label c">C</div><div class="bar-track"><div class="bar-fill c" id="bar-c"></div></div><div class="bar-count" id="count-c">0</div></div>
+          <div class="bar-row"><div class="bar-label d">D</div><div class="bar-track"><div class="bar-fill d" id="bar-d"></div></div><div class="bar-count" id="count-d">0</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <span class="section-label">👥 Who has answered</span>
+        <div class="respondent-list" id="respondent-list"><em style="font-size:.8rem;color:var(--muted);">Waiting…</em></div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script>
+// ── TEACHER CONFIG ────────────────────────────────────
+const TEACHERS = {
+  miller: {
+    name:        '🧬 Ms. Miller',          
+    sheetId:     '1CTBuCaRmURkvORE7H3ni7aGIy-as52v1XxnRC27gKTY',
+    gidQuestions:'2144252880',
+    gidResponses:'556974642',
+    scriptUrl:   'https://script.google.com/macros/s/AKfycbx01KCDujF8BumQq3a8CtDtDiZ6nllzBoWyWb0eKJGDxFA9a12RcBKO8pAH_iUOZ7T8/exec',
+    formAction:  'https://docs.google.com/forms/d/e/1FAIpQLScCzC88F2wg29MX79Bts5kCfDxhaw6MQQjLr8V0I7_82bH5sA/formResponse',
+    entryName:    'entry.22727263',
+    entryQuestion:'entry.667990168',
+    entryAnswer:  'entry.1389180787',
+  },
+  cortez: {
+    name:        '🥽 Mr. Cortez',         
+    sheetId:     '1oSg5XLQJ3MI0ippCaG3DEzu5POa4N7AXzRevoh7e_so',        // ←  Sheet ID
+    gidQuestions:'2144252880',   // ← Questions tab GID
+    gidResponses:'556974642',   // ←  Responses tab GID
+    scriptUrl:   'https://script.google.com/macros/s/AKfycbxsdoFw9hiRID5fnY6od-Rj_78RUZ7Ep6ke5y_tzMmfbnmRJ1fwMvFbMnDeQOo5P2UpVQ/exec',      // ← Apps Script URL
+    formAction:  'https://docs.google.com/forms/d/e/1FAIpQLSdeF78_RroJTSkqHcDvpRl3P5uIRBeerVXgqKDJv4wJ3NXZLw/formResponse',        // ← Form URL
+    entryName:    'entry.22727263',           // ←  form entry IDs
+    entryQuestion:'entry.667990168',
+    entryAnswer:  'entry.1389180787',
+  },
+};
+
+// ── STATE ──────────────────────────────────────────────
+let SHEET_ID = '', SHEET_GID_QUESTIONS = '', SHEET_GID_RESPONSES = '0';
+let SCRIPT_URL = '', FORM_ACTION = '';
+let ENTRY_NAME = '', ENTRY_QUESTION = '', ENTRY_ANSWER = '';
+let STUDENT_URL = '';
+let TEACHER_SLUG = '';
+
+// Questions loaded from sheet
+let questions = [];
+let activeQIndex = -1;
+let answerRevealed = false;
+let scores = {};
+let currentQResponses = {};
+let clearedAt = null;
+let pollInterval = null;
+let lobbyInterval = null;
+let lobbyPlayers = {};
+
+// Music / Timer
+let timerInterval = null;
+let timerSecondsLeft = 0;
+
+// ── SETUP → LOBBY ─────────────────────────────────────
+function launchGame() {
+  // Read ?t=slug from URL
+  const params = new URLSearchParams(window.location.search);
+  TEACHER_SLUG = params.get('t') || '';
+  const teacher = TEACHERS[TEACHER_SLUG];
+
+  if (!teacher) {
+    document.body.innerHTML = `
+      <div style="font-family:sans-serif;text-align:center;padding:60px 20px;">
+        <h2 style="color:#4c13a8;">🧪 Select your name below:</h2>
+                ${Object.keys(TEACHERS).map(slug =>
+          `<a href="?t=${slug}" style="display:block;margin:10px auto;padding:14px 28px;background:#4c13a8;color:white;border-radius:12px;text-decoration:none;max-width:300px;font-weight:800;">
+            ${TEACHERS[slug].name}
+          </a>`
+        ).join('')}
+      </div>`;
+    return;
+  }
+
+  SHEET_ID            = teacher.sheetId;
+  SHEET_GID_QUESTIONS = teacher.gidQuestions;
+  SHEET_GID_RESPONSES = teacher.gidResponses;
+  SCRIPT_URL          = teacher.scriptUrl;
+  FORM_ACTION         = teacher.formAction;
+  ENTRY_NAME          = teacher.entryName;
+  ENTRY_QUESTION      = teacher.entryQuestion;
+  ENTRY_ANSWER        = teacher.entryAnswer;
+  STUDENT_URL         = `https://www.molecute.org/clicker.html?t=${TEACHER_SLUG}`;
+
+  document.title = `Quiz Host — ${teacher.name}`;
+  showLobby();
+}
+
+function showLobby() {
+  document.getElementById('lobby-screen').style.display = 'block';
+  document.getElementById('game-screen').style.display  = 'none';
+
+  const teacher = TEACHERS[TEACHER_SLUG];
+  if (teacher) {
+    document.querySelector('.lobby-players-card h2').textContent = `👥 ${teacher.name}'s Lobby`;
+    document.getElementById('lobby-url-display').textContent = STUDENT_URL.replace('https://www.','');
+    document.getElementById('lobby-url-text').innerHTML = `or go to<br><strong>${STUDENT_URL.replace('https://www.','')}</strong>`;
+  }
+
+  // Generate QR code once (regenerate if URL changed)
+  const qrEl = document.getElementById('qr-container');
+  qrEl.innerHTML = '';
+  new QRCode(qrEl, {
+    text: STUDENT_URL,
+    width: 180, height: 180,
+    colorDark: '#4c13a8', colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+
+  lobbyPlayers = {};
+  lobbyInterval = setInterval(pollLobby, 3000);
+  pollLobby();
+}
+
+function pollLobby() {
+  gvizQuery(SHEET_GID_RESPONSES, 'select *', function(response) {
+    const rows = response.table.rows || [];
+    const cols = response.table.cols || [];
+    const colNames = cols.map(c => (c.label || '').trim().toLowerCase());
+    const iName = colNames.findIndex(c => c.includes('name'));
+    const iQ    = colNames.findIndex(c => c.includes('question'));
+    const iAns  = colNames.findIndex(c => c.includes('answer'));
+    if (iName < 0 || iQ < 0 || iAns < 0) return;
+
+    let changed = false;
+    rows.forEach(row => {
+      const cell = idx => (row.c[idx] && row.c[idx].v != null) ? String(row.c[idx].v).trim() : '';
+      const raw  = cell(iName);
+      const qNum = cell(iQ);
+      const ans  = cell(iAns);
+      if (qNum !== '0' || ans !== 'join' || !raw) return;
+      const spaceIdx = raw.indexOf(' ');
+      const icon = spaceIdx > 0 ? raw.slice(0, spaceIdx) : '\ud83e\uddea';
+      const name = spaceIdx > 0 ? raw.slice(spaceIdx + 1) : raw;
+      const key  = name.toLowerCase();
+      if (!lobbyPlayers[key]) { lobbyPlayers[key] = { icon, name }; changed = true; }
+    });
+
+    if (changed) renderLobbyPlayers();
+  }, function() {});
+}
+
+function clearLobby() {
+  if (!confirm('Clear all form responses and reset the lobby? This cannot be undone.')) return;
+  fetch(`${SCRIPT_URL}?action=clearResponses&sheetId=${SHEET_ID}`, { mode: 'no-cors' }).catch(() => {});
+  fetch(`${SCRIPT_URL}?action=resetStarted&sheetId=${SHEET_ID}`, { mode: 'no-cors' }).catch(() => {});
+  lobbyPlayers = {};
+  renderLobbyPlayers();
+}
+
+function renderLobbyPlayers() {
+  const grid  = document.getElementById('player-grid');
+  const count = document.getElementById('lobby-count');
+  const players = Object.values(lobbyPlayers);
+  count.textContent = players.length === 0
+    ? 'Waiting for students\u2026'
+    : `${players.length} student${players.length !== 1 ? 's' : ''} joined`;
+  grid.innerHTML = players.length === 0
+    ? '<div class="lobby-empty">No one yet \u2014 students scan the QR code to join!</div>'
+    : players.map(p => `<div class="player-tile"><div class="p-icon">${p.icon}</div><div class="p-name">${p.name}</div></div>`).join('');
+}
+
+function backToSetup() {
+  if (!confirm('Go back to lobby? Game state will be lost.')) return;
+  stopPolling();
+  clearInterval(lobbyInterval);
+  questions = []; activeQIndex = -1; scores = {}; currentQResponses = {};
+  document.getElementById('game-screen').style.display = 'none';
+  showLobby();
+}
+
+// ── START GAME ────────────────────────────────────────
+function startGame() {
+  clearInterval(lobbyInterval);
+  lobbyInterval = null;
+  // Signal students that the game has started
+  fetch(`${SCRIPT_URL}?action=start&sheetId=${SHEET_ID}`, { mode: 'no-cors' }).catch(() => {});
+  document.getElementById('lobby-screen').style.display = 'none';
+  document.getElementById('game-screen').style.display  = 'block';
+  startPolling();
+  pollNow();
+}
+
+// ── POLLING ───────────────────────────────────────────
+function startPolling() { pollInterval = setInterval(pollNow, 3000); }
+function stopPolling()  { clearInterval(pollInterval); }
+
+function pollNow() {
+  pollQuestions();
+  pollResponses();
+}
+
+// Poll Questions tab
+function pollQuestions() {
+  if (!SHEET_ID || SHEET_GID_QUESTIONS === '') return;
+  gvizQuery(SHEET_GID_QUESTIONS, 'select *', function(response) {
+    setPolling(true);
+    parseQuestionsTable(response);
+  }, function() { setPolling(false); });
+}
+
+function parseQuestionsTable(response) {
+  const rows = response.table.rows || [];
+  const cols = response.table.cols || [];
+
+  // gviz sometimes returns empty labels and puts header text in first data row instead
+  // Detect this by checking if col labels are all empty or single letters like "A","B","C"
+  let colNames = cols.map(c => (c.label || '').trim().toLowerCase());
+  // If gviz didn't populate column labels, the first data row is the header
+  const looksLikeNoHeader = !colNames.includes('question') && !colNames.includes('completed');
+
+  let dataRows = rows;
+  if (looksLikeNoHeader && rows.length > 0) {
+    const headerRow = rows[0];
+    colNames = headerRow.c.map(c => (c && c.v != null) ? String(c.v).trim().toLowerCase() : '');
+    dataRows = rows.slice(1);
+  }
+
+  const iQ    = colNames.findIndex(c => c === 'question');
+  const iA    = colNames.findIndex(c => c === 'a');
+  const iB    = colNames.findIndex(c => c === 'b');
+  const iC    = colNames.findIndex(c => c === 'c');
+  const iD    = colNames.findIndex(c => c === 'd');
+  const iCorr     = colNames.findIndex(c => c === 'correct');
+  const iDone     = colNames.findIndex(c => c === 'completed');
+  const iReleased = colNames.findIndex(c => c === 'released');
+  const iImg      = colNames.findIndex(c => c === 'image');
+  const iAImg     = colNames.findIndex(c => c === 'a image');
+  const iBImg     = colNames.findIndex(c => c === 'b image');
+  const iCImg     = colNames.findIndex(c => c === 'c image');
+  const iDImg     = colNames.findIndex(c => c === 'd image');
+  const iTimer    = colNames.findIndex(c => c === 'timer');
+
+  if (iQ < 0) {
+    console.warn('Could not find Question column. Columns found:', colNames);
+    return;
+  }
+
+  questions = dataRows.map((row, i) => {
+    const cell = (idx) => (idx >= 0 && row.c[idx] && row.c[idx].v != null) ? String(row.c[idx].v).trim() : '';
+    const timerRaw = iTimer >= 0 ? parseInt(cell(iTimer)) : NaN;
+    return {
+      question:  cell(iQ),
+      a: cell(iA), b: cell(iB), c: cell(iC), d: cell(iD),
+      correct:   cell(iCorr).toLowerCase(),
+      completed: cell(iDone),
+      released:  iReleased >= 0 ? cell(iReleased) : '',
+      image:     normalizeImageUrl(cell(iImg)),
+      aImg:      normalizeImageUrl(cell(iAImg)),
+      bImg:      normalizeImageUrl(cell(iBImg)),
+      cImg:      normalizeImageUrl(cell(iCImg)),
+      dImg:      normalizeImageUrl(cell(iDImg)),
+      timer:     isNaN(timerRaw) ? 0 : timerRaw,
+      rowIndex:  i + 2
+    };
+  }).filter(q => q.question);
+
+  const total = questions.length;
+  const doneCount = questions.filter(q => q.completed).length;
+
+  // Find the active question: first incomplete one
+  const newActive = questions.findIndex(q => !q.completed);
+
+  document.getElementById('progress-pill').textContent =
+    `Q ${doneCount + (newActive >= 0 ? 1 : 0)} / ${total}`;
+
+  if (newActive < 0) {
+    // All done
+    if (activeQIndex >= 0) showFinalScoreboard();
+    return;
+  }
+
+  // Only load a question if the host explicitly advanced (activeQIndex reset to -1 by nextQuestion())
+  // Never auto-advance just because the sheet changed — that would skip the Next Question button
+  if (activeQIndex === -1) {
+    activeQIndex = newActive;
+    answerRevealed = false;
+    currentQResponses = {};
+    loadQuestionUI(questions[activeQIndex]);
+  }
+}
+
+function loadQuestionUI(q) {
+  document.getElementById('waiting-card').style.display  = 'none';
+  document.getElementById('question-card').style.display = 'block';
+  document.getElementById('scoreboard-card').style.display = 'none';
+
+  document.getElementById('question-text').textContent = q.question;
+
+  const imgEl = document.getElementById('question-image');
+  if (q.image) { imgEl.src = q.image; imgEl.style.display = 'block'; }
+  else         { imgEl.style.display = 'none'; imgEl.src = ''; }
+
+  // Answer chips — show image thumbnail if present
+  ['a','b','c','d'].forEach(l => {
+    const chip   = document.getElementById(`chip-${l}`);
+    const textEl = document.getElementById(`ans-${l}`);
+    chip.classList.remove('correct-highlight','dimmed');
+    textEl.textContent = q[l];
+
+    // Remove any previous image
+    const prev = chip.querySelector('.ans-img');
+    if (prev) prev.remove();
+
+    if (q[`${l}Img`]) {
+      const img = document.createElement('img');
+      img.src = q[`${l}Img`];
+      img.className = 'ans-img';
+      img.style.cssText = 'width:48px;height:48px;object-fit:contain;border-radius:6px;flex-shrink:0;';
+      chip.insertBefore(img, textEl);
+    }
+  });
+
+  const badge = document.getElementById('q-status-badge');
+  badge.className = 'status-badge open';
+  badge.textContent = '🟢 Accepting answers';
+
+  document.getElementById('chart-section').style.display = 'none';
+  document.getElementById('reveal-btn').style.display  = 'inline-block';
+  document.getElementById('next-btn').style.display    = 'none';
+  resetBars();
+  document.getElementById('respondent-list').innerHTML = '<em style="font-size:.8rem;color:var(--muted);">Waiting…</em>';
+  document.getElementById('response-count').textContent = '0';
+
+  // Start music
+  startMusic();
+
+  // Start host-side timer display if question has a timer
+  startHostTimer(q.timer);
+}
+
+// Poll responses sheet for current question
+function pollResponses() {
+  if (!SHEET_ID || activeQIndex < 0) return;
+  const q = questions[activeQIndex];
+  if (!q) return;
+
+  gvizQuery(SHEET_GID_RESPONSES, 'select *', function(response) {
+    parseResponsesTable(response, q);
+  }, function(){});
+}
+
+function parseResponsesTable(response, q) {
+  const rows = response.table.rows || [];
+  const cols = response.table.cols || [];
+  const colNames = cols.map(c => (c.label || '').trim().toLowerCase());
+
+  const iTs   = colNames.findIndex(c => c.includes('timestamp'));
+  const iName = colNames.findIndex(c => c.includes('name'));
+  const iQ    = colNames.findIndex(c => c.includes('question'));
+  const iAns  = colNames.findIndex(c => c.includes('answer'));
+  if (iName < 0 || iQ < 0 || iAns < 0) return;
+
+  // Question number is 1-indexed position in questions array
+  const qLabel = String(activeQIndex + 1);
+  const counts = {a:0,b:0,c:0,d:0};
+  const respondents = {};
+
+  rows.forEach(row => {
+    const cell = (idx) => (row.c[idx] && row.c[idx].v != null) ? String(row.c[idx].v).trim() : '';
+    const name = cell(iName).toLowerCase();
+    const qNum = cell(iQ);
+    const ans  = cell(iAns).toLowerCase();
+    if (!name || qNum !== qLabel || !['a','b','c','d'].includes(ans)) return;
+
+    // Filter out responses submitted before the last clear
+    if (clearedAt && iTs >= 0 && row.c[iTs] && row.c[iTs].v) {
+      // gviz returns dates as "Date(year,month,day,h,m,s)" — parse it
+      const tsRaw = String(row.c[iTs].v);
+      const dm = tsRaw.match(/Date\((\d+),(\d+),(\d+),(\d+),(\d+),(\d+)/);
+      if (dm) {
+        const tsMs = new Date(
+          parseInt(dm[1]), parseInt(dm[2]), parseInt(dm[3]),
+          parseInt(dm[4]), parseInt(dm[5]), parseInt(dm[6])
+        ).getTime();
+        if (tsMs < clearedAt) return;
+      }
+    }
+
+    respondents[name] = ans;
+  });
+
+  currentQResponses = respondents;
+  Object.values(respondents).forEach(a => { if (counts[a] !== undefined) counts[a]++; });
+  const total = Object.values(counts).reduce((s,v) => s+v, 0);
+  updateBars(counts, total);
+  document.getElementById('response-count').textContent = total;
+  updateRespondentList(Object.keys(respondents));
+}
+
+// ── REVEAL ANSWER ────────────────────────────────────
+function revealAnswer() {
+  if (activeQIndex < 0) return;
+  answerRevealed = true;
+  const q = questions[activeQIndex];
+
+  ['a','b','c','d'].forEach(l => {
+    const chip = document.getElementById(`chip-${l}`);
+    chip.classList.add(l === q.correct ? 'correct-highlight' : 'dimmed');
+  });
+
+  const badge = document.getElementById('q-status-badge');
+  badge.className = 'status-badge revealed';
+  badge.textContent = `✅ Answer: ${q.correct.toUpperCase()}`;
+
+  document.getElementById('chart-section').style.display = 'block';
+  document.getElementById('reveal-btn').style.display = 'none';
+  document.getElementById('next-btn').style.display   = 'inline-block';
+  document.getElementById('next-btn').textContent =
+    activeQIndex + 1 < questions.length ? '▶ Next Question' : '🏆 End Game';
+
+  // Award points
+  Object.entries(currentQResponses).forEach(([name, ans]) => {
+    if (ans === q.correct) scores[name] = (scores[name] || 0) + 1;
+  });
+  updateScoreboard();
+  document.getElementById('scoreboard-card').style.display = 'block';
+
+  // Write "done" to Completed column via Apps Script
+  markCompleted(q.rowIndex);
+
+  // Stop music and timer
+  stopMusic();
+  stopHostTimer();
+}
+
+function markCompleted(rowIndex) {
+  if (!SCRIPT_URL) return;
+  fetch(`${SCRIPT_URL}?action=complete&sheetId=${SHEET_ID}&row=${rowIndex}`, {
+    mode: 'no-cors'
+  }).catch(e => console.warn('Apps Script complete failed:', e));
+}
+
+function markReleased(rowIndex) {
+  if (!SCRIPT_URL) return;
+  fetch(`${SCRIPT_URL}?action=release&sheetId=${SHEET_ID}&row=${rowIndex}`, {
+    mode: 'no-cors'
+  }).then(() => console.log('Released row', rowIndex))
+    .catch(e => console.warn('Apps Script release failed:', e));
+}
+
+// ── NEXT QUESTION ────────────────────────────────────
+function nextQuestion() {
+  stopHostTimer();
+  // Mark the current question as Released (students can now see next question)
+  if (activeQIndex >= 0 && questions[activeQIndex]) {
+    markReleased(questions[activeQIndex].rowIndex);
+  }
+  // Reset activeQIndex so parseQuestionsTable always triggers a fresh load
+  activeQIndex = -1;
+  answerRevealed = false;
+  currentQResponses = {};
+  clearedAt = null;
+  resetBars();
+  document.getElementById('response-count').textContent = '0';
+  document.getElementById('respondent-list').innerHTML = '<em style="font-size:.8rem;color:var(--muted);">Waiting…</em>';
+  document.getElementById('chart-section').style.display = 'none';
+  document.getElementById('scoreboard-card').style.display = 'none';
+  document.getElementById('reveal-btn').style.display = 'inline-block';
+  document.getElementById('next-btn').style.display = 'none';
+  // Poll immediately to load next question
+  pollNow();
+}
+
+function clearResponses() {
+  clearedAt = Date.now();
+  currentQResponses = {};
+  resetBars();
+  document.getElementById('response-count').textContent = '0';
+  document.getElementById('respondent-list').innerHTML = '<em style="font-size:.8rem;color:var(--muted);">Cleared — only new responses will show</em>';
+}
+
+// ── FINAL SCOREBOARD ─────────────────────────────────
+function showFinalScoreboard() {
+  document.getElementById('question-card').style.display  = 'none';
+  document.getElementById('waiting-card').style.display   = 'block';
+  document.getElementById('waiting-card').querySelector('.waiting-state').innerHTML = `
+    <div class="big">🏆</div><p>Game Over! Final Scores:</p><br>
+    ${Object.entries(scores).sort((a,b)=>b[1]-a[1]).map(([n,p],i)=>
+      `<div style="font-size:1.1rem;font-weight:800;margin:6px 0;">${['🥇','🥈','🥉'][i]||''} ${escHtml(n)} — ${p} pt${p!==1?'s':''}</div>`
+    ).join('')}
+  `;
+  document.getElementById('scoreboard-card').style.display = 'block';
+  stopPolling();
+}
+
+// ── GVIZ QUERY HELPER ────────────────────────────────
+let gvizCounter = 0;
+function gvizQuery(gid, tq, onSuccess, onError) {
+  const old = document.getElementById('gviz-script-' + (gid || 'def'));
+  if (old) old.remove();
+
+  const cbName = '__gvizHostCb_' + (gvizCounter++);
+  window[cbName] = function(r) {
+    delete window[cbName];
+    const el = document.getElementById('gviz-script-' + (gid || 'def'));
+    if (el) el.remove();
+    if (!r || r.status === 'error') { onError && onError(r); return; }
+    onSuccess(r);
+  };
+
+  const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cbName}&headers=1&tq=${encodeURIComponent(tq)}${gid !== null ? '&gid=' + gid : ''}&_=${Date.now()}`;
+
+  const script = document.createElement('script');
+  script.id = 'gviz-script-' + (gid || 'def');
+  script.src = url;
+  script.onerror = () => { delete window[cbName]; onError && onError(); };
+  document.head.appendChild(script);
+}
+
+// ── UI HELPERS ────────────────────────────────────────
+function updateBars(counts, total) {
+  ['a','b','c','d'].forEach(l => {
+    document.getElementById(`bar-${l}`).style.width = (total > 0 ? (counts[l]/total)*100 : 0) + '%';
+    document.getElementById(`count-${l}`).textContent = counts[l];
+  });
+}
+function resetBars() {
+  ['a','b','c','d'].forEach(l => {
+    document.getElementById(`bar-${l}`).style.width = '0%';
+    document.getElementById(`count-${l}`).textContent = '0';
+  });
+}
+function updateRespondentList(names) {
+  const el = document.getElementById('respondent-list');
+  el.innerHTML = names.length === 0
+    ? '<em style="font-size:.8rem;color:var(--muted);">Waiting…</em>'
+    : names.map(n => `<span class="respondent-pill">${escHtml(n)}</span>`).join('');
+}
+function updateScoreboard() {
+  const el = document.getElementById('scoreboard-list');
+  const sorted = Object.entries(scores).sort((a,b) => b[1]-a[1]);
+  el.innerHTML = sorted.length === 0
+    ? '<p style="color:var(--muted);font-size:.9rem;">No scores yet.</p>'
+    : sorted.map(([name,pts],i) => `
+        <div class="score-row">
+          <div class="score-rank">${['🥇','🥈','🥉'][i]||(i+1)+'.'}</div>
+          <div class="score-name">${escHtml(name)}</div>
+          <div class="score-pts">${pts} pt${pts!==1?'s':''}</div>
+        </div>`).join('');
+}
+function setPolling(ok) {
+  document.getElementById('poll-dot').style.background = ok ? 'var(--good)' : 'var(--bad)';
+  document.getElementById('poll-label').textContent = ok ? 'Live' : 'Error — check Sheet URL';
+}
+function normalizeImageUrl(url) {
+  if (!url) return '';
+  // Extract Drive file ID from any share URL format
+  const driveMatch = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (driveMatch) return `https://lh3.googleusercontent.com/d/${driveMatch[1]}`;
+  const openMatch = url.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/);
+  if (openMatch) return `https://lh3.googleusercontent.com/d/${openMatch[1]}`;
+  const ucMatch = url.match(/drive\.google\.com\/uc\?.*[?&]id=([a-zA-Z0-9_-]+)/);
+  if (ucMatch) return `https://lh3.googleusercontent.com/d/${ucMatch[1]}`;
+  return url;
+}
+
+// ── MUSIC ─────────────────────────────────────────────
+function startMusic() {
+  const player = document.getElementById('music-player');
+  player.volume = parseFloat(document.getElementById('music-vol').value);
+  player.currentTime = 0;
+  player.play().catch(() => {}); // catch autoplay policy block
+  document.getElementById('music-toggle-btn').textContent = '⏸ Pause';
+}
+
+function stopMusic() {
+  const player = document.getElementById('music-player');
+  player.pause();
+  player.currentTime = 0;
+  document.getElementById('music-toggle-btn').textContent = '▶ Play';
+}
+
+function toggleMusic() {
+  const player = document.getElementById('music-player');
+  if (player.paused) {
+    player.play().catch(() => {});
+    document.getElementById('music-toggle-btn').textContent = '⏸ Pause';
+  } else {
+    player.pause();
+    document.getElementById('music-toggle-btn').textContent = '▶ Play';
+  }
+}
+
+function setVolume(v) {
+  document.getElementById('music-player').volume = parseFloat(v);
+}
+
+// ── HOST TIMER ────────────────────────────────────────
+function startHostTimer(seconds) {
+  stopHostTimer();
+  const el = document.getElementById('host-timer');
+  if (!seconds || seconds <= 0) { el.style.display = 'none'; return; }
+
+  timerSecondsLeft = seconds;
+  el.style.display = 'block';
+  updateHostTimerUI(seconds, seconds);
+
+  timerInterval = setInterval(() => {
+    timerSecondsLeft--;
+    updateHostTimerUI(timerSecondsLeft, seconds);
+    if (timerSecondsLeft <= 0) stopHostTimer();
+  }, 1000);
+}
+
+function updateHostTimerUI(left, total) {
+  document.getElementById('host-timer-label').textContent = `⏱ ${left}s`;
+  document.getElementById('host-timer-fill').style.width = ((left / total) * 100) + '%';
+  document.getElementById('host-timer-fill').style.background =
+    left <= 5 ? 'var(--bad)' : left <= 10 ? 'var(--c)' : 'var(--accent2)';
+}
+
+function stopHostTimer() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Auto-launch on load
+window.addEventListener("load", launchGame);
+</script>
+</body>
+</html>

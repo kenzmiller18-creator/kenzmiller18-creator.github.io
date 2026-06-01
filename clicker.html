@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Quiz Clicker</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');
+    :root{
+      --bg:#f6d2ff; --panel:#f9f4fd; --ink:#1f1f1f; --muted:#40334f;
+      --accent:#4c13a8; --accent2:#f04bd8; --good:#2ecc71; --bad:#ff6b6b;
+      --a:#e74c3c; --b:#3498db; --c:#f39c12; --d:#2ecc71;
+      --shadow:0 10px 30px rgba(0,0,0,.10); --radius:18px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;display:flex;flex-direction:column;align-items:center;}
+    header{width:100%;background:rgb(230,173,255);border-bottom:1px solid #ddd;padding:14px 20px;text-align:center;}
+    header h1{font-size:1.3rem;font-weight:900;color:var(--accent);}
+    header .sub{font-size:.8rem;color:var(--muted);font-weight:700;}
+    .screen{width:100%;max-width:480px;padding:24px 16px;}
+    .card{background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px;border:1px solid rgba(0,0,0,.05);margin-bottom:16px;}
+
+    /* JOIN */
+    .join-title{font-size:1.4rem;font-weight:900;color:var(--accent);text-align:center;margin-bottom:6px;}
+    .join-sub{text-align:center;font-size:.9rem;color:var(--muted);font-weight:700;margin-bottom:24px;}
+    .icon-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;}
+    .icon-btn{font-size:1.6rem;padding:10px;border:3px solid transparent;background:#ede7f6;border-radius:12px;cursor:pointer;text-align:center;}
+    .icon-btn.selected{border-color:var(--accent2);background:rgba(240,75,216,.12);}
+    label{display:block;font-weight:800;font-size:.85rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;}
+    input[type="text"]{width:100%;padding:14px 16px;border:2px solid #ddd;border-radius:12px;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:700;outline:none;margin-bottom:20px;}
+    input:focus{border-color:var(--accent2);}
+    .btn{width:100%;background:var(--accent);color:white;border:none;padding:16px;border-radius:14px;font-family:'Nunito',sans-serif;font-weight:900;font-size:1.1rem;cursor:pointer;box-shadow:0 4px 14px rgba(76,19,168,.3);}
+    .btn.pink{background:var(--accent2);}
+
+    /* WAITING */
+    .player-badge{display:inline-flex;align-items:center;gap:10px;background:#ede7f6;border-radius:40px;padding:10px 20px;font-weight:800;font-size:1rem;color:var(--accent);margin-bottom:24px;}
+    .spinner{width:40px;height:40px;border:4px solid #ddd;border-top-color:var(--accent2);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px;}
+    @keyframes spin{to{transform:rotate(360deg);}}
+    .waiting-msg{font-weight:700;color:var(--muted);font-size:1rem;text-align:center;}
+    .waiting-big{text-align:center;padding:30px 10px;}
+
+    /* QUESTION */
+    .q-label{font-size:.8rem;font-weight:900;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);margin-bottom:10px;}
+    .q-text{font-size:1.1rem;font-weight:800;color:var(--ink);margin-bottom:12px;line-height:1.4;}
+    .q-image{width:100%;max-height:200px;border-radius:12px;margin-bottom:14px;object-fit:contain;display:none;}
+
+    /* Vertical list (default, no answer images) */
+    .answers-list .answer-btn{width:100%;border:none;color:white;padding:18px 16px;border-radius:14px;font-family:'Nunito',sans-serif;font-weight:900;font-size:1rem;cursor:pointer;margin-bottom:10px;display:flex;align-items:center;gap:14px;text-align:left;box-shadow:0 4px 14px rgba(0,0,0,.15);}
+
+    /* 2x2 grid (when any answer has an image) */
+    .answers-grid-2x2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    .answers-grid-2x2 .answer-btn{width:100%;border:none;color:white;padding:12px;border-radius:14px;font-family:'Nunito',sans-serif;font-weight:900;font-size:.9rem;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;box-shadow:0 4px 14px rgba(0,0,0,.15);min-height:120px;justify-content:flex-end;}
+    .answers-grid-2x2 .answer-btn img{width:100%;max-height:90px;object-fit:contain;border-radius:8px;}
+    .answers-grid-2x2 .btn-label{display:flex;align-items:center;gap:6px;}
+
+    .answer-btn{border:none;} /* shared reset */
+    .answer-btn.a{background:var(--a);} .answer-btn.b{background:var(--b);}
+    .answer-btn.c{background:var(--c);} .answer-btn.d{background:var(--d);}
+    .answer-btn:disabled{opacity:.4;cursor:default;}
+    .answer-btn.chosen{opacity:1!important;outline:4px solid white;}
+    .letter-badge{background:rgba(255,255,255,.28);width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0;}
+
+    /* SUBMITTED */
+    .result-state{text-align:center;padding:30px 10px;}
+    .result-state .big{font-size:3.5rem;margin-bottom:10px;}
+    .result-state p{font-weight:700;color:var(--muted);}
+
+    /* POLL DOT */
+    .poll-row{display:flex;align-items:center;gap:6px;justify-content:center;margin-top:12px;}
+    .dot{width:7px;height:7px;border-radius:50%;background:var(--good);animation:pulse 1.5s infinite;}
+    .dot.err{background:var(--bad);animation:none;}
+    @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+    .poll-label{font-size:.75rem;color:var(--muted);font-weight:700;}
+
+    /* TIMER BAR */
+    .timer-wrap{margin-bottom:14px;}
+    .timer-track{background:#ede7f6;border-radius:8px;height:12px;overflow:hidden;}
+    .timer-fill{height:100%;border-radius:8px;background:var(--accent2);transition:width 1s linear;width:100%;}
+  </style>
+</head>
+<body>
+<header>
+  <h1>🧪 Quiz Clicker</h1>
+  <div class="sub" id="header-sub">Join your teacher's quiz</div>
+</header>
+
+<!-- JOIN -->
+<div class="screen" id="join-screen">
+  <div class="card">
+    <div class="join-title">👋 Join the Quiz</div>
+    <div class="join-sub">Pick an icon and enter your name</div>
+    <label>Choose your icon</label>
+    <div class="icon-grid" id="icon-grid"></div>
+    <label for="name-input">Your name</label>
+    <input type="text" id="name-input" placeholder="First name or nickname" maxlength="30" autocomplete="off">
+    <button class="btn pink" onclick="joinGame()">✅ Join Game</button>
+  </div>
+</div>
+
+<!-- WAITING -->
+<div class="screen" id="waiting-screen" style="display:none;">
+  <div class="card">
+    <div class="waiting-big">
+      <div class="player-badge"><span id="badge-icon">🧪</span><span id="badge-name">Student</span></div>
+      <div class="spinner"></div>
+      <div class="waiting-msg">Waiting for teacher to start…</div>
+      <div class="poll-row"><div class="dot" id="poll-dot"></div><span class="poll-label" id="poll-label">Connecting…</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- QUESTION -->
+<div class="screen" id="question-screen" style="display:none;">
+  <div class="card">
+    <div class="q-label" id="q-label">Question 1</div>
+    <div class="q-text" id="q-text"></div>
+    <img id="question-image" class="q-image" src="" alt="">
+    <div id="timer-wrap" class="timer-wrap" style="display:none;">
+      <div class="timer-track"><div class="timer-fill" id="timer-fill"></div></div>
+    </div>
+    <div id="answers-container"></div>
+    <div class="poll-row"><div class="dot" id="q-poll-dot"></div><span class="poll-label" id="q-poll-label">Live</span></div>
+  </div>
+</div>
+
+<!-- SUBMITTED -->
+<div class="screen" id="submitted-screen" style="display:none;">
+  <div class="card">
+    <div class="result-state">
+      <div class="big">✅</div>
+      <p>Answer submitted!<br>Waiting for teacher to reveal…</p>
+      <div class="poll-row" style="margin-top:16px;"><div class="dot" id="sub-poll-dot"></div><span class="poll-label">Watching for next question…</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- GAME OVER -->
+<div class="screen" id="result-screen" style="display:none;">
+  <div class="card">
+    <div class="result-state">
+      <div class="big" id="result-emoji">🏆</div>
+      <p id="result-msg">Game over!</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── TEACHER CONFIG ────────────────────────────────────
+const TEACHERS = {
+  you: {
+    name:        'Ms. Miller',
+    sheetId:     '1CTBuCaRmURkvORE7H3ni7aGIy-as52v1XxnRC27gKTY',
+    gidQuestions: 2144252880,
+    gidResponses: 556974642,
+    formAction:  'https://docs.google.com/forms/d/e/1FAIpQLScCzC88F2wg29MX79Bts5kCfDxhaw6MQQjLr8V0I7_82bH5sA/formResponse',
+    entryName:    'entry.22727263',
+    entryQuestion:'entry.667990168',
+    entryAnswer:  'entry.1389180787',
+  },
+  mentor: {
+    name:        'Mr. Cortez',
+    sheetId:     '1oSg5XLQJ3MI0ippCaG3DEzu5POa4N7AXzRevoh7e_so',        // ←  Sheet ID
+    gidQuestions:'2144252880',   // ← Questions tab GID
+    gidResponses:'556974642',                 
+    formAction:  'https://docs.google.com/forms/d/e/1FAIpQLSdeF78_RroJTSkqHcDvpRl3P5uIRBeerVXgqKDJv4wJ3NXZLw/formResponse',        // ← Form URL
+    entryName:    'entry.22727263',           // ←  form entry IDs
+    entryQuestion:'entry.667990168',
+    entryAnswer:  'entry.1389180787',
+  },
+};
+
+// ── RUNTIME CONFIG (set on load from ?t= param or teacher picker) ──
+let FORM_ACTION = '', ENTRY_NAME = '', ENTRY_QUESTION = '', ENTRY_ANSWER = '';
+let SHEET_ID = '', SHEET_GID_QUESTIONS = 0, SHEET_GID_RESPONSES = 0;
+let TEACHER_SLUG = '';
+
+const ICONS = ['🧪','⚗️','🔬','🧬','🍄','🔥','🐢','🌡️','🧲','💎','🌊','🍀','🦋','🌙','⭐','🎯','🚀','🦊','🐝','🐬'];
+
+// ── STATE ──────────────────────────────────────────────
+let playerName = '', playerIcon = ICONS[0];
+let pollInterval = null;
+let currentQRowIndex = -1;
+let myAnswer = null;
+let questions = [];
+let timerInterval = null;
+
+// ── JOIN ───────────────────────────────────────────────
+window.addEventListener('load', () => {
+  // Build icon grid
+  const grid = document.getElementById('icon-grid');
+  ICONS.forEach((icon, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'icon-btn' + (i === 0 ? ' selected' : '');
+    btn.textContent = icon;
+    btn.onclick = () => {
+      document.querySelectorAll('.icon-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      playerIcon = icon;
+    };
+    grid.appendChild(btn);
+  });
+
+  // Read ?t= param from URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const slug = urlParams.get('t') || '';
+  const teacher = TEACHERS[slug];
+
+  if (teacher) {
+    // Auto-select teacher — skip picker, go straight to join screen
+    applyTeacher(slug, teacher);
+    showScreen('join-screen');
+  } else if (Object.keys(TEACHERS).length > 1) {
+    // No param — show teacher picker first
+    showTeacherPicker();
+  } else {
+    // Only one teacher — auto-select them
+    const onlySlug = Object.keys(TEACHERS)[0];
+    applyTeacher(onlySlug, TEACHERS[onlySlug]);
+    showScreen('join-screen');
+  }
+});
+
+function applyTeacher(slug, teacher) {
+  TEACHER_SLUG    = slug;
+  SHEET_ID        = teacher.sheetId;
+  SHEET_GID_QUESTIONS = teacher.gidQuestions;
+  SHEET_GID_RESPONSES = teacher.gidResponses;
+  FORM_ACTION     = teacher.formAction;
+  ENTRY_NAME      = teacher.entryName;
+  ENTRY_QUESTION  = teacher.entryQuestion;
+  ENTRY_ANSWER    = teacher.entryAnswer;
+  document.getElementById('header-sub').textContent = teacher.name + "'s Quiz";
+  document.querySelector('.join-sub').textContent = `Joining ${teacher.name}'s quiz`;
+}
+
+function showTeacherPicker() {
+  const screen = document.getElementById('join-screen');
+  const card = screen.querySelector('.card');
+  card.innerHTML = `
+    <div class="join-title">👋 Join a Quiz</div>
+    <div class="join-sub" style="margin-bottom:20px;">Select your teacher</div>
+    ${Object.entries(TEACHERS).map(([slug, t]) => `
+      <button class="btn pink" style="margin-bottom:12px;" onclick="selectTeacher('${slug}')">
+        ${t.name}
+      </button>`).join('')}
+  `;
+  showScreen('join-screen');
+}
+
+function selectTeacher(slug) {
+  const teacher = TEACHERS[slug];
+  if (!teacher) return;
+  applyTeacher(slug, teacher);
+  // Rebuild the join card with icon grid + name input
+  const screen = document.getElementById('join-screen');
+  screen.querySelector('.card').innerHTML = `
+    <div class="join-title">👋 Join the Quiz</div>
+    <div class="join-sub">Pick an icon and enter your name</div>
+    <label>Choose your icon</label>
+    <div class="icon-grid" id="icon-grid"></div>
+    <label for="name-input">Your name</label>
+    <input type="text" id="name-input" placeholder="First name or nickname" maxlength="30" autocomplete="off">
+    <button class="btn pink" onclick="joinGame()">✅ Join Game</button>
+  `;
+  // Re-populate icon grid
+  const grid = document.getElementById('icon-grid');
+  ICONS.forEach((icon, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'icon-btn' + (i === 0 ? ' selected' : '');
+    btn.textContent = icon;
+    btn.onclick = () => {
+      document.querySelectorAll('.icon-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      playerIcon = icon;
+    };
+    grid.appendChild(btn);
+  });
+}
+
+function joinGame() {
+  const name = document.getElementById('name-input').value.trim();
+  if (!name) { alert('Please enter your name!'); return; }
+  playerName = name;
+  document.getElementById('badge-icon').textContent = playerIcon;
+  document.getElementById('badge-name').textContent = playerName;
+  document.getElementById('header-sub').textContent = playerIcon + ' ' + playerName;
+
+  // Submit join signal to form (question 0, answer 'join')
+  const params = new URLSearchParams();
+  params.append(ENTRY_NAME,     playerIcon + ' ' + playerName);
+  params.append(ENTRY_QUESTION, '0');
+  params.append(ENTRY_ANSWER,   'join');
+  fetch(FORM_ACTION, {
+    method: 'POST', mode: 'no-cors',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: params.toString()
+  }).catch(() => {});
+
+  showScreen('waiting-screen');
+  startPolling();
+}
+
+// ── POLLING ────────────────────────────────────────────
+function startPolling() {
+  poll(); // immediate
+  pollInterval = setInterval(poll, 3000);
+}
+
+function poll() {
+  pollQuestions();
+}
+
+// Poll Questions tab — find the active question and check Released column
+function pollQuestions() {
+  gvizFetch(SHEET_GID_QUESTIONS, true, function(rows, colNames) {
+    setPollStatus('ok', 'Live');
+
+    const iQ    = colNames.findIndex(c => c === 'question');
+    const iA    = colNames.findIndex(c => c === 'a');
+    const iB    = colNames.findIndex(c => c === 'b');
+    const iC    = colNames.findIndex(c => c === 'c');
+    const iD    = colNames.findIndex(c => c === 'd');
+    const iDone  = colNames.findIndex(c => c === 'completed');
+    const iRel   = colNames.findIndex(c => c === 'released');
+    const iImg   = colNames.findIndex(c => c === 'image');
+    const iAImg  = colNames.findIndex(c => c === 'a image');
+    const iBImg  = colNames.findIndex(c => c === 'b image');
+    const iCImg  = colNames.findIndex(c => c === 'c image');
+    const iDImg  = colNames.findIndex(c => c === 'd image');
+    const iTimer = colNames.findIndex(c => c === 'timer');
+    const iStart = colNames.findIndex(c => c === 'game started');
+    if (iQ < 0) { setPollStatus('err', 'Cannot read columns'); return; }
+
+    // Check game started flag (stored in row 2 of 'Game Started' column)
+    const gameStarted = iStart >= 0 && rows[0] &&
+      rows[0].c[iStart] && String(rows[0].c[iStart].v || '').trim().toLowerCase() === 'true';
+
+    questions = rows.map((row, i) => {
+      const cell = idx => (idx >= 0 && row.c[idx] && row.c[idx].v != null) ? String(row.c[idx].v).trim() : '';
+      const timerRaw = iTimer >= 0 ? parseInt(cell(iTimer)) : NaN;
+      return {
+        question:  cell(iQ),
+        a: cell(iA), b: cell(iB), c: cell(iC), d: cell(iD),
+        completed: !!cell(iDone),
+        released:  iRel >= 0 ? cell(iRel).toLowerCase() : '',
+        rowIndex:  i + 2,
+        image:     normalizeImageUrl(cell(iImg)),
+        aImg:      normalizeImageUrl(cell(iAImg)),
+        bImg:      normalizeImageUrl(cell(iBImg)),
+        cImg:      normalizeImageUrl(cell(iCImg)),
+        dImg:      normalizeImageUrl(cell(iDImg)),
+        timer:     isNaN(timerRaw) ? 0 : timerRaw,
+      };
+    }).filter(q => q.question);
+
+    // Active question = first one NOT completed
+    const active = questions.find(q => !q.completed);
+
+    if (!active) {
+      if (currentQRowIndex >= 0) showGameOver();
+      return;
+    }
+
+    if (active.rowIndex !== currentQRowIndex) {
+      const completedBefore = questions
+        .filter(q => q.completed && q.rowIndex < active.rowIndex)
+        .sort((a, b) => b.rowIndex - a.rowIndex);
+      const prevQuestion = completedBefore[0] || null;
+
+      const isFirstQuestion = !prevQuestion;
+      const prevReleased    = prevQuestion && prevQuestion.released === 'true';
+
+      // Q1 additionally requires teacher to have clicked Start Game
+      if ((isFirstQuestion && gameStarted) || prevReleased) {
+        currentQRowIndex = active.rowIndex;
+        myAnswer = null;
+        showQuestion(active);
+      }
+    }
+  }, function() { setPollStatus('err', 'Connection error'); });
+}
+
+// ── GVIZ FETCH ────────────────────────────────────────
+
+let gvizCallbackCounter = 0;
+
+function gvizFetch(gid, useHeaders, onSuccess, onError) {
+  // Remove any pending script for this gid to avoid duplicates
+  const old = document.getElementById('gviz-' + gid);
+  if (old) old.remove();
+
+  const cbName = '__gvizCb_' + (gvizCallbackCounter++);
+
+  window[cbName] = function(r) {
+    delete window[cbName];
+    const scriptEl = document.getElementById('gviz-' + gid);
+    if (scriptEl) scriptEl.remove();
+
+    if (!r || r.status === 'error') { onError && onError(); return; }
+
+    const rows   = r.table.rows || [];
+    const cols   = r.table.cols || [];
+    let colNames = cols.map(c => (c.label || '').trim().toLowerCase());
+
+    // Fallback: if headers=1 didn't populate labels, treat row 0 as header
+    const noLabels = !colNames.includes('question') && !colNames.includes('completed');
+    let dataRows = rows;
+    if (noLabels && rows.length > 0) {
+      colNames = rows[0].c.map(c => c && c.v ? String(c.v).trim().toLowerCase() : '');
+      dataRows = rows.slice(1);
+    }
+
+    onSuccess(dataRows, colNames);
+  };
+
+  const script = document.createElement('script');
+  script.id = 'gviz-' + gid;
+  const headersParam = useHeaders ? '&headers=1' : '';
+  // tqx=responseHandler:cbName routes the response to our unique function
+  script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cbName}${headersParam}&tq=select%20*&gid=${gid}&_=${Date.now()}`;
+  script.onerror = () => { delete window[cbName]; onError && onError(); };
+  document.head.appendChild(script);
+}
+
+// ── QUESTION DISPLAY ──────────────────────────────────
+function showQuestion(q) {
+  const qNum = questions.findIndex(x => x.rowIndex === q.rowIndex) + 1;
+  document.getElementById('q-label').textContent = 'Question ' + qNum;
+  document.getElementById('q-text').textContent  = q.question;
+
+  // Question image (below text, above answers)
+  const imgEl = document.getElementById('question-image');
+  if (q.image) { imgEl.src = q.image; imgEl.style.display = 'block'; }
+  else         { imgEl.style.display = 'none'; imgEl.src = ''; }
+
+  // Build answer buttons — 2x2 grid if any answer has an image, else vertical list
+  const letters = ['a','b','c','d'];
+  const ansImages = { a: q.aImg, b: q.bImg, c: q.cImg, d: q.dImg };
+  const hasAnyImg = letters.some(l => ansImages[l]);
+
+  const container = document.getElementById('answers-container');
+  container.className = hasAnyImg ? 'answers-grid-2x2' : 'answers-list';
+  container.innerHTML = '';
+
+  letters.forEach(l => {
+    const btn = document.createElement('button');
+    btn.className = `answer-btn ${l}`;
+    btn.id = 'btn-' + l;
+    btn.onclick = () => submitAnswer(l);
+
+    if (hasAnyImg) {
+      // 2x2 layout: image on top (if present), label+badge below
+      if (ansImages[l]) {
+        const img = document.createElement('img');
+        img.src = ansImages[l];
+        img.alt = l.toUpperCase();
+        btn.appendChild(img);
+      }
+      const labelRow = document.createElement('div');
+      labelRow.className = 'btn-label';
+      labelRow.innerHTML = `<div class="letter-badge">${l.toUpperCase()}</div><span>${q[l]}</span>`;
+      btn.appendChild(labelRow);
+    } else {
+      // Vertical list layout: badge + text side by side
+      btn.innerHTML = `<div class="letter-badge">${l.toUpperCase()}</div><span>${q[l]}</span>`;
+    }
+
+    container.appendChild(btn);
+  });
+
+  showScreen('question-screen');
+
+  // Start countdown timer if question has one
+  startTimer(q.timer);
+}
+
+function showGameOver() {
+  clearInterval(pollInterval);
+  showScreen('result-screen');
+}
+
+// ── SUBMIT ANSWER ─────────────────────────────────────
+function submitAnswer(letter) {
+  stopTimer();
+  myAnswer = letter;
+  ['a','b','c','d'].forEach(l => {
+    const btn = document.getElementById('btn-' + l);
+    if (!btn) return;
+    btn.disabled = true;
+    btn.classList.toggle('chosen', l === letter);
+  });
+
+  const qIndex = questions.findIndex(q => q.rowIndex === currentQRowIndex);
+  const params = new URLSearchParams();
+  params.append(ENTRY_NAME,     playerIcon + ' ' + playerName);
+  params.append(ENTRY_QUESTION, String(qIndex + 1));
+  params.append(ENTRY_ANSWER,   letter);
+
+  fetch(FORM_ACTION, {
+    method: 'POST', mode: 'no-cors',
+    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+    body: params.toString()
+  }).catch(() => {});
+
+  setTimeout(() => showScreen('submitted-screen'), 400);
+}
+
+// ── HELPERS ───────────────────────────────────────────
+// ── TIMER ─────────────────────────────────────────────
+function startTimer(seconds) {
+  stopTimer();
+  const wrap = document.getElementById('timer-wrap');
+  const fill = document.getElementById('timer-fill');
+  if (!seconds || seconds <= 0) { wrap.style.display = 'none'; return; }
+
+  wrap.style.display = 'block';
+  fill.style.transition = 'none';
+  fill.style.width = '100%';
+  fill.style.background = 'var(--accent2)';
+
+  // Force reflow so the transition reset takes effect
+  fill.getBoundingClientRect();
+  fill.style.transition = `width ${seconds}s linear`;
+
+  let left = seconds;
+
+  // Kick off the bar shrink on next frame
+  requestAnimationFrame(() => { fill.style.width = '0%'; });
+
+  timerInterval = setInterval(() => {
+    left--;
+    // Colour shift as time runs out
+    if (left <= 5)       fill.style.background = 'var(--bad)';
+    else if (left <= 10) fill.style.background = 'var(--c)';
+
+    if (left <= 0) {
+      stopTimer();
+      lockButtons();
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  clearInterval(timerInterval);
+  timerInterval = null;
+}
+
+function lockButtons() {
+  ['a','b','c','d'].forEach(l => {
+    const btn = document.getElementById('btn-' + l);
+    if (btn) btn.disabled = true;
+  });
+}
+
+function normalizeImageUrl(url) {
+  if (!url) return '';
+  const driveMatch = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+  if (driveMatch) return `https://lh3.googleusercontent.com/d/${driveMatch[1]}`;
+  const openMatch = url.match(/drive\.google\.com\/open\?id=([a-zA-Z0-9_-]+)/);
+  if (openMatch) return `https://lh3.googleusercontent.com/d/${openMatch[1]}`;
+  const ucMatch = url.match(/drive\.google\.com\/uc\?.*[?&]id=([a-zA-Z0-9_-]+)/);
+  if (ucMatch) return `https://lh3.googleusercontent.com/d/${ucMatch[1]}`;
+  return url;
+}
+
+function showScreen(id) {
+  ['join-screen','waiting-screen','question-screen','submitted-screen','result-screen']
+    .forEach(s => { document.getElementById(s).style.display = s === id ? 'block' : 'none'; });
+}
+
+function setPollStatus(type, msg) {
+  ['poll-dot','q-poll-dot','sub-poll-dot'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.className = 'dot' + (type === 'err' ? ' err' : '');
+  });
+  ['poll-label','q-poll-label'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = msg;
+  });
+}
+</script>
+</body>
+</html>
