@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Points Dashboard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Space+Mono:wght@400;700&display=swap');
+  :root{
+    --bg:#f6d2ff; --panel:#f9f4fd; --ink:#1f1f1f; --muted:#40334f;
+    --accent:#4c13a8; --accent2:#f04bd8; --good:#2ecc71; --bad:#ff6b6b;
+    --shadow:0 10px 30px rgba(0,0,0,.10); --radius:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;}
+  header{background:rgb(230,173,255);border-bottom:1px solid #ddd;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;}
+  header h1{font-size:1.3rem;font-weight:900;color:var(--accent);}
+  .wrap{max-width:1000px;margin:20px auto;padding:0 20px;}
+  .card{background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:18px;border:1px solid rgba(0,0,0,.05);}
+
+  .goal-title{font-weight:900;font-size:.85rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:10px;}
+  .goal-track{background:#ede7f6;border-radius:10px;height:28px;overflow:hidden;margin-bottom:8px;}
+  .goal-fill{height:100%;background:var(--accent2);border-radius:10px;transition:width .6s ease;width:0%;}
+  .goal-nums{font-size:.9rem;font-weight:800;color:var(--muted);}
+  .goal-row{display:flex;gap:10px;align-items:center;margin-top:10px;}
+  .goal-row input{width:120px;padding:8px;border:2px solid #ddd;border-radius:8px;font-family:'Space Mono',monospace;}
+  .btn{background:var(--accent);color:white;border:none;padding:10px 18px;border-radius:10px;font-weight:800;font-size:.9rem;cursor:pointer;}
+  .btn.pink{background:var(--accent2);}
+  .btn.gray{background:var(--muted);}
+  .btn.sm{padding:6px 12px;font-size:.85rem;}
+
+  table{width:100%;border-collapse:collapse;}
+  th{text-align:left;font-size:.75rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:8px 6px;border-bottom:2px solid #ede7f6;}
+  td{padding:10px 6px;border-bottom:1px solid #f0e8f8;vertical-align:middle;}
+  .s-icon{font-size:1.4rem;}
+  .s-name{font-weight:800;}
+  .s-pts{font-weight:900;font-family:'Space Mono',monospace;color:var(--accent);font-size:1.1rem;min-width:40px;display:inline-block;text-align:center;}
+  .pt-btns{display:flex;gap:4px;flex-wrap:wrap;}
+  .pt-btn{border:none;color:white;border-radius:8px;padding:6px 10px;font-weight:900;font-size:.8rem;cursor:pointer;}
+  .pt-btn.plus{background:var(--good);}
+  .pt-btn.minus{background:var(--bad);}
+  .note-input{width:100%;padding:6px 8px;border:2px solid #ddd;border-radius:8px;font-size:.8rem;}
+  .redeem-btn{background:var(--accent2);color:white;border:none;border-radius:8px;padding:6px 10px;font-weight:800;font-size:.8rem;cursor:pointer;}
+</style>
+</head>
+<body>
+<header>
+  <h1>⭐ Points Dashboard</h1>
+  <div>
+    <button class="btn gray sm" onclick="startNewWeek()">🗓 Start New Week (clears notes)</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="card">
+    <div class="goal-title">🍪 Class Goal Progress</div>
+    <div class="goal-track"><div class="goal-fill" id="goal-fill"></div></div>
+    <div class="goal-nums" id="goal-nums">Loading…</div>
+    <div class="goal-row">
+      <input type="number" id="goal-input" placeholder="Set goal">
+      <button class="btn sm" onclick="saveGoal()">Set Goal</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <table>
+      <thead>
+        <tr><th></th><th>Name</th><th>Points</th><th>Quick Adjust</th><th>Note (clears weekly)</th><th>Redeem</th></tr>
+      </thead>
+      <tbody id="roster-body">
+        <tr><td colspan="6">Loading roster…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+// ── CONFIG — fill these in ──────────────────────────────
+const SHEET_ID     = '1hcrOxColtV2Yb9zrNThX5Pk1KU0O-Tn9kuSLM5q3ffc';
+const GID_POINTS   = 0;
+const GID_SETTINGS = 1014050203;
+const SCRIPT_URL   = 'https://script.google.com/macros/s/AKfycbxQFpJmB8Jc6Rwj-L255Ea6YgpPS9A1LyPZ3QKBIpoY5kbHwWPe5Q60HoqfuaQDCJqP/exec';
+
+let roster = [];
+
+window.onload = () => { loadAll(); setInterval(loadAll, 8000); };
+
+function loadAll() { loadRoster(); }
+
+function loadRoster() {
+  gvizQuery(GID_POINTS, (rows) => {
+    roster = rows.map((r, i) => ({
+      row: i + 2,
+      icon: r.c[0] ? r.c[0].v : '⭐',
+      name: r.c[1] ? r.c[1].v : '',
+      points: r.c[2] ? Number(r.c[2].v) : 0,
+      note: r.c[3] ? r.c[3].v : ''
+    })).filter(s => s.name);
+    renderRoster();
+    loadGoal(); // recompute live total now that roster is fresh
+  });
+}
+
+function renderRoster() {
+  const body = document.getElementById('roster-body');
+  body.innerHTML = roster.map(s => `
+    <tr>
+      <td class="s-icon">${s.icon}</td>
+      <td class="s-name">${s.name}</td>
+      <td><span class="s-pts">${s.points}</span></td>
+      <td>
+        <div class="pt-btns">
+          <button class="pt-btn plus" onclick="adjust(${s.row},1)">+1</button>
+          <button class="pt-btn plus" onclick="adjust(${s.row},5)">+5</button>
+          <button class="pt-btn minus" onclick="adjust(${s.row},-1)">-1</button>
+          <button class="pt-btn minus" onclick="adjust(${s.row},-5)">-5</button>
+        </div>
+      </td>
+      <td>
+        <input class="note-input" value="${s.note.replace(/"/g,'&quot;')}" onkeydown="if(event.key==='Enter') saveNote(${s.row}, this.value)">
+      </td>
+      <td><button class="redeem-btn" onclick="redeem(${s.row})">Redeem</button></td>
+    </tr>
+  `).join('');
+}
+
+function adjust(row, delta) {
+  // optimistic UI update
+  const s = roster.find(x => x.row === row);
+  s.points += delta;
+  renderRoster();
+  loadGoal();
+  fetch(`${SCRIPT_URL}?action=adjustPoints&sheetId=${SHEET_ID}&row=${row}&delta=${delta}`, {mode:'no-cors'}).catch(()=>{});
+}
+
+function redeem(row) {
+  const amount = prompt('How many points are they spending?');
+  if (!amount || isNaN(amount)) return;
+  const s = roster.find(x => x.row === row);
+  s.points = Math.max(0, s.points - Number(amount));
+  renderRoster();
+  loadGoal();
+  fetch(`${SCRIPT_URL}?action=redeemPoints&sheetId=${SHEET_ID}&row=${row}&amount=${amount}`, {mode:'no-cors'}).catch(()=>{});
+}
+
+function saveNote(row, note) {
+  fetch(`${SCRIPT_URL}?action=setNote&sheetId=${SHEET_ID}&row=${row}&note=${encodeURIComponent(note)}`, {mode:'no-cors'}).catch(()=>{});
+}
+
+function startNewWeek() {
+  if (!confirm('Clear all student notes for a fresh week? Points are NOT affected.')) return;
+  fetch(`${SCRIPT_URL}?action=newWeek&sheetId=${SHEET_ID}`, {mode:'no-cors'}).catch(()=>{});
+  setTimeout(loadRoster, 500);
+}
+
+function loadGoal() {
+  const liveTotal = roster.reduce((sum, s) => sum + (s.points || 0), 0);
+  gvizQuery(GID_SETTINGS, (rows) => {
+    const goal = rows[1] && rows[1].c[1] ? Number(rows[1].c[1].v) : 100;
+    const pct = Math.min(100, Math.round((liveTotal / goal) * 100));
+    document.getElementById('goal-fill').style.width = pct + '%';
+    document.getElementById('goal-nums').textContent = `${liveTotal} / ${goal} points right now toward class reward`;
+  });
+}
+
+function saveGoal() {
+  const val = document.getElementById('goal-input').value;
+  if (!val) return;
+  fetch(`${SCRIPT_URL}?action=setGoal&sheetId=${SHEET_ID}&goal=${val}`, {mode:'no-cors'}).catch(()=>{});
+  setTimeout(loadGoal, 500);
+}
+
+// ── gviz reader ──────────────────────────────────────────
+let gvizCounter = 0;
+function gvizQuery(gid, onSuccess) {
+  const old = document.getElementById('gviz-' + gid);
+  if (old) old.remove();
+  const cbName = '__gvizCb_' + (gvizCounter++);
+  window[cbName] = function(response) {
+    delete window[cbName];
+    const el = document.getElementById('gviz-' + gid);
+    if (el) el.remove();
+    onSuccess(response.table.rows || []);
+  };
+  const script = document.createElement('script');
+  script.id = 'gviz-' + gid;
+  script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cbName}&tq=select%20*&gid=${gid}&_=${Date.now()}`;
+  document.head.appendChild(script);
+}
+</script>
+</body>
+</html>

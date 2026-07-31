@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>My Points</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&display=swap');
+  :root{
+    --bg:#f6d2ff; --panel:#f9f4fd; --ink:#1f1f1f; --muted:#40334f;
+    --accent:#4c13a8; --accent2:#f04bd8; --good:#2ecc71; --bad:#ff6b6b;
+    --shadow:0 10px 30px rgba(0,0,0,.10); --radius:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;display:flex;flex-direction:column;align-items:center;}
+  header{width:100%;background:rgb(230,173,255);border-bottom:1px solid #ddd;padding:14px 20px;text-align:center;}
+  header h1{font-size:1.3rem;font-weight:900;color:var(--accent);}
+  .screen{width:100%;max-width:460px;padding:24px 16px;}
+  .card{background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px;border:1px solid rgba(0,0,0,.05);margin-bottom:16px;}
+
+  label{display:block;font-weight:800;font-size:.85rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;}
+  select{width:100%;padding:14px 16px;border:2px solid #ddd;border-radius:12px;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:700;margin-bottom:18px;}
+  .btn{width:100%;background:var(--accent);color:white;border:none;padding:16px;border-radius:14px;font-weight:900;font-size:1.1rem;cursor:pointer;box-shadow:0 4px 14px rgba(76,19,168,.3);}
+  .icon-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;}
+  .icon-btn{font-size:1.6rem;padding:10px;border:3px solid transparent;background:#ede7f6;border-radius:12px;cursor:pointer;text-align:center;}
+  .icon-btn.selected{border-color:var(--accent2);background:rgba(240,75,216,.12);}
+
+  .badge{display:flex;align-items:center;gap:14px;margin-bottom:20px;}
+  .badge .icon{font-size:2.4rem;}
+  .badge .name{font-size:1.3rem;font-weight:900;color:var(--accent);}
+
+  .balance{text-align:center;padding:20px;background:linear-gradient(135deg,var(--accent) 0%,#7b2ff7 100%);border-radius:16px;color:white;margin-bottom:16px;}
+  .balance .num{font-size:2.6rem;font-weight:900;}
+  .balance .label{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;font-weight:800;opacity:.9;}
+
+  .note-box{background:#fff8e1;border-radius:12px;padding:14px 16px;font-weight:700;color:#5a4a1a;font-size:.95rem;margin-bottom:16px;display:none;}
+
+  .goal-title{font-weight:900;font-size:.85rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;}
+  .goal-track{background:#ede7f6;border-radius:10px;height:26px;overflow:hidden;margin-bottom:6px;}
+  .goal-fill{height:100%;background:var(--accent2);border-radius:10px;transition:width .6s ease;width:0%;}
+  .goal-nums{font-size:.85rem;font-weight:700;color:var(--muted);text-align:center;}
+</style>
+</head>
+<body>
+<header><h1>⭐ My Points</h1></header>
+
+<!-- STEP 1: PICK NAME -->
+<div class="screen" id="pick-screen">
+  <div class="card">
+    <label>Find your name</label>
+    <select id="name-select"><option value="">Loading roster…</option></select>
+    <button class="btn" onclick="chooseName()">Continue</button>
+  </div>
+</div>
+
+<!-- STEP 2: PICK ICON (only shown once, first time ever) -->
+<div class="screen" id="icon-screen" style="display:none;">
+  <div class="card">
+    <label>Pick your icon (this is yours for the whole year!)</label>
+    <div class="icon-grid" id="icon-grid"></div>
+    <button class="btn" onclick="confirmIcon()">Lock It In</button>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="screen" id="dash-screen" style="display:none;">
+  <div class="card">
+    <div class="badge"><span class="icon" id="dash-icon">⭐</span><span class="name" id="dash-name">Student</span></div>
+    <div class="balance">
+      <div class="num" id="dash-points">0</div>
+      <div class="label">Your Points</div>
+    </div>
+    <div class="note-box" id="dash-note"></div>
+  </div>
+  <div class="card">
+    <div class="goal-title">🍪 Class Goal Progress</div>
+    <div class="goal-track"><div class="goal-fill" id="goal-fill"></div></div>
+    <div class="goal-nums" id="goal-nums">Loading…</div>
+  </div>
+</div>
+
+<script>
+// ── CONFIG — fill these in ──────────────────────────────
+const SHEET_ID     = '1hcrOxColtV2Yb9zrNThX5Pk1KU0O-Tn9kuSLM5q3ffc';
+const GID_POINTS   = 0;      // Points tab GID
+const GID_SETTINGS = 1014050203;      // Settings tab GID
+
+const ICONS = ['🧪','⚗️','🔬','🧬','🍄','🔥','🐢','🌡️','🧲','💎','🌊','🍀','🦋','🌙','⭐','🎯','🚀','🦊','🐝','🐬'];
+
+let roster = [];       // [{row, icon, name, points, note}]
+let myRow = null;
+let pickedIcon = null;
+let pollInterval = null;
+
+// Remember which row this device belongs to, so returning students skip the picker
+const savedRow = localStorage.getItem('pointsRow');
+
+window.onload = () => loadRoster(() => {
+  if (savedRow && roster.find(s => s.row === Number(savedRow))) {
+    myRow = Number(savedRow);
+    showDash();
+  }
+});
+
+function loadRoster(cb) {
+  gvizQuery(GID_POINTS, (rows) => {
+    roster = rows.map((r, i) => ({
+      row: i + 2,
+      icon: r.c[0] ? r.c[0].v : '',
+      name: r.c[1] ? r.c[1].v : '',
+      points: r.c[2] ? Number(r.c[2].v) : 0,
+      note: r.c[3] ? r.c[3].v : ''
+    })).filter(s => s.name);
+
+    const sel = document.getElementById('name-select');
+    sel.innerHTML = '<option value="">Select your name…</option>' +
+      roster.map(s => `<option value="${s.row}">${s.name}</option>`).join('');
+
+    if (cb) cb();
+  });
+}
+
+function chooseName() {
+  const row = Number(document.getElementById('name-select').value);
+  if (!row) { alert('Please select your name'); return; }
+  myRow = row;
+  const student = roster.find(s => s.row === row);
+
+  if (!student.icon) {
+    // First time ever — show icon picker
+    const grid = document.getElementById('icon-grid');
+    grid.innerHTML = '';
+    ICONS.forEach(ic => {
+      const btn = document.createElement('div');
+      btn.className = 'icon-btn';
+      btn.textContent = ic;
+      btn.onclick = () => {
+        document.querySelectorAll('.icon-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        pickedIcon = ic;
+      };
+      grid.appendChild(btn);
+    });
+    showScreen('icon-screen');
+  } else {
+    localStorage.setItem('pointsRow', myRow);
+    showDash();
+  }
+}
+
+function confirmIcon() {
+  if (!pickedIcon) { alert('Pick an icon first!'); return; }
+  fetch(`${SCRIPT_URL()}?action=setIcon&sheetId=${SHEET_ID}&row=${myRow}&icon=${encodeURIComponent(pickedIcon)}`, {mode:'no-cors'}).catch(()=>{});
+  localStorage.setItem('pointsRow', myRow);
+  // optimistic local update
+  const s = roster.find(x => x.row === myRow); s.icon = pickedIcon;
+  showDash();
+}
+
+function showDash() {
+  showScreen('dash-screen');
+  refreshDash();
+  clearInterval(pollInterval);
+  pollInterval = setInterval(refreshDash, 6000); // light polling
+}
+
+function refreshDash() {
+  loadRoster(() => {
+    const s = roster.find(x => x.row === myRow);
+    if (!s) return;
+    document.getElementById('dash-icon').textContent = s.icon || '⭐';
+    document.getElementById('dash-name').textContent = s.name;
+    document.getElementById('dash-points').textContent = s.points;
+
+    const noteBox = document.getElementById('dash-note');
+    if (s.note) { noteBox.style.display = 'block'; noteBox.textContent = '📝 ' + s.note; }
+    else { noteBox.style.display = 'none'; }
+
+    // Class total = live sum of every student's current balance, so
+    // gains, losses, and redemptions all move the shared bar right away.
+    const liveTotal = roster.reduce((sum, x) => sum + (x.points || 0), 0);
+    gvizQuery(GID_SETTINGS, (rows) => {
+      const goal = rows[1] && rows[1].c[1] ? Number(rows[1].c[1].v) : 100;
+      const pct = Math.min(100, Math.round((liveTotal / goal) * 100));
+      document.getElementById('goal-fill').style.width = pct + '%';
+      document.getElementById('goal-nums').textContent = `${liveTotal} / ${goal} points right now`;
+    });
+  });
+}
+
+function showScreen(id) {
+  ['pick-screen','icon-screen','dash-screen'].forEach(s => {
+    document.getElementById(s).style.display = s === id ? 'block' : 'none';
+  });
+}
+
+function SCRIPT_URL() {
+  return 'https://script.google.com/macros/s/AKfycbxQFpJmB8Jc6Rwj-L255Ea6YgpPS9A1LyPZ3QKBIpoY5kbHwWPe5Q60HoqfuaQDCJqP/exec';
+}
+
+// ── gviz reader (same pattern as clicker.html) ──────────
+let gvizCounter = 0;
+function gvizQuery(gid, onSuccess) {
+  const old = document.getElementById('gviz-' + gid);
+  if (old) old.remove();
+  const cbName = '__gvizCb_' + (gvizCounter++);
+  window[cbName] = function(response) {
+    delete window[cbName];
+    const el = document.getElementById('gviz-' + gid);
+    if (el) el.remove();
+    onSuccess(response.table.rows || []);
+  };
+  const script = document.createElement('script');
+  script.id = 'gviz-' + gid;
+  script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cbName}&tq=select%20*&gid=${gid}&_=${Date.now()}`;
+  document.head.appendChild(script);
+}
+</script>
+</body>
+</html>
