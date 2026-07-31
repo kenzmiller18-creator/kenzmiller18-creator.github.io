@@ -39,6 +39,17 @@
   .goal-track{background:#ede7f6;border-radius:10px;height:26px;overflow:hidden;margin-bottom:6px;}
   .goal-fill{height:100%;background:var(--accent2);border-radius:10px;transition:width .6s ease;width:0%;}
   .goal-nums{font-size:.85rem;font-weight:700;color:var(--muted);text-align:center;}
+
+  .shop-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+  .shop-item{background:#ede7f6;border-radius:12px;padding:12px;text-align:center;}
+  .shop-item .icon{font-size:1.8rem;margin-bottom:4px;}
+  .shop-item .item-name{font-weight:800;font-size:.85rem;margin-bottom:4px;}
+  .shop-item .cost{font-weight:900;color:var(--accent);font-size:.9rem;margin-bottom:8px;}
+  .shop-btn{width:100%;border:none;padding:8px;border-radius:8px;font-weight:800;font-size:.8rem;cursor:pointer;background:var(--good);color:white;}
+  .shop-btn:disabled{background:#ccc;cursor:default;}
+  .req-pill{display:inline-block;background:#fff8e1;color:#5a4a1a;border-radius:20px;padding:4px 12px;font-size:.75rem;font-weight:700;margin:3px 3px 0 0;}
+  .req-pill.approved{background:#d4edda;color:#155724;}
+  .req-pill.denied{background:#f8d7da;color:#721c24;}
 </style>
 </head>
 <body>
@@ -77,6 +88,11 @@
     <div class="goal-track"><div class="goal-fill" id="goal-fill"></div></div>
     <div class="goal-nums" id="goal-nums">Loading…</div>
   </div>
+  <div class="card">
+    <div class="goal-title">🎁 Reward Shop</div>
+    <div id="shop-grid" class="shop-grid"></div>
+    <div id="my-requests"></div>
+  </div>
 </div>
 
 <script>
@@ -84,6 +100,8 @@
 const SHEET_ID     = '1hcrOxColtV2Yb9zrNThX5Pk1KU0O-Tn9kuSLM5q3ffc';
 const GID_POINTS   = 0;      // Points tab GID
 const GID_SETTINGS = 1014050203;      // Settings tab GID
+const GID_REWARDS  = 1889239929;
+const GID_REQUESTS = 797501889;
 
 const ICONS = ['🧪','⚗️','🔬','🧬','🍄','🔥','🐢','🌡️','🧲','💎','🌊','🍀','🦋','🌙','⭐','🎯','🚀','🦊','🐝','🐬'];
 
@@ -185,7 +203,59 @@ function refreshDash() {
       document.getElementById('goal-fill').style.width = pct + '%';
       document.getElementById('goal-nums').textContent = `${liveTotal} / ${goal} points right now`;
     });
+
+    loadShop(s);
   });
+}
+
+function loadShop(student) {
+  gvizQuery(GID_REWARDS, (rows) => {
+    const rewards = rows.map(r => ({
+      icon: r.c[0] && r.c[0].v != null ? r.c[0].v : '🎁',
+      item: r.c[1] && r.c[1].v != null ? r.c[1].v : '',
+      cost: r.c[2] && r.c[2].v != null ? Number(r.c[2].v) : 0
+    })).filter(r => r.item);
+    renderShop(rewards, student);
+  });
+
+  gvizQuery(GID_REQUESTS, (rows) => {
+    const mine = rows
+      .map((r, i) => ({
+        row: i + 2,
+        studentRow: r.c[1] && r.c[1].v != null ? Number(r.c[1].v) : null,
+        item: r.c[4] && r.c[4].v != null ? r.c[4].v : '',
+        status: r.c[6] && r.c[6].v != null ? r.c[6].v : 'Pending'
+      }))
+      .filter(r => r.studentRow === myRow);
+
+    const box = document.getElementById('my-requests');
+    box.innerHTML = mine.map(r =>
+      `<span class="req-pill ${r.status.toLowerCase()}">${r.item}: ${r.status}</span>`
+    ).join('');
+  });
+}
+
+function renderShop(rewards, student) {
+  const grid = document.getElementById('shop-grid');
+  grid.innerHTML = rewards.map(r => {
+    const canAfford = student.points >= r.cost;
+    return `
+      <div class="shop-item">
+        <div class="icon">${r.icon}</div>
+        <div class="item-name">${r.item}</div>
+        <div class="cost">${r.cost} pts</div>
+        <button class="shop-btn" ${canAfford ? '' : 'disabled'}
+          onclick="requestItem('${r.item.replace(/'/g,"\\'")}', ${r.cost}, '${r.icon}')">
+          ${canAfford ? 'Request' : 'Not enough'}
+        </button>
+      </div>`;
+  }).join('');
+}
+
+function requestItem(item, cost, icon) {
+  const student = roster.find(x => x.row === myRow);
+  fetch(`${SCRIPT_URL()}?action=requestReward&sheetId=${SHEET_ID}&row=${myRow}&name=${encodeURIComponent(student.name)}&icon=${encodeURIComponent(icon)}&item=${encodeURIComponent(item)}&cost=${cost}`, {mode:'no-cors'}).catch(()=>{});
+  alert(`Requested: ${item}! Ms. Miller will approve it on Friday.`);
 }
 
 // Finds the row where column A says "ClassGoal" and returns column B's value,
