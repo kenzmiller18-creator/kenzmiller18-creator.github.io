@@ -63,6 +63,14 @@
   </div>
 
   <div class="card">
+    <div class="goal-title">🎁 Pending Reward Requests</div>
+    <table>
+      <thead><tr><th></th><th>Name</th><th>Item</th><th>Cost</th><th>Action</th></tr></thead>
+      <tbody id="requests-body"><tr><td colspan="5">Loading…</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="card">
     <table>
       <thead>
         <tr><th></th><th>Name</th><th>Points</th><th>Quick Adjust</th><th>Note (clears weekly)</th><th>Redeem</th></tr>
@@ -79,13 +87,14 @@
 const SHEET_ID     = '1hcrOxColtV2Yb9zrNThX5Pk1KU0O-Tn9kuSLM5q3ffc';
 const GID_POINTS   = 0;
 const GID_SETTINGS = 1014050203;
+const GID_REQUESTS = 797501889;
 const SCRIPT_URL   = 'https://script.google.com/macros/s/AKfycbxQFpJmB8Jc6Rwj-L255Ea6YgpPS9A1LyPZ3QKBIpoY5kbHwWPe5Q60HoqfuaQDCJqP/exec';
 
 let roster = [];
 
 window.onload = () => { loadAll(); setInterval(loadAll, 8000); };
 
-function loadAll() { loadRoster(); }
+function loadAll() { loadRoster(); loadRequests(); }
 
 function loadRoster() {
   gvizQuery(GID_POINTS, (rows) => {
@@ -151,6 +160,56 @@ function startNewWeek() {
   if (!confirm('Clear all student notes for a fresh week? Points are NOT affected.')) return;
   fetch(`${SCRIPT_URL}?action=newWeek&sheetId=${SHEET_ID}`, {mode:'no-cors'}).catch(()=>{});
   setTimeout(loadRoster, 500);
+}
+
+let requests = [];
+
+function loadRequests() {
+  gvizQuery(GID_REQUESTS, (rows) => {
+    requests = rows.map((r, i) => ({
+      row: i + 2,
+      studentRow: r.c[1] && r.c[1].v != null ? Number(r.c[1].v) : null,
+      name: r.c[2] && r.c[2].v != null ? r.c[2].v : '',
+      icon: r.c[3] && r.c[3].v != null ? r.c[3].v : '',
+      item: r.c[4] && r.c[4].v != null ? r.c[4].v : '',
+      cost: r.c[5] && r.c[5].v != null ? Number(r.c[5].v) : 0,
+      status: r.c[6] && r.c[6].v != null ? r.c[6].v : 'Pending'
+    })).filter(r => r.status === 'Pending');
+    renderRequests();
+  });
+}
+
+function renderRequests() {
+  const body = document.getElementById('requests-body');
+  if (!requests.length) {
+    body.innerHTML = '<tr><td colspan="5">No pending requests</td></tr>';
+    return;
+  }
+  body.innerHTML = requests.map(r => `
+    <tr>
+      <td class="s-icon">${r.icon}</td>
+      <td class="s-name">${r.name}</td>
+      <td>${r.item}</td>
+      <td>${r.cost}</td>
+      <td>
+        <button class="pt-btn plus" onclick="approve(${r.row})">Approve</button>
+        <button class="pt-btn minus" onclick="deny(${r.row})">Deny</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function approve(row) {
+  fetch(`${SCRIPT_URL}?action=approveRequest&sheetId=${SHEET_ID}&row=${row}`, {mode:'no-cors'}).catch(()=>{});
+  requests = requests.filter(r => r.row !== row);
+  renderRequests();
+  setTimeout(loadAll, 800); // pick up the point deduction
+}
+
+function deny(row) {
+  fetch(`${SCRIPT_URL}?action=denyRequest&sheetId=${SHEET_ID}&row=${row}`, {mode:'no-cors'}).catch(()=>{});
+  requests = requests.filter(r => r.row !== row);
+  renderRequests();
 }
 
 function loadGoal() {
