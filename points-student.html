@@ -106,10 +106,10 @@ function loadRoster(cb) {
   gvizQuery(GID_POINTS, (rows) => {
     roster = rows.map((r, i) => ({
       row: i + 2,
-      icon: r.c[0] ? r.c[0].v : '',
-      name: r.c[1] ? r.c[1].v : '',
-      points: r.c[2] ? Number(r.c[2].v) : 0,
-      note: r.c[3] ? r.c[3].v : ''
+      icon: (r.c[0] && r.c[0].v != null) ? r.c[0].v : '',
+      name: (r.c[1] && r.c[1].v != null) ? r.c[1].v : '',
+      points: (r.c[2] && r.c[2].v != null) ? Number(r.c[2].v) : 0,
+      note: (r.c[3] && r.c[3].v != null) ? r.c[3].v : ''
     })).filter(s => s.name);
 
     const sel = document.getElementById('name-select');
