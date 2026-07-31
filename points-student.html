@@ -50,6 +50,7 @@
   .req-pill{display:inline-block;background:#fff8e1;color:#5a4a1a;border-radius:20px;padding:4px 12px;font-size:.75rem;font-weight:700;margin:3px 3px 0 0;}
   .req-pill.approved{background:#d4edda;color:#155724;}
   .req-pill.denied{background:#f8d7da;color:#721c24;}
+  .logout-link{text-align:center;font-size:.8rem;color:var(--muted);font-weight:700;margin-top:14px;cursor:pointer;text-decoration:underline;}
 </style>
 </head>
 <body>
@@ -82,6 +83,7 @@
       <div class="label">Your Points</div>
     </div>
     <div class="note-box" id="dash-note"></div>
+    <div class="logout-link" onclick="logout()">Not you? Switch student →</div>
   </div>
   <div class="card">
     <div class="goal-title">🍪 Class Goal Progress</div>
@@ -268,6 +270,14 @@ function findGoal(rows) {
     }
   }
   return 100; // fallback if not found
+}
+
+function logout() {
+  clearInterval(pollInterval);
+  localStorage.removeItem('pointsRow');
+  myRow = null;
+  document.getElementById('name-select').value = '';
+  showScreen('pick-screen');
 }
 
 function showScreen(id) {
