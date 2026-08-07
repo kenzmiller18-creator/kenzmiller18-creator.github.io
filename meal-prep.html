@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Dinner Planner</title>
+<title>Meal Planner</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;0,900;1,600&family=Nunito:wght@400;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --paper:#f6d2ff; --card:#f9f4fd; --ink:#1f1f1f; --ink-soft:#40334f;
@@ -16,7 +16,7 @@
   body{margin:0;background:var(--paper);background-image:radial-gradient(circle at 1px 1px, rgba(32,48,45,0.05) 1px, transparent 0);background-size:22px 22px;color:var(--ink);min-height:100vh;padding:32px 16px 80px;}
   .wrap{max-width:640px;margin:0 auto;}
   header.top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:22px;}
-  header.top h1{font-family:'Nunito',sans-serif;font-weight:900;font-size:28px;margin:0;letter-spacing:-0.01em;color:var(--teal-dark);}
+  header.top h1{font-family:'Fraunces',serif;font-weight:900;font-size:29px;margin:0;letter-spacing:-0.01em;color:var(--teal-dark);}
   header.top .sub{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);}
 
   .tabs{display:flex;gap:6px;margin-bottom:-1px;position:relative;z-index:2;flex-wrap:wrap;}
@@ -25,7 +25,7 @@
   .tabs .tab.done{color:var(--teal);}
 
   .card{background:var(--card);border:1px solid var(--line);border-radius:0 var(--radius) var(--radius) var(--radius);padding:28px 24px;box-shadow:0 2px 0 rgba(32,48,45,0.04), 0 12px 24px -18px rgba(32,48,45,0.35);min-height:340px;display:flex;flex-direction:column;}
-  .step-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:22px;margin:0 0 4px;}
+  .step-title{font-family:'Fraunces',serif;font-style:italic;font-weight:700;font-size:23px;margin:0 0 4px;}
   .step-hint{font-size:13px;color:var(--ink-soft);margin:0 0 20px;}
 
   .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;flex:1;align-content:start;}
@@ -37,10 +37,10 @@
   .opt.selected{border-color:var(--teal);background:rgba(76,19,168,0.08);}
   .opt.selected .mark{background:var(--teal);border-color:var(--teal);}
   .sauce-opt{flex-direction:column;align-items:flex-start;gap:2px;}
-  .sauce-opt .name{font-family:'Nunito',sans-serif;font-weight:700;font-size:17px;}
+  .sauce-opt .name{font-family:'Fraunces',serif;font-weight:700;font-size:18px;}
   .sauce-opt .meta{font-size:12px;color:var(--ink-soft);font-weight:400;}
   .type-opt{flex-direction:column;align-items:flex-start;gap:4px;padding:20px 16px;}
-  .type-opt .name{font-family:'Nunito',sans-serif;font-weight:700;font-size:18px;}
+  .type-opt .name{font-family:'Fraunces',serif;font-weight:700;font-size:19px;}
   .type-opt .meta{font-size:12.5px;color:var(--ink-soft);font-weight:400;}
 
   .nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:22px;}
@@ -63,7 +63,7 @@
   .plan-header{display:flex;justify-content:space-between;align-items:baseline;}
 
   .meal-card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--teal);border-radius:0 10px 10px 0;padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
-  .meal-card .name{font-family:'Nunito',sans-serif;font-weight:700;font-size:16px;}
+  .meal-card .name{font-family:'Fraunces',serif;font-weight:700;font-size:17px;}
   .meal-card .desc{font-size:12.5px;color:var(--ink-soft);margin-top:2px;line-height:1.5;}
   .meal-card .right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
   .meal-card select{font-family:'Space Mono',monospace;font-size:11px;border-radius:6px;border:1px solid var(--line);padding:3px 4px;background:#fff;}
@@ -111,7 +111,7 @@
 <body>
 <div class="wrap">
   <header class="top">
-    <div><h1>Meal Planner</h1></div>
+    <div><h1>What's for dinner?</h1></div>
   </header>
   <div id="tabsRow" class="tabs"></div>
   <div class="card" id="cardArea"></div>
