@@ -138,12 +138,21 @@ const SAUCES = {
     grains:["Rice","Soba/udon noodles"],
     veggies:["Green beans","Broccoli","Cauliflower","Zucchini","Bell peppers","Carrots"],
     proteins:["Cashews/peanuts","Tofu"] },
-  hummus: { name:"Hummus", tag:"acts as its own protein",
+  hummusTraditional: { name:"Traditional Hummus", tag:"classic tahini & chickpea — acts as its own protein",
     recipeIngredients:[
-      {name:"Dried chickpeas",qty:1,unit:"cup"},{name:"Baking soda",qty:1,unit:"tsp"},
+      {name:"Dried chickpeas",qty:1.125,unit:"cup"},{name:"Baking soda",qty:1,unit:"tsp"},
       {name:"Tahini",qty:0.75,unit:"cup"},{name:"Lemon juice",qty:6,unit:"tbsp"},
       {name:"Garlic",qty:3,unit:"cloves"},{name:"Cumin",qty:1,unit:"tsp"},
-      {name:"Olive oil",qty:0.25,unit:"cup"},{name:"Salt",qty:null,unit:"to taste"}],
+      {name:"Salt",qty:null,unit:"to taste"},{name:"Black pepper",qty:null,unit:"to taste"}],
+    grains:["Bread","Pita","Crackers","Wraps","Pasta"],
+    veggies:["Cucumbers","Tomatoes","Bell peppers","Carrots"],
+    proteins:["Pine nuts","Feta"] },
+  hummusWhiteBean: { name:"White Bean Hummus", tag:"brighter and lighter, less traditional",
+    recipeIngredients:[
+      {name:"Garlic",qty:1,unit:"clove"},{name:"White beans (canned)",qty:1,unit:"15-oz can"},
+      {name:"Tahini",qty:0.25,unit:"cup"},{name:"Lemon juice",qty:5,unit:"tbsp"},
+      {name:"Coriander seeds",qty:2,unit:"tsp, coarsely ground"},{name:"White miso paste",qty:2,unit:"tsp, optional"},
+      {name:"Salt",qty:null,unit:"to taste"},{name:"Olive oil",qty:0.25,unit:"cup"}],
     grains:["Bread","Pita","Crackers","Wraps","Pasta"],
     veggies:["Cucumbers","Tomatoes","Bell peppers","Carrots"],
     proteins:["Pine nuts","Feta"] },
@@ -202,6 +211,7 @@ const ITEM_SECTIONS = {
   "dried thyme":"Spices & Baking","dry red wine":"Condiments & Oils","vegetable broth":"Pantry & Dry Goods","walnuts or pecans":"Pantry & Dry Goods",
   "crushed tomatoes (canned)":"Pantry & Dry Goods","pasta (tagliatelle or similar)":"Pantry & Dry Goods","balsamic vinegar":"Condiments & Oils",
   "fenugreek seeds":"Spices & Baking","whole cloves":"Spices & Baking","cinnamon stick":"Spices & Baking","chickpeas (canned)":"Pantry & Dry Goods",
+  "coriander seeds":"Spices & Baking","white miso paste":"Dairy & Refrigerated",
   "fresh lime juice":"Produce","plain yogurt":"Dairy & Refrigerated","fresh cilantro":"Produce","thyme sprigs or bay leaves":"Produce",
   "dill or parsley":"Produce","thin pasta (angel hair)":"Pantry & Dry Goods","extra-firm tofu":"Dairy & Refrigerated","garlic powder":"Spices & Baking",
   "small lemon (zested + juiced)":"Produce","large pasta shells":"Pantry & Dry Goods","marinara or arrabiata sauce":"Condiments & Oils",
@@ -230,7 +240,7 @@ function sectionFor(name){
 }
 
 /* ---------- icons ---------- */
-const SAUCE_ICONS = { cashewCream:'🥣', peanut:'🥜', hummus:'🧆', sobaBowl:'🍜', queso:'🧀', pesto:'🌿' };
+const SAUCE_ICONS = { cashewCream:'🥣', peanut:'🥜', hummusTraditional:'🧆', hummusWhiteBean:'🫘', sobaBowl:'🍜', queso:'🧀', pesto:'🌿' };
 const ITEM_ICONS = {
   // grains
   "pasta":"🍝","rice":"🍚","bread":"🍞","crispy potatoes":"🥔","soba/udon noodles":"🍜",
@@ -256,6 +266,7 @@ const ITEM_ICONS = {
   "parmesan or pecorino cheese":"🧀","dried oregano":"🌿","dried thyme":"🌿","dry red wine":"🍷","vegetable broth":"🥫",
   "walnuts or pecans":"🌰","crushed tomatoes (canned)":"🍅","pasta (tagliatelle or similar)":"🍝","balsamic vinegar":"🍶",
   "fenugreek seeds":"🧂","whole cloves":"🧂","cinnamon stick":"🧂","chickpeas (canned)":"🧆","fresh lime juice":"🍋",
+  "coriander seeds":"🧂","white miso paste":"🍶",
   "plain yogurt":"🥣","fresh cilantro":"🌿","thyme sprigs or bay leaves":"🌿","dill or parsley":"🌿",
   "thin pasta (angel hair)":"🍝","extra-firm tofu":"🥡","garlic powder":"🧂","small lemon (zested + juiced)":"🍋",
   "large pasta shells":"🍝","marinara or arrabiata sauce":"🍅","pasta sauce (jarred)":"🍅","roasted red peppers (jarred)":"🫑",
@@ -682,6 +693,7 @@ function buildGrocery(){
     const scale = meal.scale || 1;
     if(meal.type==='sauce'){
       const s = SAUCES[meal.sauceKey];
+      if(!s) return;
       s.recipeIngredients.forEach(ing=> addIngredient(ing.name, ing.qty, ing.unit, scale) );
       if(meal.grain) addServing(meal.grain, scale);
       meal.veggies.forEach(v=>addServing(v,scale));
