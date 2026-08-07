@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Dinner Planner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#f6d2ff; --card:#f9f4fd; --ink:#1f1f1f; --ink-soft:#40334f;
+    --teal:#4c13a8; --teal-dark:#370e7a; --mustard:#f04bd8; --plum:#ff6b6b;
+    --line:#e2d5ee; --radius:18px;
+    font-family:'Nunito',sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);background-image:radial-gradient(circle at 1px 1px, rgba(32,48,45,0.05) 1px, transparent 0);background-size:22px 22px;color:var(--ink);min-height:100vh;padding:32px 16px 80px;}
+  .wrap{max-width:640px;margin:0 auto;}
+  header.top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:22px;}
+  header.top h1{font-family:'Nunito',sans-serif;font-weight:900;font-size:28px;margin:0;letter-spacing:-0.01em;color:var(--teal-dark);}
+  header.top .sub{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);}
+
+  .tabs{display:flex;gap:6px;margin-bottom:-1px;position:relative;z-index:2;flex-wrap:wrap;}
+  .tabs .tab{font-family:'Space Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;padding:8px 12px 10px;border:1px solid var(--line);border-bottom:none;border-radius:8px 8px 0 0;background:#E4DBC4;color:var(--ink-soft);transition:all .15s ease;}
+  .tabs .tab.active{background:var(--card);color:var(--teal-dark);font-weight:700;transform:translateY(-2px);}
+  .tabs .tab.done{color:var(--teal);}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:0 var(--radius) var(--radius) var(--radius);padding:28px 24px;box-shadow:0 2px 0 rgba(32,48,45,0.04), 0 12px 24px -18px rgba(32,48,45,0.35);min-height:340px;display:flex;flex-direction:column;}
+  .step-title{font-family:'Nunito',sans-serif;font-weight:900;font-size:22px;margin:0 0 4px;}
+  .step-hint{font-size:13px;color:var(--ink-soft);margin:0 0 20px;}
+
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;flex:1;align-content:start;}
+  .grid.one-col{grid-template-columns:1fr;}
+  .opt{border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:14px 12px;cursor:pointer;font-size:14.5px;font-weight:500;text-align:left;transition:border-color .12s ease, background .12s ease, transform .08s ease;display:flex;align-items:center;gap:9px;}
+  .opt:hover{border-color:var(--teal);transform:translateY(-1px);}
+  .opt .mark{width:16px;height:16px;flex:none;border-radius:4px;border:1.5px solid var(--line);}
+  .opt.radio .mark{border-radius:50%;}
+  .opt.selected{border-color:var(--teal);background:rgba(76,19,168,0.08);}
+  .opt.selected .mark{background:var(--teal);border-color:var(--teal);}
+  .sauce-opt{flex-direction:column;align-items:flex-start;gap:2px;}
+  .sauce-opt .name{font-family:'Nunito',sans-serif;font-weight:700;font-size:17px;}
+  .sauce-opt .meta{font-size:12px;color:var(--ink-soft);font-weight:400;}
+  .type-opt{flex-direction:column;align-items:flex-start;gap:4px;padding:20px 16px;}
+  .type-opt .name{font-family:'Nunito',sans-serif;font-weight:700;font-size:18px;}
+  .type-opt .meta{font-size:12.5px;color:var(--ink-soft);font-weight:400;}
+
+  .nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:22px;}
+  button{font-family:'Nunito',sans-serif;font-size:13.5px;font-weight:700;border-radius:8px;padding:10px 18px;border:1.5px solid var(--teal);background:var(--teal);color:#fff;cursor:pointer;transition:opacity .12s ease, transform .08s ease;box-shadow:0 4px 14px rgba(76,19,168,.25);}
+  button.ghost{background:transparent;color:var(--ink-soft);border-color:var(--line);}
+  button.small{padding:6px 10px;font-size:12px;}
+  button:disabled{opacity:.35;cursor:not-allowed;}
+  button:not(:disabled):hover{transform:translateY(-1px);}
+
+  .review-list{list-style:none;padding:0;margin:0 0 14px;font-size:14px;}
+  .review-list li{padding:7px 0;border-bottom:1px dashed var(--line);display:flex;gap:8px;}
+  .review-list li b{font-family:'Space Mono',monospace;font-size:10px;text-transform:uppercase;color:var(--teal-dark);min-width:64px;padding-top:1px;}
+
+  .scale-row{display:flex;gap:8px;margin:6px 0 18px;}
+  .scale-btn{border:1.5px solid var(--line);background:#fff;border-radius:8px;padding:8px 16px;font-family:'Space Mono',monospace;font-size:13px;cursor:pointer;}
+  .scale-btn.selected{border-color:var(--teal);background:rgba(76,19,168,0.08);color:var(--teal-dark);font-weight:700;}
+
+  .section-label{font-family:'Space Mono',monospace;font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--teal-dark);margin:30px 0 10px;display:flex;align-items:center;gap:8px;}
+  .section-label::after{content:"";flex:1;height:1px;background:var(--line);}
+  .plan-header{display:flex;justify-content:space-between;align-items:baseline;}
+
+  .meal-card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--teal);border-radius:0 10px 10px 0;padding:12px 14px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+  .meal-card .name{font-family:'Nunito',sans-serif;font-weight:700;font-size:16px;}
+  .meal-card .desc{font-size:12.5px;color:var(--ink-soft);margin-top:2px;line-height:1.5;}
+  .meal-card .right{display:flex;flex-direction:column;align-items:flex-end;gap:6px;}
+  .meal-card select{font-family:'Space Mono',monospace;font-size:11px;border-radius:6px;border:1px solid var(--line);padding:3px 4px;background:#fff;}
+  .meal-card .rm{background:none;border:none;color:var(--ink-soft);font-size:16px;cursor:pointer;padding:0 2px;font-weight:400;}
+  .meal-card .rm:hover{color:var(--plum);}
+
+  .empty{font-size:13.5px;color:var(--ink-soft);font-style:italic;padding:14px 0;}
+
+  .grocery-group{margin-bottom:14px;}
+  .grocery-group h4{font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--mustard);margin:0 0 6px;font-weight:700;}
+  .g-item{display:flex;align-items:center;gap:9px;padding:6px 2px;font-family:'Space Mono',monospace;font-size:13.5px;border-bottom:1px solid #EDE6D3;}
+  .g-item input[type=checkbox]{width:15px;height:15px;accent-color:var(--teal);flex:none;cursor:pointer;}
+  .g-item.checked .g-name, .g-item.checked .g-amt{text-decoration:line-through;color:var(--ink-soft);}
+  .g-item .g-name{flex:1;cursor:pointer;}
+  .g-item .g-amt{color:var(--ink-soft);cursor:text;min-width:70px;text-align:right;}
+  .g-item .g-amt:hover{color:var(--teal-dark);}
+  .g-item .g-x{background:none;border:none;color:var(--line);cursor:pointer;font-size:13px;padding:0 2px;}
+  .g-item .g-x:hover{color:var(--plum);}
+  .g-item input.amt-edit{width:80px;font-family:'Space Mono',monospace;font-size:12.5px;border:1px solid var(--teal);border-radius:4px;padding:2px 4px;}
+
+  .add-item-row{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
+  .add-item-row input, .add-item-row select{font-family:'Nunito',sans-serif;font-size:12.5px;padding:7px 8px;border:1px solid var(--line);border-radius:7px;background:#fff;}
+  .add-item-row input[name=iname]{flex:2;min-width:110px;}
+  .add-item-row input[name=iamt]{flex:1;min-width:70px;}
+  .add-item-row select{flex:1;min-width:120px;}
+
+  .add-btn{width:100%;margin-top:8px;background:var(--teal);border-color:var(--teal);}
+  .clear-btn{background:transparent;color:var(--plum);border-color:var(--plum);font-size:12px;padding:6px 12px;}
+  .basics-toggle{background:transparent;color:var(--teal-dark);border-color:var(--teal);font-size:12px;padding:6px 12px;}
+
+  .basics-editor{border:1px dashed var(--line);border-radius:10px;padding:12px;margin-top:10px;background:#fff;}
+  .basic-row{display:flex;gap:6px;align-items:center;margin-bottom:6px;flex-wrap:wrap;}
+  .basic-row input, .basic-row select{font-size:12.5px;padding:6px 7px;border:1px solid var(--line);border-radius:6px;}
+  .basic-row input[name=bname]{flex:2;min-width:100px;}
+  .basic-row input[name=bamt]{flex:1;min-width:60px;}
+  .basic-row select{flex:1;min-width:110px;}
+
+  .recipe-form-row{display:flex;gap:6px;margin-bottom:6px;align-items:center;}
+  .recipe-form-row input{font-size:13px;padding:7px 8px;border:1px solid var(--line);border-radius:7px;}
+  .recipe-form-row input[name=rname]{flex:2;}
+  .recipe-form-row input[name=rqty]{flex:0.6;}
+  .recipe-form-row input[name=runit]{flex:1;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div><h1>Meal Planner</h1></div>
+  </header>
+  <div id="tabsRow" class="tabs"></div>
+  <div class="card" id="cardArea"></div>
+</div>
+
+<script>
+/* ---------- data ---------- */
+const SAUCES = {
+  cashewCream: { name:"Cashew Cream", tag:"garlicky, tangy, coats everything",
+    recipeIngredients:[
+      {name:"Raw cashews",qty:1,unit:"cup"},{name:"Garlic",qty:2,unit:"cloves"},
+      {name:"Nutritional yeast",qty:2,unit:"tbsp"},{name:"Lemon juice",qty:2,unit:"tbsp"},
+      {name:"Onion powder",qty:0.5,unit:"tsp"},{name:"Salt",qty:0.5,unit:"tsp"},
+      {name:"Black pepper",qty:null,unit:"to taste"}],
+    grains:["Pasta","Rice","Bread","Crispy potatoes"],
+    veggies:["Broccoli","Cauliflower","Kale","Brussels sprouts","Sweet potatoes","Zucchini","Red onion","Tomatoes","Carrots","Bell peppers"],
+    proteins:["Crispy chickpeas","Crispy white beans","Crispy tofu"] },
+  peanut: { name:"Peanut Sauce", tag:"sweet, savory, a little heat",
+    recipeIngredients:[
+      {name:"Peanut butter",qty:0.75,unit:"cup"},{name:"Rice vinegar",qty:0.25,unit:"cup"},
+      {name:"Tamari or soy sauce",qty:0.33,unit:"cup"},{name:"Honey",qty:3,unit:"tbsp"},
+      {name:"Fresh ginger",qty:1.5,unit:"tsp"},{name:"Garlic",qty:2,unit:"cloves"},
+      {name:"Red pepper flakes",qty:0.25,unit:"tsp"}],
+    grains:["Rice","Soba/udon noodles"],
+    veggies:["Green beans","Broccoli","Cauliflower","Zucchini","Bell peppers","Carrots"],
+    proteins:["Cashews/peanuts","Tofu"] },
+  hummus: { name:"Hummus", tag:"acts as its own protein",
+    recipeIngredients:[
+      {name:"Dried chickpeas",qty:1,unit:"cup"},{name:"Baking soda",qty:1,unit:"tsp"},
+      {name:"Tahini",qty:0.75,unit:"cup"},{name:"Lemon juice",qty:6,unit:"tbsp"},
+      {name:"Garlic",qty:3,unit:"cloves"},{name:"Cumin",qty:1,unit:"tsp"},
+      {name:"Olive oil",qty:0.25,unit:"cup"},{name:"Salt",qty:null,unit:"to taste"}],
+    grains:["Bread","Pita","Crackers","Wraps","Pasta"],
+    veggies:["Cucumbers","Tomatoes","Bell peppers","Carrots"],
+    proteins:["Pine nuts","Feta"] },
+  sobaBowl: { name:"Soba Noodle Bowl", tag:"tahini-forward — recipe amounts still TBD",
+    recipeIngredients:[{name:"Tahini-based sauce",qty:null,unit:"1 batch (recipe TBD)"}],
+    grains:["Soba/udon noodles","Rice"],
+    veggies:["Red onion","Zucchini","Carrots","Bell peppers"],
+    proteins:["Tofu","Cashews/peanuts"] },
+  queso: { name:"Cashew Queso", tag:"smoky, spicy, taco night",
+    recipeIngredients:[
+      {name:"Raw cashews",qty:1,unit:"cup"},{name:"Coconut yogurt",qty:0.5,unit:"cup"},
+      {name:"Salsa",qty:0.5,unit:"cup"},{name:"Cumin",qty:1,unit:"tsp"},
+      {name:"Chili powder",qty:0.5,unit:"tsp"},{name:"Smoked paprika",qty:0.5,unit:"tsp"},
+      {name:"Nutritional yeast",qty:2,unit:"tbsp"},{name:"Pickled jalapeños",qty:2,unit:"tbsp"},
+      {name:"Jalapeño brine",qty:2,unit:"tbsp"},{name:"Salt",qty:null,unit:"to taste"}],
+    grains:["Tortilla chips","Tortillas","Crispy potatoes"],
+    veggies:["Guac/avocado","Pico de gallo"],
+    proteins:["Scrambled tofu","Black beans"] },
+  pesto: { name:"Pesto", tag:"bright, herby, summer staple",
+    recipeIngredients:[
+      {name:"Fresh basil",qty:3,unit:"cups"},{name:"Pine nuts",qty:0.33,unit:"cup"},
+      {name:"Garlic",qty:2,unit:"cloves"},{name:"Lemon",qty:1,unit:"whole"},
+      {name:"Nutritional yeast",qty:1.5,unit:"tbsp"},{name:"Olive oil",qty:0.33,unit:"cup"},
+      {name:"Salt",qty:null,unit:"to taste"}],
+    grains:["Pasta","Bread","Tortillas"],
+    veggies:["Tomatoes","Zucchini"],
+    proteins:["Crispy white beans","Pine nuts"] }
+};
+
+const SECTIONS = ["Produce","Bakery","Dairy & Refrigerated","Frozen","Pantry & Dry Goods","Condiments & Oils","Spices & Baking","Other"];
+
+const ITEM_SECTIONS = {
+  "garlic":"Produce","fresh ginger":"Produce","lemon juice":"Produce","lemon":"Produce","fresh basil":"Produce",
+  "broccoli":"Produce","cauliflower":"Produce","kale":"Produce","brussels sprouts":"Produce","sweet potatoes":"Produce",
+  "zucchini":"Produce","red onion":"Produce","tomatoes":"Produce","carrots":"Produce","bell peppers":"Produce",
+  "green beans":"Produce","cucumbers":"Produce","guac/avocado":"Produce","pico de gallo":"Produce","crispy potatoes":"Produce",
+  "bread":"Bakery","pita":"Bakery","wraps":"Bakery","tortillas":"Bakery",
+  "coconut yogurt":"Dairy & Refrigerated","feta":"Dairy & Refrigerated","tofu":"Dairy & Refrigerated",
+  "crispy tofu":"Dairy & Refrigerated","scrambled tofu":"Dairy & Refrigerated",
+  "pasta":"Pantry & Dry Goods","rice":"Pantry & Dry Goods","soba/udon noodles":"Pantry & Dry Goods","crackers":"Pantry & Dry Goods",
+  "tortilla chips":"Pantry & Dry Goods","raw cashews":"Pantry & Dry Goods","peanut butter":"Pantry & Dry Goods","tahini":"Pantry & Dry Goods",
+  "dried chickpeas":"Pantry & Dry Goods","crispy chickpeas":"Pantry & Dry Goods","crispy white beans":"Pantry & Dry Goods",
+  "black beans":"Pantry & Dry Goods","cashews/peanuts":"Pantry & Dry Goods","pine nuts":"Pantry & Dry Goods",
+  "nutritional yeast":"Pantry & Dry Goods","baking soda":"Pantry & Dry Goods",
+  "rice vinegar":"Condiments & Oils","tamari or soy sauce":"Condiments & Oils","honey":"Condiments & Oils","olive oil":"Condiments & Oils",
+  "salsa":"Condiments & Oils","pickled jalapeños":"Condiments & Oils","jalapeño brine":"Condiments & Oils",
+  "onion powder":"Spices & Baking","salt":"Spices & Baking","black pepper":"Spices & Baking","red pepper flakes":"Spices & Baking",
+  "cumin":"Spices & Baking","chili powder":"Spices & Baking","smoked paprika":"Spices & Baking",
+  // fixed-recipe ingredients
+  "whole black peppercorns":"Spices & Baking","green chiles":"Produce","yellow onion":"Produce","fresh rosemary":"Produce",
+  "roma tomatoes":"Produce","cannellini or great northern beans (canned)":"Pantry & Dry Goods","sourdough bread":"Bakery",
+  "parmesan cheese":"Dairy & Refrigerated","red lentils":"Pantry & Dry Goods","turmeric":"Spices & Baking","lime":"Produce",
+  "spinach":"Produce","cumin seeds":"Spices & Baking","asafetida":"Spices & Baking","shallot":"Produce","tomato paste":"Pantry & Dry Goods",
+  "granulated sugar":"Pantry & Dry Goods","cherry tomatoes":"Produce","white beans (canned)":"Pantry & Dry Goods",
+  "orecchiette pasta":"Pantry & Dry Goods","parmesan or pecorino cheese":"Dairy & Refrigerated","dried oregano":"Spices & Baking",
+  "dried thyme":"Spices & Baking","dry red wine":"Condiments & Oils","vegetable broth":"Pantry & Dry Goods","walnuts or pecans":"Pantry & Dry Goods",
+  "crushed tomatoes (canned)":"Pantry & Dry Goods","pasta (tagliatelle or similar)":"Pantry & Dry Goods","balsamic vinegar":"Condiments & Oils",
+  "fenugreek seeds":"Spices & Baking","whole cloves":"Spices & Baking","cinnamon stick":"Spices & Baking","chickpeas (canned)":"Pantry & Dry Goods",
+  "fresh lime juice":"Produce","plain yogurt":"Dairy & Refrigerated","fresh cilantro":"Produce","thyme sprigs or bay leaves":"Produce",
+  "dill or parsley":"Produce","thin pasta (angel hair)":"Pantry & Dry Goods","extra-firm tofu":"Dairy & Refrigerated","garlic powder":"Spices & Baking",
+  "small lemon (zested + juiced)":"Produce","large pasta shells":"Pantry & Dry Goods","marinara or arrabiata sauce":"Condiments & Oils",
+  "pasta sauce (jarred)":"Condiments & Oils","roasted red peppers (jarred)":"Condiments & Oils","whole wheat penne pasta":"Pantry & Dry Goods",
+  "bay leaf":"Spices & Baking","fresh thyme sprigs":"Produce","rosemary sprig":"Produce",
+  // basics
+  "gia's crackers":"Pantry & Dry Goods","bananas":"Produce","blueberries":"Produce","frozen raspberries":"Frozen",
+  "frozen blueberries":"Frozen","kiwis":"Produce","avocados":"Produce","applesauce pouches":"Pantry & Dry Goods",
+  "eggs":"Dairy & Refrigerated","cheese":"Dairy & Refrigerated","yogurt":"Dairy & Refrigerated","milk":"Dairy & Refrigerated",
+  "almond butter":"Pantry & Dry Goods","coffee":"Pantry & Dry Goods","snack mix":"Pantry & Dry Goods","bag of chocolate chips":"Pantry & Dry Goods"
+};
+function sectionFor(name){
+  const key = name.trim().toLowerCase();
+  if(key.includes('frozen')) return 'Frozen';
+  if(ITEM_SECTIONS[key]) return ITEM_SECTIONS[key];
+  const guesses = [
+    [["garlic","ginger","lemon","lime","basil","broccoli","cauliflower","kale","brussels","sweet potato","zucchini","onion","tomato","carrot","pepper ","bell pepper","green bean","cucumber","avocado","potato","cilantro","herb","chile","shallot","spinach","dill","parsley","rosemary","kiwi","banana","berry","berries"],"Produce"],
+    [["bread","pita","tortilla","wrap","bagel","sourdough"],"Bakery"],
+    [["yogurt","feta","tofu","miso","butter","cheese","milk","cream","egg"],"Dairy & Refrigerated"],
+    [["cashew","peanut","pine nut","chickpea","bean","lentil","rice","pasta","noodle","soba","udon","tahini","nutritional yeast","baking soda","cracker","chip","walnut","pecan","sugar","broth","almond","coffee","snack","chocolate","shells"],"Pantry & Dry Goods"],
+    [["oil","vinegar","tamari","soy sauce","honey","salsa","jalape","brine","wine","marinara","arrabiata","sauce"],"Condiments & Oils"],
+    [["cumin","chili powder","paprika","onion powder","garlic powder","red pepper flake","coriander","salt","pepper","spice","turmeric","oregano","thyme","clove","cinnamon","fenugreek","bay leaf","peppercorn"],"Spices & Baking"]
+  ];
+  for(const [words,sec] of guesses){ if(words.some(w=>key.includes(w))) return sec; }
+  return "Other";
+}
+
+/* ---------- icons ---------- */
+const SAUCE_ICONS = { cashewCream:'🥣', peanut:'🥜', hummus:'🧆', sobaBowl:'🍜', queso:'🧀', pesto:'🌿' };
+const ITEM_ICONS = {
+  // grains
+  "pasta":"🍝","rice":"🍚","bread":"🍞","crispy potatoes":"🥔","soba/udon noodles":"🍜",
+  "pita":"🫓","crackers":"🍘","wraps":"🌯","tortilla chips":"🌽","tortillas":"🫓",
+  // veggies
+  "broccoli":"🥦","cauliflower":"🥦","kale":"🥬","brussels sprouts":"🥬","sweet potatoes":"🍠",
+  "zucchini":"🥒","red onion":"🧅","tomatoes":"🍅","carrots":"🥕","bell peppers":"🫑",
+  "green beans":"🫛","cucumbers":"🥒","guac/avocado":"🥑","pico de gallo":"🍅",
+  // proteins
+  "crispy chickpeas":"🧆","crispy white beans":"🫘","crispy tofu":"🥡","cashews/peanuts":"🥜",
+  "tofu":"🥡","pine nuts":"🌰","feta":"🧀","scrambled tofu":"🥡","black beans":"🫘",
+  // sauce ingredients
+  "raw cashews":"🥜","garlic":"🧄","nutritional yeast":"✨","lemon juice":"🍋","onion powder":"🧅",
+  "salt":"🧂","black pepper":"🧂","peanut butter":"🥜","rice vinegar":"🍶","tamari or soy sauce":"🍶",
+  "honey":"🍯","fresh ginger":"🫚","dried chickpeas":"🧆","baking soda":"🧂","tahini":"🥣",
+  "cumin":"🧂","olive oil":"🫒","coconut yogurt":"🥥","salsa":"🍅","chili powder":"🌶️",
+  "smoked paprika":"🌶️","pickled jalapeños":"🌶️","jalapeño brine":"🌶️","fresh basil":"🌿","lemon":"🍋",
+  // fixed-recipe ingredients
+  "whole black peppercorns":"🧂","green chiles":"🌶️","yellow onion":"🧅","fresh rosemary":"🌿","roma tomatoes":"🍅",
+  "cannellini or great northern beans (canned)":"🫘","sourdough bread":"🍞","parmesan cheese":"🧀","red lentils":"🫘",
+  "turmeric":"🧂","lime":"🍋","spinach":"🥬","cumin seeds":"🧂","asafetida":"🧂","shallot":"🧅","tomato paste":"🍅",
+  "granulated sugar":"🍬","cherry tomatoes":"🍅","white beans (canned)":"🫘","orecchiette pasta":"🍝",
+  "parmesan or pecorino cheese":"🧀","dried oregano":"🌿","dried thyme":"🌿","dry red wine":"🍷","vegetable broth":"🥫",
+  "walnuts or pecans":"🌰","crushed tomatoes (canned)":"🍅","pasta (tagliatelle or similar)":"🍝","balsamic vinegar":"🍶",
+  "fenugreek seeds":"🧂","whole cloves":"🧂","cinnamon stick":"🧂","chickpeas (canned)":"🧆","fresh lime juice":"🍋",
+  "plain yogurt":"🥣","fresh cilantro":"🌿","thyme sprigs or bay leaves":"🌿","dill or parsley":"🌿",
+  "thin pasta (angel hair)":"🍝","extra-firm tofu":"🥡","garlic powder":"🧂","small lemon (zested + juiced)":"🍋",
+  "large pasta shells":"🍝","marinara or arrabiata sauce":"🍅","pasta sauce (jarred)":"🍅","roasted red peppers (jarred)":"🫑",
+  "whole wheat penne pasta":"🍝","bay leaf":"🌿","fresh thyme sprigs":"🌿","rosemary sprig":"🌿",
+  // basics
+  "gia's crackers":"🍘","bananas":"🍌","blueberries":"🫐","frozen raspberries":"🍓","frozen blueberries":"🫐",
+  "kiwis":"🥝","avocados":"🥑","applesauce pouches":"🍏","eggs":"🥚","cheese":"🧀","yogurt":"🥣","milk":"🥛",
+  "almond butter":"🌰","coffee":"☕","snack mix":"🥨","bag of chocolate chips":"🍫"
+};
+const SECTION_FALLBACK_ICON = {
+  "Produce":"🥕","Bakery":"🍞","Dairy & Refrigerated":"🧀","Frozen":"🧊","Pantry & Dry Goods":"🥫",
+  "Condiments & Oils":"🍯","Spices & Baking":"🧂","Other":"🛒"
+};
+function iconFor(name){
+  const key = name.trim().toLowerCase();
+  if(ITEM_ICONS[key]) return ITEM_ICONS[key];
+  return SECTION_FALLBACK_ICON[sectionFor(name)] || '🛒';
+}
+
+/* ---------- quantity formatting ---------- */
+function fmtQty(n){
+  if(n==null) return '';
+  const whole = Math.floor(n+1e-6);
+  const frac = +(n-whole).toFixed(3);
+  const fracMap = {0.125:'⅛',0.167:'⅙',0.2:'⅕',0.25:'¼',0.333:'⅓',0.375:'⅜',0.4:'⅖',0.5:'½',0.6:'⅗',0.625:'⅝',0.667:'⅔',0.75:'¾',0.8:'⅘',0.833:'⅚',0.875:'⅞'};
+  let fracStr='';
+  if(frac>0.01){
+    let bestK=null,bestD=1;
+    for(const k in fracMap){ const d=Math.abs(frac-k); if(d<bestD){bestD=d;bestK=k;} }
+    fracStr = bestD<0.03 ? fracMap[bestK] : (''+frac).replace('0.','.');
+  }
+  if(whole===0 && fracStr) return fracStr;
+  if(fracStr) return whole+' '+fracStr;
+  return String(whole);
+}
+
+/* ---------- default fixed recipes ---------- */
+const DEFAULT_FIXED_RECIPES = [
+  { id:1001, name:"Ribollita", ingredients:[
+    {name:"Olive oil",qty:0.25,unit:"cup"},{name:"Whole black peppercorns",qty:1,unit:"tsp"},
+    {name:"Green chiles",qty:2,unit:"small, finely chopped"},{name:"Yellow onion",qty:1,unit:"medium, diced"},
+    {name:"Garlic",qty:2,unit:"cloves"},{name:"Fresh rosemary",qty:1,unit:"tbsp"},
+    {name:"Zucchini",qty:1,unit:"medium, diced"},{name:"Roma tomatoes",qty:2,unit:"medium, diced"},
+    {name:"Cannellini or Great Northern beans (canned)",qty:2,unit:"16-oz cans"},
+    {name:"Salt",qty:1,unit:"tsp"},{name:"Black pepper",qty:1,unit:"tsp"},
+    {name:"Sourdough bread",qty:1,unit:"cup, torn, stale"},{name:"Parmesan cheese",qty:null,unit:"for garnish"}
+  ]},
+  { id:1002, name:"Daal + Rice", ingredients:[
+    {name:"Red lentils",qty:1,unit:"cup"},{name:"Turmeric",qty:1,unit:"tsp"},{name:"Salt",qty:1,unit:"tsp"},
+    {name:"Lime",qty:1,unit:"whole, juiced"},{name:"Spinach",qty:2,unit:"handfuls"},
+    {name:"Rice",qty:null,unit:"as needed"},{name:"Olive oil",qty:2,unit:"tbsp"},
+    {name:"Cumin seeds",qty:1,unit:"tbsp"},{name:"Asafetida",qty:null,unit:"pinch"},{name:"Chili powder",qty:null,unit:"pinch"}
+  ]},
+  { id:1003, name:"White Bean & Tomato Pasta", ingredients:[
+    {name:"Salt",qty:null,unit:"to taste"},{name:"Black pepper",qty:null,unit:"to taste"},
+    {name:"Olive oil",qty:0.875,unit:"cup"},{name:"Shallot",qty:1,unit:"large, minced"},
+    {name:"Tomato paste",qty:2,unit:"tbsp"},{name:"Garlic",qty:5,unit:"cloves, sliced"},
+    {name:"Fresh rosemary",qty:0.5,unit:"tsp"},{name:"Red pepper flakes",qty:0.5,unit:"tsp"},
+    {name:"Granulated sugar",qty:0.5,unit:"tsp"},{name:"Cherry tomatoes",qty:16,unit:"oz, halved"},
+    {name:"White beans (canned)",qty:1,unit:"15-oz can"},{name:"Orecchiette pasta",qty:1,unit:"lb"},
+    {name:"Parmesan or pecorino cheese",qty:null,unit:"optional, for serving"}
+  ]},
+  { id:1004, name:"Lentil Bolognese", ingredients:[
+    {name:"Olive oil",qty:1.5,unit:"tbsp"},{name:"Yellow onion",qty:1,unit:"large, diced"},
+    {name:"Garlic",qty:4,unit:"cloves"},{name:"Dried oregano",qty:1,unit:"tsp"},{name:"Dried thyme",qty:1,unit:"tsp"},
+    {name:"Salt",qty:1.5,unit:"tsp"},{name:"Black pepper",qty:null,unit:"to taste"},
+    {name:"Tomato paste",qty:1,unit:"5.3-oz tube"},{name:"Dry red wine",qty:0.5,unit:"cup, optional"},
+    {name:"Vegetable broth",qty:3,unit:"cups"},{name:"Red lentils",qty:1,unit:"cup, soaked"},
+    {name:"Walnuts or pecans",qty:0.25,unit:"cup, crushed"},{name:"Crushed tomatoes (canned)",qty:1,unit:"14.5-oz can"},
+    {name:"Pasta (tagliatelle or similar)",qty:14,unit:"oz"},{name:"Balsamic vinegar",qty:1,unit:"tbsp"}
+  ]},
+  { id:1005, name:"Chhole", ingredients:[
+    {name:"Olive oil",qty:0.25,unit:"cup"},{name:"Cumin seeds",qty:1,unit:"tbsp"},{name:"Fenugreek seeds",qty:0.25,unit:"tsp"},
+    {name:"Turmeric",qty:1,unit:"tsp"},{name:"Whole cloves",qty:4,unit:"whole"},{name:"Cinnamon stick",qty:1,unit:"small"},
+    {name:"Yellow onion",qty:1,unit:"medium, diced"},{name:"Fresh ginger",qty:1,unit:"tbsp, minced"},
+    {name:"Roma tomatoes",qty:3,unit:"medium, diced"},{name:"Garlic",qty:1,unit:"clove"},
+    {name:"Chickpeas (canned)",qty:1,unit:"16-oz can"},{name:"Fresh lime juice",qty:2,unit:"tbsp"},
+    {name:"Plain yogurt",qty:0.25,unit:"cup"},{name:"Salt",qty:1,unit:"tsp"},{name:"Fresh cilantro",qty:0.5,unit:"cup, chopped"}
+  ]},
+  { id:1006, name:"Chickpea Noodle Soup", ingredients:[
+    {name:"Olive oil",qty:0.25,unit:"cup"},{name:"Carrots",qty:2,unit:"medium"},{name:"Yellow onion",qty:1,unit:"large, chopped"},
+    {name:"Nutritional yeast",qty:0.25,unit:"cup"},{name:"Thyme sprigs or bay leaves",qty:2,unit:"sprigs"},
+    {name:"Turmeric",qty:0.25,unit:"tsp"},{name:"Dill or parsley",qty:0.5,unit:"cup, chopped"},
+    {name:"Salt",qty:null,unit:"to taste"},{name:"Black pepper",qty:null,unit:"to taste"},
+    {name:"Vegetable broth",qty:4,unit:"cups"},{name:"Chickpeas (canned)",qty:2,unit:"15-oz cans"},
+    {name:"Thin pasta (angel hair)",qty:4,unit:"oz"}
+  ]},
+  { id:1007, name:"Stuffed Shells", ingredients:[
+    {name:"Extra-firm tofu",qty:1,unit:"14-oz block"},{name:"Nutritional yeast",qty:0.25,unit:"cup"},
+    {name:"Garlic powder",qty:0.5,unit:"tsp"},{name:"Onion powder",qty:0.5,unit:"tsp"},
+    {name:"Salt",qty:null,unit:"to taste"},{name:"Black pepper",qty:null,unit:"to taste"},
+    {name:"Olive oil",qty:1.5,unit:"tbsp"},{name:"Small lemon (zested + juiced)",qty:1,unit:"whole"},
+    {name:"Red pepper flakes",qty:0.5,unit:"tsp"},{name:"Large pasta shells",qty:1,unit:"box"},
+    {name:"Marinara or arrabiata sauce",qty:1,unit:"can/jar"}
+  ]},
+  { id:1008, name:"Red Pepper Pasta", ingredients:[
+    {name:"Cauliflower",qty:2,unit:"heads, in florets"},{name:"Olive oil",qty:2,unit:"tbsp"},
+    {name:"Raw cashews",qty:0.75,unit:"cup"},{name:"Salt",qty:1,unit:"tsp"},
+    {name:"Pasta sauce (jarred)",qty:1,unit:"25-oz jar"},{name:"Roasted red peppers (jarred)",qty:1,unit:"16-oz jar"},
+    {name:"Whole wheat penne pasta",qty:1,unit:"lb"}
+  ]},
+  { id:1009, name:"Cauliflower Soup", ingredients:[
+    {name:"Olive oil",qty:1.5,unit:"tbsp"},{name:"Yellow onion",qty:1,unit:"large, chopped"},
+    {name:"Garlic",qty:4,unit:"cloves"},{name:"Cauliflower",qty:1,unit:"medium-large head"},
+    {name:"Raw cashews",qty:1,unit:"cup"},{name:"Cannellini or Great Northern beans (canned)",qty:2,unit:"15-oz cans"},
+    {name:"Fresh thyme sprigs",qty:10,unit:"sprigs"},{name:"Rosemary sprig",qty:1,unit:"sprig"},{name:"Bay leaf",qty:1,unit:"leaf"},
+    {name:"Vegetable broth",qty:4,unit:"cups"},{name:"Nutritional yeast",qty:5,unit:"tbsp"},
+    {name:"Salt",qty:2,unit:"tsp"},{name:"Black pepper",qty:null,unit:"to taste"}
+  ]}
+];
+
+/* ---------- state ---------- */
+const STEPS = ["sauce","grain","veggies","protein","review"];
+const STEP_LABELS = {sauce:"Sauce",grain:"Grain",veggies:"Veggies",protein:"Protein",review:"Review"};
+
+let plan = [];
+let checked = {};
+let overrides = {};      // generated-item overrides: key -> {hidden, amountOverride}
+let customItems = [];    // manual + basics-added items
+let basicsList = [];     // saved weekly staples template
+let fixedRecipes = [];   // saved one-recipe dinners
+
+let screen = "plan";
+let sel = { sauce:null, grain:null, veggies:[], protein:[], scale:1 };
+let fixedSel = { recipeId:null, scale:1 };
+let newRecipe = { name:"", ingredients:[{name:"",qty:"",unit:""}] };
+let showBasicsEditor = false;
+let editingKey = null; // grocery row currently being amount-edited
+
+const tabsRow = document.getElementById('tabsRow');
+const cardArea = document.getElementById('cardArea');
+
+async function get(key, fallback){
+  try{ const r = await window.storage.get(key); return r ? JSON.parse(r.value) : fallback; }
+  catch(e){ return fallback; }
+}
+async function set(key, val){ try{ await window.storage.set(key, JSON.stringify(val)); }catch(e){} }
+
+async function loadState(){
+  plan = await get('weekly-plan', []);
+  checked = await get('grocery-checked', {});
+  overrides = await get('grocery-overrides', {});
+  customItems = await get('grocery-custom-items', []);
+  basicsList = await get('basics-list', [
+    {id:1,name:"Bread",amount:"",section:"Bakery"},
+    {id:2,name:"Pasta",amount:"",section:"Pantry & Dry Goods"},
+    {id:3,name:"Gia's crackers",amount:"",section:"Pantry & Dry Goods"},
+    {id:4,name:"Bananas",amount:"",section:"Produce"},
+    {id:5,name:"Blueberries",amount:"",section:"Produce"},
+    {id:6,name:"Frozen raspberries",amount:"",section:"Frozen"},
+    {id:7,name:"Frozen blueberries",amount:"",section:"Frozen"},
+    {id:8,name:"Kiwis",amount:"",section:"Produce"},
+    {id:9,name:"Avocados",amount:"",section:"Produce"},
+    {id:10,name:"Applesauce pouches",amount:"",section:"Pantry & Dry Goods"},
+    {id:11,name:"Spinach",amount:"",section:"Produce"},
+    {id:12,name:"Eggs",amount:"",section:"Dairy & Refrigerated"},
+    {id:13,name:"Cheese",amount:"",section:"Dairy & Refrigerated"},
+    {id:14,name:"Yogurt",amount:"",section:"Dairy & Refrigerated"},
+    {id:15,name:"Milk",amount:"",section:"Dairy & Refrigerated"},
+    {id:16,name:"Peanut butter",amount:"",section:"Pantry & Dry Goods"},
+    {id:17,name:"Almond butter",amount:"",section:"Pantry & Dry Goods"},
+    {id:18,name:"Coffee",amount:"",section:"Pantry & Dry Goods"},
+    {id:19,name:"Snack mix",amount:"",section:"Pantry & Dry Goods"},
+    {id:20,name:"Bag of chocolate chips",amount:"",section:"Pantry & Dry Goods"}
+  ]);
+  fixedRecipes = await get('fixed-recipes', DEFAULT_FIXED_RECIPES);
+  render();
+}
+
+function resetSelection(){ sel = { sauce:null, grain:null, veggies:[], protein:[], scale:1 }; }
+function goto(s){ screen = s; render(); }
+
+/* ---------- render root ---------- */
+function render(){
+  renderTabs();
+  if(screen==='plan') renderPlan();
+  else if(screen==='type') renderType();
+  else if(screen==='sauce') renderSauce();
+  else if(screen==='grain') renderSingle();
+  else if(screen==='veggies') renderMulti('veggies','Pick your veggies','Choose as many as you like.');
+  else if(screen==='protein') renderMulti('protein','Pick your protein','Choose as many as you like.');
+  else if(screen==='review') renderReview();
+  else if(screen==='fixedPick') renderFixedPick();
+  else if(screen==='fixedNew') renderFixedNew();
+  else if(screen==='fixedReview') renderFixedReview();
+}
+
+function renderTabs(){
+  if(!STEPS.includes(screen)){ tabsRow.innerHTML=''; return; }
+  const idx = STEPS.indexOf(screen);
+  tabsRow.innerHTML = STEPS.map((s,i)=>{
+    const cls = i===idx?'active':(i<idx?'done':'');
+    return `<div class="tab ${cls}">${STEP_LABELS[s]}</div>`;
+  }).join('');
+}
+
+/* ---------- add-a-dinner: type choice ---------- */
+function renderType(){
+  cardArea.innerHTML = `
+    <p class="step-title">What kind of dinner?</p>
+    <p class="step-hint">Build one from a sauce, or grab a recipe that's already fully written out.</p>
+    <div class="grid one-col" id="typeGrid"></div>
+    <div class="nav-row"><button class="ghost" onclick="goto('plan')">Cancel</button><span></span></div>`;
+  const grid = document.getElementById('typeGrid');
+  grid.innerHTML = `
+    <div class="opt type-opt" onclick="resetSelection();goto('sauce')">
+      <div class="name">Build from a sauce</div>
+      <div class="meta">Pick sauce → grain → veggies → protein</div>
+    </div>
+    <div class="opt type-opt" onclick="goto('fixedPick')">
+      <div class="name">Pick a saved recipe</div>
+      <div class="meta">One fixed recipe, all ingredients included</div>
+    </div>`;
+}
+
+/* ---------- sauce-based flow ---------- */
+function renderSauce(){
+  cardArea.innerHTML = `
+    <p class="step-title">Which sauce is dinner built around?</p>
+    <p class="step-hint">Everything else follows from here.</p>
+    <div class="grid one-col" id="sauceGrid"></div>
+    <div class="nav-row"><button class="ghost" onclick="goto('type')">Back</button><button id="nextBtn" disabled onclick="goto('grain')">Next</button></div>`;
+  const grid = document.getElementById('sauceGrid');
+  Object.entries(SAUCES).forEach(([key,s])=>{
+    const div = document.createElement('div');
+    div.className = 'opt sauce-opt radio'+(sel.sauce===key?' selected':'');
+    div.innerHTML = `<div style="display:flex;align-items:center;gap:9px;"><span class="mark"></span><span style="font-size:22px;">${SAUCE_ICONS[key]||'🍲'}</span><div><div class="name">${s.name}</div><div class="meta">${s.tag}</div></div></div>`;
+    div.onclick = ()=>{ sel.sauce=key; sel.grain=null; sel.veggies=[]; sel.protein=[]; render(); };
+    grid.appendChild(div);
+  });
+  document.getElementById('nextBtn').disabled = !sel.sauce;
+}
+
+function renderSingle(){
+  const s = SAUCES[sel.sauce];
+  cardArea.innerHTML = `
+    <p class="step-title">Pick a grain</p>
+    <p class="step-hint">The base your bowl or plate sits on.</p>
+    <div class="grid" id="optGrid"></div>
+    <div class="nav-row"><button class="ghost" onclick="goto('sauce')">Back</button><button id="nextBtn" disabled onclick="goto('veggies')">Next</button></div>`;
+  const grid = document.getElementById('optGrid');
+  s.grains.forEach(g=>{
+    const div = document.createElement('div');
+    div.className = 'opt radio'+(sel.grain===g?' selected':'');
+    div.innerHTML = `<span class="mark"></span><span>${iconFor(g)}</span>${g}`;
+    div.onclick = ()=>{ sel.grain=g; render(); };
+    grid.appendChild(div);
+  });
+  document.getElementById('nextBtn').disabled = !sel.grain;
+}
+
+function renderMulti(field,title,hint){
+  const s = SAUCES[sel.sauce];
+  const list = field==='veggies' ? s.veggies : s.proteins;
+  const nextScreen = field==='veggies' ? 'protein' : 'review';
+  const backScreen = field==='veggies' ? 'grain' : 'veggies';
+  cardArea.innerHTML = `
+    <p class="step-title">${title}</p><p class="step-hint">${hint}</p>
+    <div class="grid" id="optGrid"></div>
+    <div class="nav-row"><button class="ghost" onclick="goto('${backScreen}')">Back</button><button onclick="goto('${nextScreen}')">Next</button></div>`;
+  const grid = document.getElementById('optGrid');
+  list.forEach(item=>{
+    const arr = sel[field];
+    const div = document.createElement('div');
+    div.className = 'opt'+(arr.includes(item)?' selected':'');
+    div.innerHTML = `<span class="mark"></span><span>${iconFor(item)}</span>${item}`;
+    div.onclick = ()=>{ const i=arr.indexOf(item); if(i>-1) arr.splice(i,1); else arr.push(item); render(); };
+    grid.appendChild(div);
+  });
+}
+
+function renderReview(){
+  const s = SAUCES[sel.sauce];
+  cardArea.innerHTML = `
+    <p class="step-title">${SAUCE_ICONS[sel.sauce]||'🍲'} Add this to the week?</p>
+    <p class="step-hint">${s.name} — double check before it goes on the list.</p>
+    <ul class="review-list">
+      <li><b>Sauce</b> ${SAUCE_ICONS[sel.sauce]||''} ${s.name}</li><li><b>Grain</b> ${iconFor(sel.grain)} ${sel.grain}</li>
+      <li><b>Veggies</b> ${sel.veggies.length?sel.veggies.map(v=>iconFor(v)+' '+v).join(', '):'—'}</li>
+      <li><b>Protein</b> ${sel.protein.length?sel.protein.map(p=>iconFor(p)+' '+p).join(', '):'—'}</li>
+    </ul>
+    <div class="step-hint" style="margin-bottom:2px;">Recipe scale</div>
+    <div class="scale-row" id="scaleRow"></div>
+    <div class="nav-row"><button class="ghost" onclick="goto('protein')">Back</button><button onclick="confirmAdd()">Add to weekly plan</button></div>`;
+  const row = document.getElementById('scaleRow');
+  [1,1.5,2].forEach(v=>{
+    const b = document.createElement('button');
+    b.className = 'scale-btn'+(sel.scale===v?' selected':'');
+    b.textContent = v+'x';
+    b.onclick = ()=>{ sel.scale=v; render(); };
+    row.appendChild(b);
+  });
+}
+
+function confirmAdd(){
+  const s = SAUCES[sel.sauce];
+  plan.push({ id:Date.now(), type:'sauce', sauceKey:sel.sauce, sauceName:s.name,
+    grain:sel.grain, veggies:[...sel.veggies], protein:[...sel.protein], scale:sel.scale });
+  set('weekly-plan', plan);
+  resetSelection();
+  goto('plan');
+}
+
+/* ---------- fixed-recipe flow ---------- */
+function renderFixedPick(){
+  cardArea.innerHTML = `
+    <p class="step-title">Pick a saved recipe</p>
+    <p class="step-hint">Full recipe, no choices to make.</p>
+    <div class="grid one-col" id="fixedGrid"></div>
+    <div class="nav-row"><button class="ghost" onclick="goto('type')">Back</button><button id="nextBtn" disabled onclick="goto('fixedReview')">Next</button></div>`;
+  const grid = document.getElementById('fixedGrid');
+  if(!fixedRecipes.length){
+    grid.innerHTML = `<div class="empty">No saved recipes yet.</div>`;
+  }
+  fixedRecipes.forEach(r=>{
+    const div = document.createElement('div');
+    div.className = 'opt sauce-opt radio'+(fixedSel.recipeId===r.id?' selected':'');
+    div.innerHTML = `<div style="display:flex;align-items:center;gap:9px;"><span class="mark"></span><span style="font-size:22px;">📖</span><div><div class="name">${r.name}</div><div class="meta">${r.ingredients.length} ingredients</div></div></div>`;
+    div.onclick = ()=>{ fixedSel.recipeId=r.id; fixedSel.scale=1; render(); };
+    grid.appendChild(div);
+  });
+  const newDiv = document.createElement('div');
+  newDiv.className = 'opt type-opt';
+  newDiv.innerHTML = `<div class="name">+ New recipe</div><div class="meta">Add one you have written down</div>`;
+  newDiv.onclick = ()=>{ newRecipe={name:"",ingredients:[{name:"",qty:"",unit:""}]}; goto('fixedNew'); };
+  grid.appendChild(newDiv);
+  document.getElementById('nextBtn').disabled = !fixedSel.recipeId;
+}
+
+function renderFixedNew(){
+  cardArea.innerHTML = `
+    <p class="step-title">New recipe</p>
+    <p class="step-hint">List every ingredient — amount and unit are optional.</p>
+    <input id="rNameInput" placeholder="Recipe name" value="${newRecipe.name}" style="font-size:15px;padding:9px 10px;border:1px solid var(--line);border-radius:8px;margin-bottom:14px;">
+    <div id="ingRows"></div>
+    <button class="ghost small" style="margin-top:4px;align-self:flex-start;" onclick="addIngRow()">+ Add ingredient</button>
+    <div class="nav-row"><button class="ghost" onclick="goto('fixedPick')">Cancel</button><button id="saveRecipeBtn" onclick="saveNewRecipe()">Save recipe</button></div>`;
+  document.getElementById('rNameInput').oninput = e=>{ newRecipe.name = e.target.value; };
+  const rows = document.getElementById('ingRows');
+  newRecipe.ingredients.forEach((ing,i)=>{
+    const row = document.createElement('div');
+    row.className = 'recipe-form-row';
+    row.innerHTML = `
+      <input name="rname" placeholder="Ingredient" value="${ing.name}">
+      <input name="rqty" placeholder="Qty" value="${ing.qty}">
+      <input name="runit" placeholder="Unit (cup, can...)" value="${ing.unit}">
+      <button class="ghost small" type="button">✕</button>`;
+    row.querySelector('[name=rname]').oninput = e=>{ newRecipe.ingredients[i].name = e.target.value; };
+    row.querySelector('[name=rqty]').oninput = e=>{ newRecipe.ingredients[i].qty = e.target.value; };
+    row.querySelector('[name=runit]').oninput = e=>{ newRecipe.ingredients[i].unit = e.target.value; };
+    row.querySelector('button').onclick = ()=>{ newRecipe.ingredients.splice(i,1); if(!newRecipe.ingredients.length) newRecipe.ingredients.push({name:"",qty:"",unit:""}); render(); };
+    rows.appendChild(row);
+  });
+}
+function addIngRow(){ newRecipe.ingredients.push({name:"",qty:"",unit:""}); render(); }
+
+function saveNewRecipe(){
+  const name = newRecipe.name.trim();
+  const ings = newRecipe.ingredients
+    .filter(i=>i.name.trim())
+    .map(i=>({ name:i.name.trim(), qty:(i.qty!==''&&!isNaN(parseFloat(i.qty)))?parseFloat(i.qty):null, unit:i.unit.trim() }));
+  if(!name || !ings.length){ alert('Give the recipe a name and at least one ingredient.'); return; }
+  const rec = { id:Date.now(), name, ingredients:ings };
+  fixedRecipes.push(rec);
+  set('fixed-recipes', fixedRecipes);
+  fixedSel.recipeId = rec.id; fixedSel.scale = 1;
+  goto('fixedReview');
+}
+
+function renderFixedReview(){
+  const r = fixedRecipes.find(x=>x.id===fixedSel.recipeId);
+  if(!r){ goto('fixedPick'); return; }
+  cardArea.innerHTML = `
+    <p class="step-title">📖 Add this to the week?</p>
+    <p class="step-hint">${r.name}</p>
+    <ul class="review-list">${r.ingredients.map(i=>`<li><b>${i.qty?fmtQty(i.qty)+' '+i.unit:i.unit||'—'}</b>${iconFor(i.name)} ${i.name}</li>`).join('')}</ul>
+    <div class="step-hint" style="margin-bottom:2px;">Recipe scale</div>
+    <div class="scale-row" id="scaleRow"></div>
+    <div class="nav-row"><button class="ghost" onclick="goto('fixedPick')">Back</button><button onclick="confirmAddFixed()">Add to weekly plan</button></div>`;
+  const row = document.getElementById('scaleRow');
+  [1,1.5,2].forEach(v=>{
+    const b = document.createElement('button');
+    b.className = 'scale-btn'+(fixedSel.scale===v?' selected':'');
+    b.textContent = v+'x';
+    b.onclick = ()=>{ fixedSel.scale=v; render(); };
+    row.appendChild(b);
+  });
+}
+
+function confirmAddFixed(){
+  const r = fixedRecipes.find(x=>x.id===fixedSel.recipeId);
+  plan.push({ id:Date.now(), type:'fixed', name:r.name, ingredients:r.ingredients, scale:fixedSel.scale });
+  set('weekly-plan', plan);
+  fixedSel = { recipeId:null, scale:1 };
+  goto('plan');
+}
+
+/* ---------- plan + grocery ---------- */
+function removeMeal(id){ plan = plan.filter(m=>m.id!==id); set('weekly-plan',plan); render(); }
+function updateMealScale(id, val){
+  const m = plan.find(x=>x.id===id); if(!m) return;
+  m.scale = parseFloat(val); set('weekly-plan',plan); render();
+}
+function clearWeek(){
+  if(!confirm('Clear the whole weekly plan? (grocery list stays as-is)')) return;
+  plan = []; set('weekly-plan',plan); render();
+}
+
+function buildGrocery(){
+  const sauceAgg = {};   // name|unit -> {name,unit,qty,hasQty}
+  const servingAgg = {}; // name -> {name,total}
+
+  function addIngredient(name, qty, unit, scale){
+    const key = name+'|'+unit;
+    if(!sauceAgg[key]) sauceAgg[key] = { name, unit, qty:0, hasQty: qty!=null };
+    if(qty!=null) sauceAgg[key].qty += qty*scale;
+  }
+  function addServing(name, scale){
+    if(!servingAgg[name]) servingAgg[name] = { name, total:0 };
+    servingAgg[name].total += scale;
+  }
+
+  plan.forEach(meal=>{
+    const scale = meal.scale || 1;
+    if(meal.type==='sauce'){
+      const s = SAUCES[meal.sauceKey];
+      s.recipeIngredients.forEach(ing=> addIngredient(ing.name, ing.qty, ing.unit, scale) );
+      if(meal.grain) addServing(meal.grain, scale);
+      meal.veggies.forEach(v=>addServing(v,scale));
+      meal.protein.forEach(p=>addServing(p,scale));
+    } else if(meal.type==='fixed'){
+      meal.ingredients.forEach(ing=> addIngredient(ing.name, ing.qty, ing.unit||'', scale) );
+    }
+  });
+
+  const rows = []; // {key,name,amount,section,removableGenerated}
+  Object.values(sauceAgg).forEach(item=>{
+    const key = 'gen::'+item.name.toLowerCase();
+    const ov = overrides[key] || {};
+    if(ov.hidden) return;
+    const amount = ov.amountOverride!=null ? ov.amountOverride :
+      (item.hasQty ? (fmtQty(item.qty)+' '+item.unit) : item.unit);
+    rows.push({ key, name:item.name, amount, section: sectionFor(item.name), generated:true });
+  });
+  Object.values(servingAgg).forEach(item=>{
+    const key = 'gen::'+item.name.toLowerCase();
+    const ov = overrides[key] || {};
+    if(ov.hidden) return;
+    const amount = ov.amountOverride!=null ? ov.amountOverride :
+      (fmtQty(item.total)+' serving'+(Math.abs(item.total-1)<0.01?'':'s'));
+    rows.push({ key, name:item.name, amount, section: sectionFor(item.name), generated:true });
+  });
+  customItems.forEach(ci=>{
+    rows.push({ key:'custom::'+ci.id, name:ci.name, amount:ci.amount, section:ci.section, generated:false, customId:ci.id });
+  });
+
+  const grouped = {}; SECTIONS.forEach(s=>grouped[s]=[]);
+  rows.forEach(r=>{ (grouped[r.section]||grouped['Other']).push(r); });
+  Object.values(grouped).forEach(list=>list.sort((a,b)=>a.name.localeCompare(b.name)));
+  return grouped;
+}
+
+function renderPlan(){
+  const groups = buildGrocery();
+  const hasItems = Object.values(groups).some(g=>g.length);
+
+  let mealsHtml = '';
+  if(!plan.length){
+    mealsHtml = `<div class="empty">No dinners planned yet — add one to get started.</div>`;
+  } else {
+    mealsHtml = plan.map(m=>{
+      const title = m.type==='sauce' ? m.sauceName : m.name;
+      const icon = m.type==='sauce' ? (SAUCE_ICONS[m.sauceKey]||'🍲') : '📖';
+      const bits = m.type==='sauce' ? [m.grain,...m.veggies,...m.protein].filter(Boolean).join(' · ') : m.ingredients.map(i=>i.name).join(' · ');
+      return `<div class="meal-card">
+        <div><div class="name">${icon} ${title}</div><div class="desc">${bits}</div></div>
+        <div class="right">
+          <select onchange="updateMealScale(${m.id}, this.value)">
+            ${[1,1.5,2].map(v=>`<option value="${v}" ${m.scale===v?'selected':''}>${v}x</option>`).join('')}
+          </select>
+          <button class="rm" onclick="removeMeal(${m.id})" title="Remove">✕</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  let groceryHtml = '';
+  if(!hasItems){
+    groceryHtml = `<div class="empty">Grocery list fills in as you add dinners.</div>`;
+  } else {
+    groceryHtml = SECTIONS.filter(s=>groups[s].length).map(sec=>{
+      const rowsHtml = groups[sec].map(row=>{
+        const isChecked = !!checked[row.key];
+        const isEditing = editingKey===row.key;
+        const amtHtml = isEditing
+          ? `<input class="amt-edit" id="editInput" value="${row.amount}" onkeydown="if(event.key==='Enter')saveAmountEdit('${row.key}', '${row.generated?'':row.customId}')" />`
+          : `<span class="g-amt" onclick="startEdit('${row.key}')">${row.amount}</span>`;
+        return `<div class="g-item ${isChecked?'checked':''}">
+          <input type="checkbox" ${isChecked?'checked':''} onchange="toggleCheck('${row.key}')">
+          <span class="g-name" onclick="toggleCheck('${row.key}')">${iconFor(row.name)} ${row.name}</span>
+          ${amtHtml}
+          <button class="g-x" onclick="removeRow('${row.key}', ${row.generated}, '${row.customId||''}')" title="Remove">✕</button>
+        </div>`;
+      }).join('');
+      return `<div class="grocery-group"><h4>${sec}</h4>${rowsHtml}</div>`;
+    }).join('');
+  }
+
+  cardArea.innerHTML = `
+    <div class="plan-header">
+      <p class="step-title" style="margin-bottom:0;">This week's dinners</p>
+      ${plan.length ? '<button class="clear-btn" onclick="clearWeek()">Clear week</button>' : ''}
+    </div>
+    <p class="step-hint">Built from your go-to sauces, so nothing repeats by accident.</p>
+    ${mealsHtml}
+    <button class="add-btn" onclick="goto('type')">+ Add a dinner</button>
+
+    <div class="section-label">Grocery list</div>
+    <div style="display:flex;gap:8px;margin:-4px 0 10px;">
+      <button class="basics-toggle" onclick="addBasicsToList()">+ Add basics</button>
+      <button class="basics-toggle" onclick="showBasicsEditor=!showBasicsEditor; render();">${showBasicsEditor?'Hide':'Edit'} basics list</button>
+    </div>
+    ${showBasicsEditor ? renderBasicsEditorHtml() : ''}
+    ${groceryHtml}
+    <div class="add-item-row" id="addItemRow">
+      <input name="iname" placeholder="Add item">
+      <input name="iamt" placeholder="Amount">
+      <select name="isec">${SECTIONS.map(s=>`<option value="${s}">${s}</option>`).join('')}</select>
+      <button class="small" onclick="addCustomItem()">Add</button>
+    </div>
+  `;
+  if(editingKey){
+    const inp = document.getElementById('editInput');
+    if(inp){ inp.focus(); inp.select(); }
+  }
+  attachBasicsEditorHandlers();
+}
+
+function renderBasicsEditorHtml(){
+  const rows = basicsList.map((b,i)=>`
+    <div class="basic-row" data-i="${i}">
+      <input name="bname" value="${b.name}">
+      <input name="bamt" value="${b.amount}">
+      <select name="bsec">${SECTIONS.map(s=>`<option value="${s}" ${b.section===s?'selected':''}>${s}</option>`).join('')}</select>
+      <button class="g-x" onclick="removeBasic(${i})">✕</button>
+    </div>`).join('');
+  return `<div class="basics-editor">
+    <div id="basicsRows">${rows}</div>
+    <button class="ghost small" onclick="addBasicRow()">+ Add basic</button>
+  </div>`;
+}
+function attachBasicsEditorHandlers(){
+  if(!showBasicsEditor) return;
+  document.querySelectorAll('.basic-row').forEach(row=>{
+    const i = +row.dataset.i;
+    row.querySelector('[name=bname]').oninput = e=>{ basicsList[i].name=e.target.value; set('basics-list',basicsList); };
+    row.querySelector('[name=bamt]').oninput = e=>{ basicsList[i].amount=e.target.value; set('basics-list',basicsList); };
+    row.querySelector('[name=bsec]').onchange = e=>{ basicsList[i].section=e.target.value; set('basics-list',basicsList); };
+  });
+}
+function addBasicRow(){ basicsList.push({id:Date.now(),name:"",amount:"",section:"Other"}); set('basics-list',basicsList); render(); }
+function removeBasic(i){ basicsList.splice(i,1); set('basics-list',basicsList); render(); }
+
+function addBasicsToList(){
+  const existingNames = new Set(customItems.map(c=>c.name.toLowerCase()));
+  basicsList.forEach(b=>{
+    if(!b.name.trim()) return;
+    if(existingNames.has(b.name.toLowerCase())) return;
+    customItems.push({ id:Date.now()+Math.random(), name:b.name, amount:b.amount, section:b.section });
+  });
+  set('grocery-custom-items', customItems);
+  render();
+}
+
+function addCustomItem(){
+  const row = document.getElementById('addItemRow');
+  const name = row.querySelector('[name=iname]').value.trim();
+  const amount = row.querySelector('[name=iamt]').value.trim();
+  const section = row.querySelector('[name=isec]').value;
+  if(!name) return;
+  customItems.push({ id:Date.now()+Math.random(), name, amount, section });
+  set('grocery-custom-items', customItems);
+  render();
+}
+
+function removeRow(key, generated, customId){
+  if(generated === 'true' || generated === true){
+    overrides[key] = { ...(overrides[key]||{}), hidden:true };
+    set('grocery-overrides', overrides);
+  } else {
+    customItems = customItems.filter(c=>String(c.id)!==String(customId));
+    set('grocery-custom-items', customItems);
+  }
+  render();
+}
+
+function startEdit(key){ editingKey = key; render(); }
+function saveAmountEdit(key, customId){
+  const val = document.getElementById('editInput').value;
+  if(customId){
+    const ci = customItems.find(c=>String(c.id)===String(customId));
+    if(ci) ci.amount = val;
+    set('grocery-custom-items', customItems);
+  } else {
+    overrides[key] = { ...(overrides[key]||{}), amountOverride: val };
+    set('grocery-overrides', overrides);
+  }
+  editingKey = null;
+  render();
+}
+
+function toggleCheck(key){ checked[key] = !checked[key]; set('grocery-checked',checked); render(); }
+
+loadState();
+</script>
+</body>
+</html>
