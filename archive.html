@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Molecute</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    :root {
+      --lavender: #e6c6ff;
+      --purple: #c58df5;
+      --deep-purple: #9a5fd1;
+      --card-bg: #faf5ff;
+      --accent-pink: #e04bd8;
+      --text-dark: #333;
+    }
+
+    body {
+      margin: 0;
+      font-family: Georgia, serif;
+      background: #ffffff;
+      color: var(--text-dark);
+    }
+
+    /* ===== NAVBAR ===== */
+    @import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;1,400&display=swap');
+
+    nav.topnav {
+      background: var(--lavender);
+      border-bottom: 3px solid var(--purple);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+      height: 68px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 12px rgba(154,95,209,0.10);
+    }
+
+    .nav-brand {
+      font-family: Georgia, serif;
+      font-weight: bold;
+      font-size: 2rem;
+      color: var(--deep-purple);
+      letter-spacing: 1px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transition: opacity 0.15s;
+    }
+    .nav-brand:hover { opacity: 0.82; }
+    .nav-brand .brand-atom { font-size: 1.5rem; }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .nav-links > li {
+      position: relative;
+    }
+
+    .nav-links > li > a,
+    .nav-links > li > button {
+      font-family: 'Nunito', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--deep-purple);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 10px 16px;
+      border-radius: 999px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .nav-links > li > a:hover,
+    .nav-links > li > button:hover {
+      background: rgba(197,141,245,0.22);
+    }
+
+    /* dropdown arrow */
+    .nav-links > li > button .caret {
+      font-size: 0.65rem;
+      transition: transform 0.2s;
+      display: inline-block;
+    }
+    .nav-links > li.open > button .caret { transform: rotate(180deg); }
+
+    /* ===== DROPDOWN MENU ===== */
+    .dropdown {
+      display: none;
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      background: #fff;
+      border: 2px solid var(--purple);
+      border-radius: 18px;
+      min-width: 190px;
+      box-shadow: 0 8px 28px rgba(154,95,209,0.16);
+      overflow: hidden;
+      flex-direction: column;
+      animation: dropIn 0.18s ease;
+    }
+    @keyframes dropIn {
+      from { opacity:0; transform: translateY(-8px); }
+      to   { opacity:1; transform: translateY(0); }
+    }
+    .nav-links > li.open .dropdown { display: flex; }
+
+    .dropdown a {
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.97rem;
+      font-weight: 600;
+      color: var(--deep-purple);
+      text-decoration: none;
+      padding: 13px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: background 0.12s;
+    }
+    .dropdown a:hover { background: var(--card-bg); }
+    .dropdown a + a { border-top: 1px solid #eee; }
+    .dropdown a .dd-icon { font-size: 1.1rem; }
+
+    /* tagline strip below nav */
+    .tagline-strip {
+      background: linear-gradient(90deg, var(--lavender) 0%, #f5e6ff 100%);
+      text-align: center;
+      padding: 10px 10px 9px;
+      font-family: 'Nunito', sans-serif;
+      font-style: italic;
+      font-size: 1.05rem;
+      color: var(--deep-purple);
+      border-bottom: 2px dotted var(--purple);
+    }
+
+    @media (max-width: 500px) {
+      .nav-brand { font-size: 1.5rem; }
+      nav.topnav { padding: 0 14px; }
+    }
+
+    /* ===== MAIN GRID ===== */
+    .hub {
+  max-width: 1100px;
+  margin: 34px auto;
+  padding: 0 18px;
+
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)); /* ✅ 3 across */
+  gap: 22px;
+}
+
+
+.card {
+  background: var(--card-bg);
+  border: 4px solid var(--purple);
+  border-radius: 32px;
+  padding: 22px 20px 18px;   /* ✅ smaller */
+  text-align: center;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card h2 {
+  margin: 0;
+  font-size: 1.65rem;        /* ✅ smaller */
+  color: var(--accent-pink);
+}
+
+.card p {
+  margin: 10px auto 14px;    /* ✅ smaller */
+  font-size: 1.02rem;        /* ✅ smaller */
+  max-width: 340px;
+  line-height: 1.35;
+}
+
+.icon {
+  font-size: 3.2rem;         /* ✅ smaller */
+  margin-top: 6px;
+  color: var(--deep-purple);
+}
+
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+    }
+
+
+
+    /* Make entire card clickable */
+    .card a {
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+
+    /* ===== STOICHIOMETRY ROADMAP ICON ===== */
+    .stoich-card {
+      grid-column: 1 / -1;
+      max-width: 520px;
+      justify-self: center;
+    }
+
+    .roadmap-icon {
+      position: relative;
+      width: 160px;
+      height: 90px;
+      margin: 10px auto 0;
+    }
+
+    .roadmap-node {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 3px solid var(--deep-purple);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: bold;
+      color: var(--deep-purple);
+      z-index: 1;
+    }
+
+    .node-g-left { top: 0; left: 10px; background: #e6ffc6; }
+    .node-m-left { top: 0; left: 60px; background: #fec6ff; }
+    .node-m-right { bottom: 0; right: 60px; background: #fec6ff; }
+    .node-g-right { bottom: 0; right: 10px; background: #e6ffc6; }
+
+    .roadmap-line { position: absolute; background: var(--purple); z-index: 0; }
+    .line-top { height: 4px; width: 18px; top: 14px; left: 42px; }
+    .line-bottom { height: 4px; width: 18px; bottom: 14px; right: 42px; }
+    .line-left { width: 4px; height: 28px; top: 32px; left: 76px; }
+    .line-right { width: 4px; height: 28px; top: 32px; right: 76px; }
+
+    /* ===== WATER MOLECULE ICON ===== */
+    .water-icon {
+      position: relative;
+      width: 140px;
+      height: 90px;
+      margin: 10px auto 0;
+    }
+
+    .atom { position: absolute; border-radius: 50%; }
+    .atom.oxygen {
+      width: 60px;
+      height: 60px;
+      background: #f6c6ff;
+      border: 4px solid #d7a3f0;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+    .atom.hydrogen {
+      width: 48px;
+      height: 48px;
+      background: #d6efff;
+      border: 4px solid #9fd6f5;
+      bottom: 0;
+    }
+    .atom.h1 { left: 0; }
+    .atom.h2 { right: 0; }
+
+    /* ===== Teacher Section Divider ===== */
+    .teacher-divider {
+      grid-column: 1 / -1;
+      margin: 12px 0 4px;
+      padding-top: 18px;
+      border-top: 3px dotted var(--purple);
+      text-align: center;
+      position: relative;
+    }
+
+    .teacher-divider span {
+      display: inline-block;
+      background: #fff;
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      font-style: italic;
+      color: var(--deep-purple);
+      border: 2px solid var(--purple);
+    }
+
+      /* ===== Teacher Section Divider ===== */
+    .first-divider {
+      grid-column: 1 / -1;
+      margin: 4px 0 4px;
+      padding-top: 0px;
+      text-align: center;
+      position: relative;
+    }
+
+    .first-divider span {
+      display: inline-block;
+      background: #fff;
+      padding: 6px 16px;
+      border-radius: 999px;
+      font-size: 0.9rem;
+      font-style: italic;
+      color: var(--deep-purple);
+      border: 2px solid var(--purple);
+    }
+
+    /* ✅ Teacher cards: same style, but centered nicely in grid */
+.teacher-card {
+  justify-self: center;
+  width: 80%;
+}
+
+.teacher-row{
+  grid-column: 1 / -1;          /* span full grid width */
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+  justify-content: center;
+  max-width: 760px;             /* controls centering width */
+  margin: 0 auto;
+}
+
+
+
+    /* ===== FOOTER ===== */
+    footer {
+      text-align: center;
+      margin: 30px 0 18px;
+      font-size: 0.95rem;
+      color: #777;
+    }
+
+    /* ===== MOBILE TWEAKS ===== */
+    @media (max-width: 500px) {
+      header h1 { font-size: 2.2rem; }
+      .card { border-radius: 26px; }
+    }
+
+    @media (max-width: 980px){
+  .hub{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 620px){
+  .hub{ grid-template-columns: 1fr; }
+}
+
+/* Styling for the Contact Section */
+/* Styling for the Contact Section */
+.contact-card {
+  border-color: var(--accent-pink);
+  background: #fff0f9;
+  
+  /* Centering Logic */
+  grid-column: 1 / -1;   /* Spans across all grid columns */
+  justify-self: center;  /* Centers the card itself */
+  width: 100%;
+  max-width: 520px;      /* Matches the width of your Stoich Roadmap card */
+}
+
+.contact-links {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.contact-btn {
+  background: var(--purple);
+  color: white !important;
+  padding: 10px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: bold;
+  transition: opacity 0.2s;
+}
+
+.contact-btn:hover {
+  opacity: 0.8;
+}
+
+footer {
+  padding: 20px;
+  font-size: 0.85rem;
+  color: #555;
+  text-align: center;
+  border-top: 1px solid #eee;
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+}
+
+.cc-license img {
+  height: 1.2em;
+  width: auto;
+  vertical-align: middle;
+  margin-left: 2px;
+}
+
+.cc-license a {
+  text-decoration: none;
+  color: inherit;
+  font-weight: bold;
+}
+
+.cc-license a:hover {
+  text-decoration: underline;
+}
+
+/* ===== NGSS / FRAMEWORK TOOLTIP ===== */
+.ngss-tooltip {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e0a3c;
+  color: #f0e6ff;
+  border: 2px solid var(--purple);
+  border-radius: 16px;
+  padding: 12px 16px;
+  min-width: 240px;
+  max-width: 300px;
+  text-align: left;
+  z-index: 500;
+  box-shadow: 0 8px 28px rgba(154,95,209,0.35);
+  pointer-events: none;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.ngss-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 8px solid transparent;
+  border-top-color: var(--purple);
+}
+
+/* When tooltip is below the card, flip the arrow to point up */
+.ngss-tooltip.tooltip-below::after {
+  top: auto;
+  bottom: 100%;
+  border-top-color: transparent;
+  border-bottom-color: var(--purple);
+}
+
+.ngss-tooltip .tooltip-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--purple);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.ngss-tooltip .standard-code {
+  display: inline-block;
+  background: var(--purple);
+  color: #fff;
+  border-radius: 999px;
+  padding: 1px 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin: 2px 2px 2px 0;
+}
+
+.ngss-tooltip .standard-desc {
+  margin-top: 5px;
+  color: #ddd0f5;
+  font-size: 0.8rem;
+}
+
+.ngss-tooltip .framework-tag {
+  display: inline-block;
+  background: #2d1060;
+  border: 1px solid #c58df5;
+  color: #e6c6ff;
+  border-radius: 999px;
+  padding: 2px 9px;
+  font-size: 0.74rem;
+  margin: 3px 2px 0 0;
+}
+
+/* tooltip shown via JS when shift held + mouseenter */
+
+/* show tooltip when shift is held AND card is hovered */
+body.shift-held .card:hover .ngss-tooltip {
+  display: block;
+}
+
+/* Top-row cards: tooltip appears below instead */
+.card.tooltip-below .ngss-tooltip {
+  bottom: auto;
+  top: calc(100% + 10px);
+}
+
+.card.tooltip-below .ngss-tooltip::after {
+  top: auto;
+  bottom: 100%;
+  border-top-color: transparent;
+  border-bottom-color: var(--purple);
+}
+
+/* cards need position:relative for tooltip positioning */
+.card {
+  position: relative;
+  z-index: 0;
+}
+
+/* Raise the hovered card above siblings so tooltip clears everything */
+body.shift-held .card:hover {
+  z-index: 200;
+}
+
+/* subtle shift-mode indicator on cards */
+body.shift-held .card:hover {
+  outline: 2px dashed var(--purple);
+  outline-offset: 3px;
+}
+
+/* hint bar that appears at bottom when Shift held */
+.shift-hint {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #1e0a3c;
+  color: var(--lavender);
+  text-align: center;
+  padding: 7px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.82rem;
+  z-index: 999;
+  display: none;
+  border-top: 2px solid var(--purple);
+  letter-spacing: 0.02em;
+}
+body.shift-held .shift-hint { display: block; }
+
+/* ===== TEACHER TOAST ===== */
+.teacher-toast {
+  position: fixed;
+  top: 82px;
+  right: 20px;
+  background: #1e0a3c;
+  color: #f0e6ff;
+  border: 2px solid var(--purple);
+  border-radius: 18px;
+  padding: 14px 18px 14px 16px;
+  max-width: 290px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  z-index: 1000;
+  box-shadow: 0 8px 28px rgba(154,95,209,0.35);
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  animation: toastIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(30px) scale(0.95); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+.teacher-toast.toast-out {
+  animation: toastOut 0.3s ease forwards;
+}
+
+@keyframes toastOut {
+  from { opacity: 1; transform: translateX(0) scale(1); }
+  to   { opacity: 0; transform: translateX(30px) scale(0.95); }
+}
+
+.toast-icon { font-size: 1.4rem; flex-shrink: 0; margin-top: 1px; }
+
+.toast-body { flex: 1; }
+
+.toast-title {
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--purple);
+  margin-bottom: 4px;
+}
+
+.toast-key {
+  display: inline-block;
+  background: var(--purple);
+  color: #fff;
+  border-radius: 6px;
+  padding: 1px 7px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.toast-dismiss {
+  background: none;
+  border: none;
+  color: #c58df5;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+  margin-top: 1px;
+  transition: color 0.15s;
+}
+.toast-dismiss:hover { color: #fff; }
+
+.toast-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: var(--purple);
+  border-radius: 0 0 16px 16px;
+  width: 100%;
+  transform-origin: left;
+  animation: toastProgress 15s linear forwards;
+}
+
+@keyframes toastProgress {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
+  </style>
+</head>
+
+<body>
+
+  
+
+<nav class="topnav">
+  <a class="nav-brand" href="index.html">
+    <span class="brand-atom">🧬</span> Molecute Archive
+  </a>
+
+  <ul class="nav-links">
+
+ 
+
+
+
+    <li class="dd-item" id="rosterDropdownItem">
+      <button aria-haspopup="true" aria-expanded="false">
+        Roster <span class="caret">▼</span>
+      </button>
+      <div class="dropdown" role="menu">
+        <a href="scan.html" id="teacherScanLink" role="menuitem">
+          <span class="dd-icon">🏫</span> Attendance Scanner
+        </a>
+        <a href="weekly.html" id="teacherWeeklyLink" role="menuitem">
+          <span class="dd-icon">📊</span> Attendance Filter
+        </a>
+      </div>
+    </li>
+
+
+  </ul>
+</nav>
+
+
+<main class="hub">
+
+  
+  <div class="first-divider">
+    <span>Play</span>
+  </div>
+
+    <div class="card tooltip-below">
+    <a href="chemword.html">
+      <h2>Chemword</h2>
+      <p>Practice Chemistry vocabulary by solving Crossword puzzles.</p>
+      <div class="icon">🧩</div>
+    </a>
+    <div class="ngss-tooltip">
+      <div class="tooltip-label">📚 Framework Alignment</div>
+      <div>
+     
+        <span class="framework-tag">Gamification</span>
+        <span class="framework-tag">Retrieval Practice</span>
+       
+      </div>
+      <div class="standard-desc">Leverages game-based learning for engagement and retrieval practice.</div>
+    </div>
+  </div>
+
+      <div class="card tooltip-below">
+    <a href="elementle.html">
+      <h2>Elementle</h2>
+      <p>Use periodic trends to solve a Wordle-inspired puzzle and identify the mystery element.</p>
+      <div class="icon">🔮</div>
+    </a>
+    <div class="ngss-tooltip">
+      <div class="tooltip-label">🔬 NGSS & 📚 Framework Alignment</div>
+      <div>
+          <div><span class="standard-code">HS-PS1-1</span></div>
+        <span class="framework-tag">Gamification</span>
+        <span class="framework-tag">Retrieval Practice</span>
+  
+      </div>
+
+          <div class="standard-desc">Use the periodic table as a model to predict relative properties of elements based on electron patterns in the outermost energy level.</div>
+   
+      <div class="standard-desc">Leverages game-based learning for engagement and retrieval practice.</div>
+  
+          </div>
+  </div>
+
+        <div class="card tooltip-below">
+    <a href="chemnections.html">
+      <h2>Chemnections</h2>
+      <p>Find the connections between Chemistry terms in this NYT-inspired puzzle.</p>
+      <div class="icon">🔗</div>
+    </a>
+    <div class="ngss-tooltip">
+      <div class="tooltip-label">📚 Framework Alignment</div>
+      <div>
+     
+        <span class="framework-tag">Gamification</span>
+        <span class="framework-tag">Retrieval Practice</span>
+       
+      </div>
+      <div class="standard-desc">Leverages game-based learning for engagement and retrieval practice.</div>
+    </div>
+  </div>
+
+  <div class="teacher-divider">
+    <span>Create</span>
+  </div>
+
+  <div class="card tooltip-below">
+    <a href="atomic-structure.html">
+      <h2>Build an Atom</h2>
+      <p>Build Bohr models and create Lewis Dot Structures.</p>
+      <div class="icon">⚛️</div>
+    </a>
+    <div class="ngss-tooltip">
+      <div class="tooltip-label">🔬 NGSS Alignment</div>
+      <div><span class="standard-code">HS-PS1-1</span></div>
+      <div class="standard-desc">Use the periodic table as a model to predict relative properties of elements based on electron patterns in the outermost energy level.</div>
+    </div>
+  </div>
+
+  <div class="card tooltip-below">
+    <a href="ionic-bonding.html">
+      <h2>Ionic Bonding</h2>
+      <p>Build ionic compounds and explore charge balance.</p>
+      <div class="icon">🧲</div>
+    </a>
+    <div class="ngss-tooltip">
+      <div class="tooltip-label">🔬 NGSS Alignment</div>
+      <div><span class="standard-code">HS-PS1-2</span></div>
+      <div class="standard-desc">Construct and revise an explanation for a simple chemical reaction based on outermost electron states and periodic table trends.</div>
+    </div>
+  </div>
+
+  <div class="card tooltip-below">
+    <a href="covalent-bonding.html">
+      <h2>Covalent Bonding</h2>
+      <p>Create covalent molecules and visualize shared electrons.</p>
+      <div class="water-icon">
+        <div class="atom oxygen"></div>
+        <div class="atom hydrogen h1"></div>
+        <div class="atom hydrogen h2"></div>
+      </div>
+    </a>
+    <div class="ngss-tooltip">
+      <div class="tooltip-label">🔬 NGSS Alignment</div>
+      <div><span class="standard-code">HS-PS1-2</span></div>
+      <div class="standard-desc">Construct and revise an explanation for a simple chemical reaction based on outermost electron states and periodic table trends.</div>
+    </div>
+  </div>
+
+  <!-- ===== VISUALIZE ===== -->
+  <div class="teacher-divider">
+    <span>Visualize</span>
+  </div>
+
+  <div class="card">
+    <a href="reaction-chamber.html">
+      <h2>Reaction Chamber</h2>
+      <p>Watch molecules collide, break bonds, and rearrange into new substances.</p>
+      <div class="icon">⛓️‍💥🌡️</div>
+    </a>
+    <div class="ngss-tooltip">
+      <div class="tooltip-label">🔬 NGSS Alignment</div>
+      <div>
+        <span class="standard-code">HS-PS1-4</span>
+        <span class="standard-code">HS-PS1-5</span>
+      </div>
+      <div class="standard-desc">Model energy release/absorption from bond changes; explain how temperature and concentration affect reaction rate through molecular collisions.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="modeling.html">
+      <h2>Modeling Equations</h2>
+      <p>Build, group, and balance atoms to see chemical equations come to life.</p>
+      <div class="icon">⚗️</div>
+    </a>
+    <div class="ngss-tooltip">
+      <div class="tooltip-label">🔬 NGSS Alignment</div>
+      <div><span class="standard-code">HS-PS1-7</span></div>
+      <div class="standard-desc">Use mathematical representations to support the claim that atoms and mass are conserved during a chemical reaction.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="stoichiometry-roadmap.html">
+      <h2>Stoichiometry Roadmap</h2>
+      <p>Visualize and practice dimensional analysis by building correct unit-conversion pathways.</p>
+      <div class="roadmap-icon">
+        <div class="roadmap-node node-g-left"></div>
+        <div class="roadmap-node node-m-left"></div>
+        <div class="roadmap-node node-m-right"></div>
+        <div class="roadmap-node node-g-right"></div>
+        <div class="roadmap-line line-top"></div>
+        <div class="roadmap-line line-bottom"></div>
+        <div class="roadmap-line line-left"></div>
+        <div class="roadmap-line line-right"></div>
+      </div>
+    </a>
+    <div class="ngss-tooltip">
+      <div class="tooltip-label">🔬 NGSS Alignment</div>
+      <div><span class="standard-code">HS-PS1-7</span></div>
+      <div class="standard-desc">Use mathematical representations (mole ratios, dimensional analysis) to communicate proportional relationships between masses in reactions.</div>
+    </div>
+  </div>
+
+  <!-- ===== CALCULATE ===== -->
+  <div class="teacher-divider">
+    <span>Calculate</span>
+  </div>
+
+  <div class="card">
+    <a href="balancing-equations.html">
+      <h2>Balancing Equations</h2>
+      <p>Balance chemical equations and visualize conservation of mass.</p>
+      <div class="icon">⚖️</div>
+    </a>
+    <div class="ngss-tooltip">
+      <div class="tooltip-label">🔬 NGSS Alignment</div>
+      <div><span class="standard-code">HS-PS1-7</span></div>
+      <div class="standard-desc">Use mathematical representations to support the claim that atoms and mass are conserved during a chemical reaction.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="stoichiometry.html">
+      <h2>Stoichiometry Challenge</h2>
+      <p>Break down stoichiometry prompts and visualize dimensional analysis.</p>
+      <div class="icon">✏️</div>
+    </a>
+    <div class="ngss-tooltip">
+      <div class="tooltip-label">🔬 NGSS Alignment</div>
+      <div>
+        <span class="standard-code">HS-PS1-7</span>
+        
+      </div>
+      <div class="standard-desc">Apply mathematical thinking to mole ratios and proportional relationships.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <a href="molar-mass-practice.html">
+      <h2>Molar Mass Challenge</h2>
+      <p>Break formulas apart, track atoms, and build molar mass step by step.</p>
+      <div class="icon">🧮</div>
+    </a>
+    <div class="ngss-tooltip">
+      <div class="tooltip-label">🔬 NGSS Alignment</div>
+      <div><span class="standard-code">HS-PS1-7</span></div>
+      <div class="standard-desc">Use the mole as the conversion from the atomic to the macroscopic scale; apply mathematical thinking to atomic mass and formula composition.</div>
+    </div>
+  </div>
+
+
+
+</main>
+
+<footer>
+  <div class="footer-content">
+    
+    <span class="cc-license">
+      <a href="https://www.molecute.org/">Molecute</a> © 2026 by 
+      <a href="https://www.molecute.org/about-me.html">Mackenzie Miller</a> is licensed under 
+      <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="license noopener noreferrer">CC BY-NC-SA 4.0
+        <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="CC">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="Attribution">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/nc.svg" alt="Non-Commercial">
+        <img src="https://mirrors.creativecommons.org/presskit/icons/sa.svg" alt="Share-Alike">
+      </a>
+    </span>
+  </div>
+
+</footer>
+
+<!-- Shift-mode hint bar -->
+<div class="shift-hint">⇧ Shift held — hover any card to see NGSS / framework alignment</div>
+
+<!-- Teacher one-time toast -->
+<div class="teacher-toast" id="teacherToast" style="display:none;">
+  <div class="toast-icon">🔬</div>
+  <div class="toast-body">
+    <div class="toast-title">Standards Alignment</div>
+    Hold <span class="toast-key">⇧ Shift</span> and hover to see standards alignment.
+  </div>
+  <button class="toast-dismiss" id="toastDismiss" aria-label="Dismiss">✕</button>
+  <div class="toast-progress" id="toastProgress"></div>
+</div>
+
+<script>
+
+  
+  // ===== All Dropdowns =====
+  (function(){
+    const ddItems = document.querySelectorAll(".dd-item");
+
+    ddItems.forEach(item => {
+      const btn = item.querySelector("button");
+      if (!btn) return;
+
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const isOpen = !item.classList.contains("open");
+        // close all others
+        ddItems.forEach(i => { i.classList.remove("open"); i.querySelector("button").setAttribute("aria-expanded","false"); });
+        if (isOpen) {
+          item.classList.add("open");
+          btn.setAttribute("aria-expanded", "true");
+        }
+      });
+    });
+
+    document.addEventListener("click", () => {
+      ddItems.forEach(i => { i.classList.remove("open"); i.querySelector("button").setAttribute("aria-expanded","false"); });
+    });
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        ddItems.forEach(i => { i.classList.remove("open"); i.querySelector("button").setAttribute("aria-expanded","false"); });
+      }
+    });
+  })();
+
+  // ===== Teacher Gate (Roster) =====
+  const TEACHER_GATE_KEY = "teacher_gate_unlocked_v1";
+  const TEACHER_PASSCODE = "MinutesMatter";
+
+  function isTeacherUnlocked(){
+    try { return localStorage.getItem(TEACHER_GATE_KEY) === "1"; }
+    catch { return false; }
+  }
+
+  function setTeacherUnlocked(){
+    try { localStorage.setItem(TEACHER_GATE_KEY, "1"); } catch {}
+  }
+
+  function promptTeacherPass(){
+    const pass = prompt("Teacher access only. Enter passcode:");
+    if (!pass) return false;
+    if (pass === TEACHER_PASSCODE){ setTeacherUnlocked(); return true; }
+    alert("Incorrect passcode.");
+    return false;
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    ["teacherScanLink","teacherWeeklyLink"].forEach(id => {
+      const link = document.getElementById(id);
+      if (!link) return;
+      link.addEventListener("click", (e) => {
+        if (isTeacherUnlocked()) return;
+        e.preventDefault();
+        if (promptTeacherPass()) window.location.href = link.getAttribute("href");
+      });
+    });
+  });
+
+  // ===== Shift-key tracker for NGSS tooltips =====
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Shift') document.body.classList.add('shift-held');
+  });
+  document.addEventListener('keyup', (e) => {
+    if (e.key === 'Shift') document.body.classList.remove('shift-held');
+  });
+  window.addEventListener('blur', () => document.body.classList.remove('shift-held'));
+
+  // ===== Teacher one-time toast =====
+  const TOAST_KEY = 'ngss_toast_seen_v1';
+  const toast = document.getElementById('teacherToast');
+  const dismissBtn = document.getElementById('toastDismiss');
+  const progressBar = document.getElementById('toastProgress');
+  let toastTimer = null;
+
+  function dismissToast() {
+    clearTimeout(toastTimer);
+    toast.classList.add('toast-out');
+    toast.addEventListener('animationend', () => toast.style.display = 'none', { once: true });
+    try { sessionStorage.setItem(TOAST_KEY, '1'); } catch {}
+  }
+
+  dismissBtn.addEventListener('click', dismissToast);
+
+  // Show once per session
+  try {
+    if (!sessionStorage.getItem(TOAST_KEY)) {
+      setTimeout(() => {
+        toast.style.display = 'flex';
+        toastTimer = setTimeout(dismissToast, 15000);
+      }, 1200);
+    }
+  } catch {}
+</script>
+
+  
+
+
+</body>
+</html>

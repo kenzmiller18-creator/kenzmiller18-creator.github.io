@@ -1,0 +1,665 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>CER Detective</title>
+  <style>
+:root{
+  --bg:#f7f4fb;
+  --card:#ffffff;
+  --ink:#231528;
+  --muted:#5a4a64;
+  --line: rgba(35,21,40,.12);
+
+  --accent:#eda6ff;
+  --accent2:#e9a9ff;
+
+  --good:#16a34a;
+  --bad:#dc2626;
+  --warn:#d97706;
+
+  --claim:#7c3aed;
+  --evidence:#2563eb;
+  --reasoning:#059669;
+
+  --r:18px;
+  --shadow: 0 14px 40px rgba(35,21,40,.10);
+
+  --font: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body{
+  margin:0;
+  min-height:100vh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font);
+  display:flex;
+  justify-content:center;
+  padding: 18px;
+}
+
+.app{ width: min(600px, 100%); display:block; }
+
+.panel{
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  overflow:hidden;
+}
+
+header{
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(255,255,255,.22);
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  color: #000;
+  display:flex;
+  gap: 12px;
+  align-items:center;
+  justify-content:space-between;
+}
+
+.title h1{ margin:0; font-size: 18px; letter-spacing: .2px; }
+.title p{ margin:0; font-size: 12px; color: #39136e; line-height: 1.35; }
+.title{ display:flex; flex-direction:column; gap: 4px; flex-grow: 1; }
+
+.hubLink{ display:inline-block; margin-bottom:8px; text-decoration:none; font-weight:bold; color: #39136e; }
+.hubLink:hover{ text-decoration:underline; }
+
+button{
+  appearance:none;
+  border: 1px solid rgba(255,255,255,.28);
+  background: rgba(255,255,255,.25);
+  color: #39136e;
+  padding: 10px 12px;
+  border-radius: 14px;
+  cursor:pointer;
+  font-weight: 750;
+  font-size: 13px;
+  transition: transform .05s ease, background .2s ease, border-color .2s ease;
+  user-select:none;
+}
+button:hover{ background: rgba(255,255,255,.40); border-color: rgba(255,255,255,.50); }
+button:active{ transform: translateY(1px); }
+button:disabled{ opacity:.55; cursor:not-allowed; }
+
+.main{ padding: 14px; }
+
+.statusArea{ display:flex; flex-direction:column; gap: 10px; margin-bottom: 14px; }
+
+.modeRow{ display:flex; gap: 8px; }
+.modeBtn{
+  flex:1; padding:9px 8px; border-radius:12px; border:2px solid var(--line);
+  background:#fff; color:var(--muted); font-weight:800; font-size:13px; cursor:pointer;
+  transition: all .15s ease;
+}
+.modeBtn.active{ border-color: var(--claim); background: rgba(124,58,237,.10); color: var(--claim); }
+
+.pillRow{ display:flex; gap: 8px; flex-wrap: wrap; }
+.pill{
+  padding: 6px 8px;
+  border-radius: 999px;
+  border:1px solid var(--line);
+  background: #fff;
+  font-size: 12px;
+  font-weight: 750;
+  color: var(--ink);
+  box-shadow: 0 6px 16px rgba(35,21,40,.06);
+}
+.pill em { color: var(--muted); font-style: normal; }
+.pill.points-bank { border-color: #16a34a; background: #f0fdf4; color: #14532d; }
+.pill.streak-pill { border-color: #d97706; background: #fffbeb; color: #7c2d12; display: none; }
+
+.msg{
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+  line-height: 1.4;
+  font-size: 13px;
+  min-height: 44px;
+  box-shadow: 0 6px 16px rgba(35,21,40,.06);
+}
+.msg.good{ border-color: rgba(22,163,74,.35); color: #14532d; background: #f0fdf4; }
+.msg.bad{ border-color: rgba(220,38,38,.35); color: #7f1d1d; background: #fef2f2; }
+.msg.warn{ border-color: rgba(217,119,6,.35); color: #7c2d12; background: #fffbeb; }
+
+.statementCard{
+  background: linear-gradient(135deg, #faf7ff, #fdf4ff);
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  padding: 22px 18px;
+  margin-bottom: 16px;
+  text-align:center;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.45;
+  color: var(--ink);
+  min-height: 90px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.choiceRow{ display:flex; gap: 8px; margin-bottom: 14px; }
+.choiceBtn{
+  flex:1;
+  padding: 16px 6px;
+  border-radius: 14px;
+  border: 2px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  font-weight: 800;
+  font-size: 14px;
+  cursor:pointer;
+  transition: all .15s ease;
+}
+.choiceBtn:hover{ transform: translateY(-2px); box-shadow: 0 8px 18px rgba(35,21,40,.10); }
+.choiceBtn:disabled{ opacity:.5; cursor:not-allowed; transform:none; box-shadow:none; }
+.choiceBtn.claim{ border-color: var(--claim); color: var(--claim); }
+.choiceBtn.evidence{ border-color: var(--evidence); color: var(--evidence); }
+.choiceBtn.reasoning{ border-color: var(--reasoning); color: var(--reasoning); }
+.choiceBtn.chosen-correct{ background: #f0fdf4; border-color: var(--good); color: #14532d; }
+.choiceBtn.chosen-wrong{ background: #fef2f2; border-color: var(--bad); color: #7f1d1d; }
+.choiceBtn.reveal-correct{ background: #f0fdf4; border-color: var(--good); color: #14532d; }
+
+#btnNext{
+  width:100%; padding:14px; margin-bottom:16px; border-radius:14px; border:none;
+  font-weight:800; font-size:15px; color:#fff; background:#1e293b; cursor:pointer;
+  display:none;
+}
+
+.tableContainer { overflow-x: auto; margin-bottom: 14px; }
+table { width: 100%; border-collapse: collapse; text-align: left; font-size: 12.5px; }
+th { padding: 8px 6px; font-weight: 800; color: var(--muted); border-bottom: 2px solid var(--line); }
+td { padding: 8px 6px; font-weight: 600; border-bottom: 1px solid var(--line); color: var(--ink); }
+td.snippet{ max-width: 180px; }
+.tag{ display:inline-block; padding:2px 7px; border-radius:999px; font-size:11px; font-weight:800; }
+.tag.claim{ background:rgba(124,58,237,.12); color:var(--claim); }
+.tag.evidence{ background:rgba(37,99,235,.12); color:var(--evidence); }
+.tag.reasoning{ background:rgba(5,150,105,.12); color:var(--reasoning); }
+.result-ok{ color: var(--good); font-weight:800; }
+.result-bad{ color: var(--bad); font-weight:800; }
+
+.footerNote{ padding: 12px 14px 14px; border-top:1px solid var(--line); color: var(--muted); font-size: 12px; line-height: 1.35; }
+
+/* ── Form Submission Modal ── */
+#submit-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.55); backdrop-filter: blur(4px); z-index: 10000; align-items: center; justify-content: center; padding: 24px; }
+#submit-modal.open { display: flex; }
+.modal-card { background: #fff; border-radius: 20px; padding: 32px 24px 24px; width: 100%; max-width: 380px; box-shadow: 0 24px 48px rgba(0,0,0,0.18); text-align: left; }
+.modal-card h2 { font-size: 20px; font-weight: 800; margin: 0 0 6px; color: var(--ink); }
+.modal-card .modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 22px; }
+.modal-label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; letter-spacing: 0.05em; }
+.modal-input { width: 100%; padding: 13px 14px; border-radius: 12px; border: 1.5px solid #e2e8f0; font-size: 15px; color: var(--ink); outline: none; margin-bottom: 18px; font-family: inherit; }
+.modal-input:focus { border-color: var(--accent); }
+.teacher-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 22px; }
+.teacher-btn { padding: 13px 10px; border-radius: 12px; border: 1.5px solid #e2e8f0; background: #f8fafc; font-size: 14px; font-weight: 600; color: var(--ink); cursor: pointer; text-align: center; }
+.teacher-btn:hover { border-color: var(--accent); background: rgba(237,166,255,0.15); }
+.teacher-btn.selected { border-color: var(--accent); background: rgba(237,166,255,0.2); color: #39136e; }
+.modal-actions { display: flex; gap: 10px; }
+.modal-actions .btn { margin: 0; flex: 1; padding: 14px; font-size: 14px; border-radius: 14px; font-weight: 700; border: none; cursor: pointer; text-align: center; }
+.btn-cancel { background: #f1f5f9; color: var(--muted); }
+.btn-primary { background: #1e293b; color: white; }
+.modal-error { font-size: 12px; color: var(--bad); font-weight: 600; margin-bottom: 12px; min-height: 18px; }
+</style>
+</head>
+<body>
+  <div class="app">
+    <section class="panel">
+      <header>
+        <div class="title">
+          <a href="index.html" class="hubLink">← Back to Hub</a>
+          <h1>🕵️ CER Detective</h1>
+          <p>Claim, Evidence, or Reasoning? Read each statement and decide.</p>
+        </div>
+        <button id="btnShuffle">New Round</button>
+      </header>
+
+      <div class="main">
+        <div class="statusArea">
+          <div class="modeRow">
+            <button class="modeBtn" id="modeDaily">📅 Daily</button>
+            <button class="modeBtn" id="modePractice">🔁 Practice</button>
+          </div>
+          <div class="pillRow">
+            <div class="pill"><strong>Statement: </strong><em id="progressPill">1 / 30</em></div>
+            <div class="pill"><strong>Accuracy: </strong><em id="accuracyPill">—</em></div>
+            <div class="pill streak-pill" id="streakPill">🔥 Streak: <em id="streakCount">0</em></div>
+            <div class="pill points-bank"><strong>Score: </strong><span id="pointsBank">0</span></div>
+          </div>
+          <div id="message" class="msg">Read the statement below, then decide what type it is.</div>
+        </div>
+
+        <div class="statementCard" id="statementCard">Loading...</div>
+
+        <div class="choiceRow">
+          <button class="choiceBtn claim" id="btnClaim" data-type="Claim">Claim</button>
+          <button class="choiceBtn evidence" id="btnEvidence" data-type="Evidence">Evidence</button>
+          <button class="choiceBtn reasoning" id="btnReasoning" data-type="Reasoning">Reasoning</button>
+        </div>
+
+        <button id="btnNext">Next Statement →</button>
+
+        <div class="tableContainer">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Statement</th>
+                <th>Your Answer</th>
+                <th>Correct Answer</th>
+                <th>Result</th>
+              </tr>
+            </thead>
+            <tbody id="historyBody"></tbody>
+          </table>
+        </div>
+
+        <button id="btnReportScore" class="btn-primary" style="width:100%; padding:14px; border-radius:14px; border:none; font-weight:700; font-size:15px; color:#fff; background:#1e293b; cursor:pointer;">Submit Final Score</button>
+      </div>
+
+      <div class="footerNote">Claim = the arguable statement or conclusion. Evidence = the data/observation that supports it. Reasoning = the explanation connecting evidence to claim using a scientific principle.</div>
+    </section>
+  </div>
+
+  <div id="submit-modal">
+    <div class="modal-card">
+        <h2>Submit Your Points</h2>
+        <p class="modal-sub">You are turning in a cumulative score of <strong id="modal-points-display">0</strong> points. Enter your info below.</p>
+        <label class="modal-label" for="student-id-input">Student ID</label>
+        <input class="modal-input" id="student-id-input" type="text" placeholder="e.g. 123456" autocomplete="off" />
+        <label class="modal-label" for="student-name-input">Your Name</label>
+        <input class="modal-input" id="student-name-input" type="text" placeholder="First and last name" autocomplete="off" />
+        <div class="modal-error" id="modal-error"></div>
+        <div class="modal-actions">
+            <button class="btn btn-cancel" id="modal-cancel-btn">Cancel</button>
+            <button class="btn btn-primary" id="modal-confirm-btn">Submit Points</button>
+        </div>
+    </div>
+  </div>
+
+<script>
+// ── Teacher submission scaffold (same pattern as Elementle / other sims) ──
+const TEACHER = {
+  formUrl: "https://docs.google.com/forms/d/e/1FAIpQLScUSDCLLXqyxnJu8lVi0rW4virrOtmtEG_ubkoDAqbItt2cbA/formResponse",
+  entries: { studentID:"entry.869186751", displayName:"entry.366340186", sim:"entry.1832756779", score:"entry.221944829", token:"entry.1636605257" }
+};
+
+const SIM_ID = "ceridentify";
+const TOKEN_SALT = "MoLeCuTeOrG";
+
+// ── Statement bank: 10 topics × Claim/Evidence/Reasoning triplets ──
+const STATEMENTS = [
+  { text: "Plants need sunlight to grow well.", type: "Claim", why: "It's the arguable conclusion being made — no data is given, just the assertion." },
+  { text: "In the experiment, plants kept in sunlight grew 10 cm in two weeks, while plants kept in the dark grew only 2 cm.", type: "Evidence", why: "It's a specific, measurable observation/data point from the experiment." },
+  { text: "This happens because sunlight provides the energy plants use during photosynthesis to make the sugars they need to grow.", type: "Reasoning", why: "It explains *why* the evidence supports the claim using a science principle (photosynthesis)." },
+
+  { text: "Pressure buildup inside a volcano causes it to erupt.", type: "Claim", why: "It's the overall assertion — a cause-and-effect statement without supporting data." },
+  { text: "Sensors recorded gas pressure inside the volcano rising sharply in the hours before each eruption.", type: "Evidence", why: "It's the measured data (sensor readings) collected during observation." },
+  { text: "This is because trapped gases expand as pressure builds, and eventually the force becomes strong enough to break through the rock above.", type: "Reasoning", why: "It connects the pressure data to the eruption using the science of gas expansion." },
+
+  { text: "Camouflage helps prey animals avoid predators.", type: "Claim", why: "It's the general assertion being argued, stated without specific numbers." },
+  { text: "In the study, rabbits with fur that matched their environment were caught by predators half as often as rabbits with mismatched fur.", type: "Evidence", why: "It's the specific comparative data from the study." },
+  { text: "This is because predators rely mostly on sight to find prey, so an animal that blends into its surroundings is harder to spot and catch.", type: "Reasoning", why: "It explains the mechanism (predator vision) linking the data to the claim." },
+
+  { text: "Heating a solid can cause it to melt into a liquid.", type: "Claim", why: "It's a general statement/conclusion about matter, not a specific measurement." },
+  { text: "When the ice cube was placed in the 70°F room, it changed from a solid to a puddle of liquid water in 20 minutes.", type: "Evidence", why: "It's the specific, observed result of the experiment." },
+  { text: "This occurs because heat energy makes the molecules in the solid move faster and break free from their fixed positions, allowing them to flow as a liquid.", type: "Reasoning", why: "It explains the melting using molecular motion — the underlying science." },
+
+  { text: "Removing a predator from an ecosystem can cause prey populations to grow too large.", type: "Claim", why: "It's the overall conclusion about ecosystem balance." },
+  { text: "After wolves were removed from the park, the deer population more than doubled within five years.", type: "Evidence", why: "It's the measured population data collected over time." },
+  { text: "This happens because predators normally keep prey populations in check by hunting them, so without that pressure, prey can reproduce with fewer limits.", type: "Reasoning", why: "It explains the predator-prey mechanism behind the population data." },
+
+  { text: "Areas of low air pressure often bring stormy weather.", type: "Claim", why: "It's the general weather pattern being asserted." },
+  { text: "Weather records show that 9 out of 10 major storms in the region formed over areas where barometric pressure had dropped sharply.", type: "Evidence", why: "It's the specific statistic pulled from weather records." },
+  { text: "This is because low pressure allows air to rise, cool, and form clouds, which can develop into storms.", type: "Reasoning", why: "It explains the atmospheric process connecting pressure to storms." },
+
+  { text: "Regular exercise strengthens the heart.", type: "Claim", why: "It's the general health claim, stated without specific numbers." },
+  { text: "After following a 6-week exercise program, the volunteers' resting heart rates dropped by an average of 8 beats per minute.", type: "Evidence", why: "It's the measured result from the study (heart rate data)." },
+  { text: "This happens because exercise makes the heart muscle stronger, so it can pump more blood with each beat and doesn't need to beat as often at rest.", type: "Reasoning", why: "It explains the physiology linking exercise to a lower resting heart rate." },
+
+  { text: "Raising the temperature speeds up a chemical reaction.", type: "Claim", why: "It's the general assertion about reaction rates." },
+  { text: "The reaction that took 10 minutes to finish at room temperature was complete in only 2 minutes at a higher temperature.", type: "Evidence", why: "It's the measured time data comparing two conditions." },
+  { text: "This is because heat gives molecules more energy, so they move faster and collide with each other more often, which speeds up the reaction.", type: "Reasoning", why: "It explains the molecular collision theory behind the faster reaction." },
+
+  { text: "Magnets attract some metals but not others.", type: "Claim", why: "It's the general assertion about magnetism and metals." },
+  { text: "The magnet picked up the iron nail and the steel paperclip but did not attract the aluminum can or the copper wire.", type: "Evidence", why: "It's the specific observed results of testing different metals." },
+  { text: "This is because only certain metals, like iron, nickel, and steel, contain the properties needed to be pulled by a magnetic field.", type: "Reasoning", why: "It explains the material property behind why some metals are magnetic." },
+
+  { text: "Water evaporates faster in warm temperatures than in cool temperatures.", type: "Claim", why: "It's the general conclusion about evaporation and temperature." },
+  { text: "The puddle placed in direct sunlight dried up in 3 hours, while the puddle in the shade took over 8 hours to dry.", type: "Evidence", why: "It's the measured comparison data between the two puddles." },
+  { text: "This happens because heat energy speeds up the movement of water molecules, making it easier for them to escape into the air as vapor.", type: "Reasoning", why: "It explains the molecular process behind faster evaporation." },
+
+  { text: "Adding yeast helps bread dough rise.", type: "Claim", why: "It's the general assertion about baking, stated without specific measurements." },
+  { text: "The dough made with yeast doubled in size after one hour, while the dough without yeast stayed the same size.", type: "Evidence", why: "It's the measured, observed comparison between the two batches of dough." },
+  { text: "This is because yeast eats the sugars in the dough and releases carbon dioxide gas, which gets trapped and makes the dough expand.", type: "Reasoning", why: "It explains the biological process (yeast digestion/gas release) behind the rising." },
+
+  { text: "Practicing free throws regularly improves a player's shooting percentage.", type: "Claim", why: "It's the general assertion about practice and performance." },
+  { text: "After practicing free throws for 20 minutes every day for a month, the player's success rate went from 55% to 78%.", type: "Evidence", why: "It's the specific before-and-after data from the player's practice." },
+  { text: "This happens because repeated practice builds muscle memory, allowing the body to repeat the same accurate motion more consistently.", type: "Reasoning", why: "It explains the mechanism (muscle memory) connecting practice to improvement." },
+
+  { text: "Completing side quests helps players level up faster in the game.", type: "Claim", why: "It's the general claim about game strategy." },
+  { text: "Players who completed 10 side quests reached level 20 in half the time of players who skipped side quests.", type: "Evidence", why: "It's the specific comparative data between two groups of players." },
+  { text: "This is because side quests give extra experience points, and more experience points mean leveling up sooner.", type: "Reasoning", why: "It explains the game mechanic (experience points) linking quests to leveling speed." },
+
+  { text: "Practicing an instrument every day improves performance skill.", type: "Claim", why: "It's the general assertion about music practice." },
+  { text: "Students who practiced piano daily for a month played their pieces with far fewer mistakes than students who practiced only once a week.", type: "Evidence", why: "It's the observed comparison in performance quality between two groups." },
+  { text: "This is because consistent practice strengthens the muscle memory and coordination needed to play notes accurately.", type: "Reasoning", why: "It explains why daily practice leads to fewer mistakes." },
+
+  { text: "Getting enough sleep helps students perform better on tests.", type: "Claim", why: "It's the general conclusion about sleep and performance." },
+  { text: "Students who slept at least 8 hours the night before a test scored on average 12 points higher than students who slept less than 6 hours.", type: "Evidence", why: "It's the specific score data comparing two sleep groups." },
+  { text: "This happens because sleep allows the brain to consolidate memories and recover, which improves focus and recall the next day.", type: "Reasoning", why: "It explains the biological process (memory consolidation) behind the score difference." },
+
+  { text: "Watering tomato plants consistently produces a better harvest.", type: "Claim", why: "It's the general gardening assertion, without specific numbers." },
+  { text: "Tomato plants watered on a regular schedule produced twice as many tomatoes as plants that were watered randomly.", type: "Evidence", why: "It's the measured harvest comparison between two watering methods." },
+  { text: "This is because a steady water supply prevents the plant from experiencing stress, allowing it to focus energy on growing fruit instead of surviving dry spells.", type: "Reasoning", why: "It explains the plant biology behind the harvest difference." },
+
+  { text: "Rewarding a dog with treats helps it learn commands faster.", type: "Claim", why: "It's the general assertion about dog training methods." },
+  { text: "Dogs trained with treat rewards learned to sit on command within 5 repetitions, while dogs trained without treats took over 20 repetitions.", type: "Evidence", why: "It's the specific repetition-count data comparing two training methods." },
+  { text: "This is because rewards create positive association, so the dog is more motivated to repeat the behavior that earns the treat.", type: "Reasoning", why: "It explains the psychology (positive association) behind faster learning." },
+
+  { text: "Providing recycling bins in classrooms increases how much students recycle.", type: "Claim", why: "It's the general conclusion about recycling behavior." },
+  { text: "After bins were placed in every classroom, the amount of recycled paper collected each week tripled.", type: "Evidence", why: "It's the measured before-and-after data on recycling amounts." },
+  { text: "This happens because having a bin nearby makes recycling more convenient, so students are more likely to do it without extra effort.", type: "Reasoning", why: "It explains why convenience leads to more recycling." },
+
+  { text: "Spending too much time on screens before bed can make it harder to fall asleep.", type: "Claim", why: "It's the general assertion about screens and sleep." },
+  { text: "Students who used a screen for more than an hour before bed took an average of 25 minutes longer to fall asleep than students who didn't.", type: "Evidence", why: "It's the measured time-to-sleep data comparing two groups." },
+  { text: "This is because the blue light from screens can interfere with the body's production of melatonin, a hormone that signals it's time to sleep.", type: "Reasoning", why: "It explains the biological mechanism (melatonin) behind the sleep delay." },
+
+  { text: "Reading for fun helps expand a person's vocabulary.", type: "Claim", why: "It's the general assertion about reading and vocabulary." },
+  { text: "Students who read for at least 20 minutes a day scored higher on vocabulary tests than students who rarely read outside of school.", type: "Evidence", why: "It's the specific test score comparison between two groups." },
+  { text: "This is because reading exposes people to new words in context, which helps them understand and remember what those words mean.", type: "Reasoning", why: "It explains how context-based exposure builds vocabulary." },
+
+  { text: "Adding speed bumps near schools reduces the number of car accidents.", type: "Claim", why: "It's the general assertion about traffic safety." },
+  { text: "After speed bumps were installed near the school, the number of reported accidents in that area dropped by half over the next year.", type: "Evidence", why: "It's the measured before-and-after accident data." },
+  { text: "This happens because speed bumps force drivers to slow down, giving them more time to react to pedestrians or other hazards.", type: "Reasoning", why: "It explains the mechanism (slower speed, more reaction time) behind fewer accidents." },
+
+  { text: "Attending more practices helps a team perform better in games.", type: "Claim", why: "It's the general assertion about team performance." },
+  { text: "The team that attended over 90% of practices won 8 out of 10 games, while a team with 60% attendance won only 3 out of 10.", type: "Evidence", why: "It's the specific win-record data comparing two teams." },
+  { text: "This is because more practice time allows players to build teamwork and improve their individual skills before facing real competition.", type: "Reasoning", why: "It explains why practice attendance translates into better performance." },
+
+  { text: "Staying hydrated during exercise helps maintain energy levels.", type: "Claim", why: "It's the general assertion about hydration and energy." },
+  { text: "Athletes who drank water regularly during a workout reported feeling less tired than athletes who didn't drink water at all.", type: "Evidence", why: "It's the reported/observed data comparing hydrated and non-hydrated athletes." },
+  { text: "This is because water helps transport nutrients and regulate body temperature, both of which are needed to keep muscles working efficiently.", type: "Reasoning", why: "It explains the biological role of water in muscle function." },
+
+  { text: "Reviewing notes shortly after class improves test performance.", type: "Claim", why: "It's the general assertion about study habits." },
+  { text: "Students who reviewed their notes within 24 hours of class scored 15% higher on the unit test than students who waited until the night before.", type: "Evidence", why: "It's the measured score comparison between two study timing groups." },
+  { text: "This happens because reviewing information soon after learning it strengthens the memory before it has a chance to fade.", type: "Reasoning", why: "It explains the memory science behind why early review helps." },
+
+  { text: "Giving kids an allowance for chores increases how often they help around the house.", type: "Claim", why: "It's the general assertion about motivation and chores." },
+  { text: "Kids who received an allowance for chores completed their tasks 90% of the time, compared to 40% for kids with no allowance.", type: "Evidence", why: "It's the specific completion-rate data comparing two groups." },
+  { text: "This is because the allowance acts as a reward, giving kids an extra reason to be motivated to finish their chores.", type: "Reasoning", why: "It explains the motivational mechanism (reward) behind the behavior difference." }
+];
+
+const progressPill  = document.getElementById("progressPill");
+const accuracyPill  = document.getElementById("accuracyPill");
+const pointsBankEl  = document.getElementById("pointsBank");
+const msgEl         = document.getElementById("message");
+const statementCard = document.getElementById("statementCard");
+const historyBody   = document.getElementById("historyBody");
+const btnNext       = document.getElementById("btnNext");
+const btnShuffle    = document.getElementById("btnShuffle");
+const modeDaily     = document.getElementById("modeDaily");
+const modePractice  = document.getElementById("modePractice");
+const streakPill    = document.getElementById("streakPill");
+const streakCountEl = document.getElementById("streakCount");
+const choiceButtons = [
+  document.getElementById("btnClaim"),
+  document.getElementById("btnEvidence"),
+  document.getElementById("btnReasoning")
+];
+const btnReportScore = document.getElementById("btnReportScore");
+
+// Modal refs
+const submitModal        = document.getElementById('submit-modal');
+const modalPointsDisplay = document.getElementById('modal-points-display');
+const studentIdInput     = document.getElementById('student-id-input');
+const studentNameInput   = document.getElementById('student-name-input');
+const modalError         = document.getElementById('modal-error');
+const modalCancelBtn     = document.getElementById('modal-cancel-btn');
+const modalConfirmBtn    = document.getElementById('modal-confirm-btn');
+
+let mode = "daily";
+let deck = [];
+let index = 0;
+let answeredCount = 0;
+let correctCount = 0;
+let totalBankedPoints = 0;
+let answeredThisStatement = false;
+let logRowNum = 0;
+let dailyAlreadyPlayedToday = false;
+
+function setMessage(text, tone="") {
+  msgEl.className = "msg" + (tone ? " " + tone : "");
+  msgEl.textContent = text;
+}
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function todayISO(){
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+}
+function pickDailyStatement(){
+  const seed = parseInt(fnv1a(todayISO()), 16);
+  const idx = seed % STATEMENTS.length;
+  return STATEMENTS[idx];
+}
+
+// ── Daily streak (localStorage, per-device) ──
+function loadStreakState(){
+  const last = localStorage.getItem("ceridentify-lastPlayedDate");
+  const streak = parseInt(localStorage.getItem("ceridentify-streak") || "0", 10);
+  dailyAlreadyPlayedToday = last === todayISO();
+  streakCountEl.textContent = streak;
+}
+function recordDailyResult(){
+  const today = todayISO();
+  const last = localStorage.getItem("ceridentify-lastPlayedDate");
+  let streak = parseInt(localStorage.getItem("ceridentify-streak") || "0", 10);
+  const yesterday = new Date(Date.now() - 86400000);
+  const yISO = yesterday.getFullYear()+"-"+String(yesterday.getMonth()+1).padStart(2,"0")+"-"+String(yesterday.getDate()).padStart(2,"0");
+  streak = (last === yISO) ? streak + 1 : 1;
+  localStorage.setItem("ceridentify-lastPlayedDate", today);
+  localStorage.setItem("ceridentify-streak", String(streak));
+  streakCountEl.textContent = streak;
+  dailyAlreadyPlayedToday = true;
+}
+
+function startRound() {
+  if (mode === "daily") {
+    loadStreakState();
+    if (dailyAlreadyPlayedToday) {
+      showDailyAlreadyDone();
+      return;
+    }
+    deck = [pickDailyStatement()];
+  } else {
+    deck = shuffle(STATEMENTS);
+  }
+  index = 0;
+  loadStatement();
+}
+
+function showDailyAlreadyDone(){
+  statementCard.textContent = "✅ You already played today's Daily Detective!";
+  choiceButtons.forEach(b => { b.disabled = true; b.className = "choiceBtn " + b.dataset.type.toLowerCase(); });
+  btnNext.style.display = "none";
+  progressPill.textContent = "Done for today";
+  setMessage(`Nice work — come back tomorrow to keep your streak going. Switch to Practice mode for more rounds right now.`, "good");
+}
+
+function loadStatement() {
+  if (index >= deck.length) {
+    if (mode === "daily") {
+      // handled inline in selectAnswer for daily mode
+      return;
+    }
+    statementCard.textContent = "🎉 Round complete! You've gone through every statement.";
+    choiceButtons.forEach(b => { b.disabled = true; b.className = b.className.split(' ').filter(c=>!c.startsWith('chosen-')&&!c.startsWith('reveal-')).join(' '); });
+    btnNext.style.display = "none";
+    setMessage(`Final for this round: ${correctCount} correct out of ${answeredCount} answered. Click "New Round" to go again.`, "good");
+    return;
+  }
+  answeredThisStatement = false;
+  const item = deck[index];
+  statementCard.textContent = item.text;
+  progressPill.textContent = mode === "daily" ? "Today's statement" : `${index + 1} / ${deck.length}`;
+  choiceButtons.forEach(b => {
+    b.disabled = false;
+    b.className = "choiceBtn " + b.dataset.type.toLowerCase();
+  });
+  btnNext.style.display = "none";
+  setMessage("Read the statement above, then decide what type it is.");
+}
+
+function selectAnswer(chosenType) {
+  if (answeredThisStatement) return;
+  answeredThisStatement = true;
+
+  const item = deck[index];
+  const isCorrect = chosenType === item.type;
+
+  choiceButtons.forEach(b => {
+    b.disabled = true;
+    if (b.dataset.type === chosenType && isCorrect) b.classList.add('chosen-correct');
+    else if (b.dataset.type === chosenType && !isCorrect) b.classList.add('chosen-wrong');
+    else if (b.dataset.type === item.type) b.classList.add('reveal-correct');
+  });
+
+  answeredCount++;
+  const bonus = mode === "daily" ? 2 : 1;
+  if (isCorrect) {
+    correctCount++;
+    totalBankedPoints += bonus;
+    pointsBankEl.textContent = totalBankedPoints;
+    setMessage(`✅ Correct — it's ${item.type}. ${item.why}` + (mode === "daily" ? ` (+${bonus} pts for the Daily!)` : ""), "good");
+  } else {
+    setMessage(`❌ Not quite — this is actually ${item.type}, not ${chosenType}. ${item.why}`, "bad");
+  }
+
+  accuracyPill.textContent = `${Math.round((correctCount / answeredCount) * 100)}%`;
+
+  logRowNum++;
+  const row = document.createElement("tr");
+  const snippet = item.text.length > 60 ? item.text.slice(0, 60) + "…" : item.text;
+  row.innerHTML = `
+    <td>${logRowNum}</td>
+    <td class="snippet">${snippet}</td>
+    <td><span class="tag ${chosenType.toLowerCase()}">${chosenType}</span></td>
+    <td><span class="tag ${item.type.toLowerCase()}">${item.type}</span></td>
+    <td class="${isCorrect ? 'result-ok' : 'result-bad'}">${isCorrect ? '✓ Correct' : '✗ Missed'}</td>
+  `;
+  historyBody.insertBefore(row, historyBody.firstChild);
+
+  if (mode === "daily") {
+    recordDailyResult();
+    btnNext.style.display = "none";
+    progressPill.textContent = "Done for today";
+    setTimeout(() => {
+      setMessage(msgEl.textContent + " Come back tomorrow for a new one, or switch to Practice mode for more right now.", isCorrect ? "good" : "bad");
+    }, 50);
+  } else {
+    btnNext.style.display = "block";
+  }
+}
+
+function setMode(newMode){
+  mode = newMode;
+  modeDaily.classList.toggle("active", mode === "daily");
+  modePractice.classList.toggle("active", mode === "practice");
+  streakPill.style.display = mode === "daily" ? "inline-flex" : "none";
+  btnShuffle.style.display = mode === "daily" ? "none" : "inline-block";
+  startRound();
+}
+
+choiceButtons.forEach(b => b.addEventListener("click", () => selectAnswer(b.dataset.type)));
+btnNext.addEventListener("click", () => { index++; loadStatement(); });
+btnShuffle.addEventListener("click", startRound);
+modeDaily.addEventListener("click", () => setMode("daily"));
+modePractice.addEventListener("click", () => setMode("practice"));
+
+/* ── Graded Integration Infrastructure ── */
+function fnv1a(str) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = (h * 0x01000193) >>> 0;
+  }
+  return ("00000000" + h.toString(16)).slice(-8);
+}
+
+function makeToken(name, score) {
+  const payload = { v: 1, sim: SIM_ID, name, score, t: Date.now(), nonce: Math.random().toString(36).slice(2, 10) };
+  const core = JSON.stringify(payload);
+  payload.sig = fnv1a(core + "|" + TOKEN_SALT);
+  return btoa(JSON.stringify(payload));
+}
+
+btnReportScore.onclick = () => {
+  modalPointsDisplay.textContent = totalBankedPoints;
+  studentIdInput.value = '';
+  studentNameInput.value = '';
+  modalError.textContent = '';
+  modalConfirmBtn.disabled = false;
+  modalConfirmBtn.textContent = 'Submit Points';
+  submitModal.classList.add('open');
+  setTimeout(() => studentIdInput.focus(), 100);
+};
+
+modalCancelBtn.onclick = () => submitModal.classList.remove('open');
+
+modalConfirmBtn.onclick = async () => {
+  const id = studentIdInput.value.trim();
+  const name = studentNameInput.value.trim();
+
+  if (!id) { modalError.textContent = "Please enter your student ID."; studentIdInput.focus(); return; }
+  if (!name) { modalError.textContent = "Please enter your name."; studentNameInput.focus(); return; }
+
+  modalError.textContent = '';
+  modalConfirmBtn.disabled = true;
+  modalConfirmBtn.textContent = 'Submitting…';
+
+  const token = makeToken(name, totalBankedPoints);
+
+  const body = new URLSearchParams();
+  body.set(TEACHER.entries.studentID, id);
+  body.set(TEACHER.entries.displayName, name);
+  body.set(TEACHER.entries.sim,         SIM_ID);
+  body.set(TEACHER.entries.score,       String(totalBankedPoints));
+  body.set(TEACHER.entries.token,       token);
+
+  try {
+    await fetch(TEACHER.formUrl, {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+      body: body.toString(),
+    });
+    alert(`Points successfully submitted! Screen will now refresh.`);
+  } catch (error) {
+    console.error(error);
+    alert("Network response failure. Please capture or show this screen to your teacher!");
+  } finally {
+    location.reload();
+  }
+};
+
+modeDaily.classList.add("active");
+btnShuffle.style.display = "none";
+startRound();
+</script>
+</body>
+</html>

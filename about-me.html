@@ -1,763 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>About Ms. Miller | Molecute</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,800;1,400&display=swap" rel="stylesheet">
- 
-  <style>
-    :root {
-      --lavender: #e6c6ff;
-      --purple: #c58df5;
-      --deep-purple: #9a5fd1;
-      --card-bg: #faf5ff;
-      --accent-pink: #e04bd8;
-      --text-dark: #333;
-      --soft-pink: #fff0f9;
-      --soft-green: #f0fff4;
-    }
- 
-    *, *::before, *::after { box-sizing: border-box; }
- 
-    body {
-      margin: 0;
-      font-family: Georgia, serif;
-      background: #ffffff;
-      color: var(--text-dark);
-    }
- 
-    /* ===== NAVBAR (identical to index) ==== */
-    nav.topnav {
-      background: var(--lavender);
-      border-bottom: 3px solid var(--purple);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 28px;
-      height: 68px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 2px 12px rgba(154,95,209,0.10);
-    }
-    .nav-brand {
-      font-family: Georgia, serif;
-      font-weight: bold;
-      font-size: 2rem;
-      color: var(--deep-purple);
-      letter-spacing: 1px;
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: opacity 0.15s;
-    }
-    .nav-brand:hover { opacity: 0.82; }
-    .nav-links {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      list-style: none;
-      margin: 0;
-      padding: 0;
-    }
-    .nav-links > li { position: relative; }
-    .nav-links > li > a,
-    .nav-links > li > button {
-      font-family: 'Nunito', sans-serif;
-      font-size: 1rem;
-      font-weight: 600;
-      color: var(--deep-purple);
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 10px 16px;
-      border-radius: 999px;
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      transition: background 0.15s;
-    }
-    .nav-links > li > a:hover,
-    .nav-links > li > button:hover { background: rgba(197,141,245,0.22); }
-    .nav-links > li > button .caret {
-      font-size: 0.65rem;
-      transition: transform 0.2s;
-      display: inline-block;
-    }
-    .nav-links > li.open > button .caret { transform: rotate(180deg); }
-    .dropdown {
-      display: none;
-      position: absolute;
-      top: calc(100% + 6px);
-      right: 0;
-      background: #fff;
-      border: 2px solid var(--purple);
-      border-radius: 18px;
-      min-width: 190px;
-      box-shadow: 0 8px 28px rgba(154,95,209,0.16);
-      overflow: hidden;
-      flex-direction: column;
-      animation: dropIn 0.18s ease;
-    }
-    @keyframes dropIn {
-      from { opacity:0; transform: translateY(-8px); }
-      to   { opacity:1; transform: translateY(0); }
-    }
-    .nav-links > li.open .dropdown { display: flex; }
-    .dropdown a {
-      font-family: 'Nunito', sans-serif;
-      font-size: 0.97rem;
-      font-weight: 600;
-      color: var(--deep-purple);
-      text-decoration: none;
-      padding: 13px 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      transition: background 0.12s;
-    }
-    .dropdown a:hover { background: var(--card-bg); }
-    .dropdown a + a { border-top: 1px solid #eee; }
-    .dropdown a .dd-icon { font-size: 1.1rem; }
- 
-    /* ===== HERO ===== */
-    .hero {
-      background: linear-gradient(135deg, var(--lavender) 0%, #f5e6ff 60%, var(--soft-pink) 100%);
-      border-bottom: 3px dotted var(--purple);
-      padding: 56px 28px 48px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 48px;
-      flex-wrap: wrap;
-    }
- 
-    .hero-text { max-width: 520px; }
- 
-    .hero-eyebrow {
-      font-family: 'Nunito', sans-serif;
-      font-size: 0.9rem;
-      font-weight: 800;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      color: var(--deep-purple);
-      margin: 0 0 10px;
-    }
- 
-    .hero-name {
-      font-family: Georgia, serif;
-      font-size: clamp(2.4rem, 5vw, 3.6rem);
-      font-weight: bold;
-      color: var(--accent-pink);
-      margin: 0 0 6px;
-      line-height: 1.1;
-    }
- 
-    .hero-title {
-      font-family: 'Nunito', sans-serif;
-      font-size: 1.15rem;
-      color: var(--deep-purple);
-      margin: 0 0 20px;
-      
-    }
- 
-    .hero-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 28px;
-    }
- 
-    .tag {
-      background: #fff;
-      border: 2px solid var(--purple);
-      border-radius: 999px;
-      padding: 5px 14px;
-      font-family: 'Nunito', sans-serif;
-      font-size: 0.88rem;
-      font-weight: 600;
-      color: var(--deep-purple);
-    }
- 
-    .hero-cta-row {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
- 
-    .btn-primary {
-      background: var(--deep-purple);
-      color: #fff;
-      border: none;
-      border-radius: 999px;
-      padding: 12px 26px;
-      font-family: 'Nunito', sans-serif;
-      font-weight: 700;
-      font-size: 0.97rem;
-      text-decoration: none;
-      cursor: pointer;
-      transition: opacity 0.18s, transform 0.18s;
-      display: inline-block;
-    }
-    .btn-primary:hover { opacity: 0.88; transform: translateY(-2px); }
- 
-    .btn-secondary {
-      background: #fff;
-      color: var(--deep-purple);
-      border: 2.5px solid var(--purple);
-      border-radius: 999px;
-      padding: 11px 24px;
-      font-family: 'Nunito', sans-serif;
-      font-weight: 700;
-      font-size: 0.97rem;
-      text-decoration: none;
-      cursor: pointer;
-      transition: background 0.18s, transform 0.18s;
-      display: inline-block;
-    }
-    .btn-secondary:hover { background: var(--card-bg); transform: translateY(-2px); }
- 
-    /* ===== MAIN CONTENT ===== */
-    .page-body {
-      max-width: 960px;
-      margin: 0 auto;
-      padding: 52px 24px 64px;
-      display: flex;
-      flex-direction: column;
-      gap: 52px;
-    }
- 
-    /* ===== SECTION LABEL ===== */
-    .section-label {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-bottom: 22px;
-    }
-    .section-label h2 {
-      font-family: Georgia, serif;
-      font-size: 1.6rem;
-      color: var(--accent-pink);
-      margin: 0;
-    }
-    .section-label::after {
-      content: '';
-      flex: 1;
-      height: 2px;
-      background: linear-gradient(90deg, var(--purple), transparent);
-      border-radius: 2px;
-    }
- 
-    /* ===== BIO ===== */
-    .bio-text {
-      font-size: 1.08rem;
-      line-height: 1.75;
-      color: #444;
-      max-width: 720px;
-    }
-    .bio-text p { margin: 0 0 16px; }
-    .bio-text p:last-child { margin: 0; }
- 
-    /* classroom philosophy pills */
-    .philosophy-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 14px;
-      margin-top: 28px;
-    }
-    .philosophy-pill {
-      background: var(--card-bg);
-      border: 2.5px solid var(--purple);
-      border-radius: 20px;
-      padding: 16px 18px;
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-    }
-    .philosophy-pill .pill-icon { font-size: 1.5rem; flex-shrink: 0; }
-    .philosophy-pill .pill-text strong {
-      display: block;
-      font-family: 'Nunito', sans-serif;
-      font-weight: 800;
-      color: var(--deep-purple);
-      font-size: 0.95rem;
-      margin-bottom: 2px;
-    }
-    .philosophy-pill .pill-text span {
-      font-size: 0.88rem;
-      color: #666;
-      font-family: 'Nunito', sans-serif;
-    }
- 
-    /* ===== CREDENTIALS ===== */
-    .credentials-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-    }
-    @media (max-width: 640px) { .credentials-grid { grid-template-columns: 1fr; } }
- 
-    .cred-card {
-      background: var(--card-bg);
-      border: 3px solid var(--purple);
-      border-radius: 24px;
-      padding: 22px 22px 18px;
-    }
-    .cred-card h3 {
-      font-family: 'Nunito', sans-serif;
-      font-weight: 800;
-      font-size: 0.82rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--deep-purple);
-      margin: 0 0 14px;
-    }
-    .cred-item {
-      margin-bottom: 12px;
-      padding-bottom: 12px;
-      border-bottom: 1px dashed #ddd;
-    }
-    .cred-item:last-child { margin: 0; padding: 0; border: none; }
-    .cred-item .cred-title {
-      font-family: Georgia, serif;
-      font-size: 1rem;
-      font-weight: bold;
-      color: var(--text-dark);
-      margin: 0 0 2px;
-    }
-    .cred-item .cred-sub {
-      font-family: 'Nunito', sans-serif;
-      font-size: 0.88rem;
-      color: #777;
-    }
-    .cred-item .cred-badge {
-      display: inline-block;
-      background: var(--lavender);
-      border-radius: 999px;
-      padding: 2px 10px;
-      font-family: 'Nunito', sans-serif;
-      font-size: 0.78rem;
-      font-weight: 700;
-      color: var(--deep-purple);
-      margin-top: 5px;
-    }
- 
-    /* ===== EXPERIENCE TIMELINE ===== */
-    .timeline {
-      display: flex;
-      flex-direction: column;
-      gap: 0;
-      position: relative;
-      padding-left: 28px;
-    }
-    .timeline::before {
-      content: '';
-      position: absolute;
-      left: 7px;
-      top: 10px;
-      bottom: 10px;
-      width: 3px;
-      background: linear-gradient(to bottom, var(--purple), var(--lavender));
-      border-radius: 3px;
-    }
-    .tl-entry {
-      position: relative;
-      padding: 0 0 32px 28px;
-    }
-    .tl-entry:last-child { padding-bottom: 0; }
-    .tl-dot {
-      position: absolute;
-      left: -28px;
-      top: 6px;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: var(--accent-pink);
-      border: 3px solid #fff;
-      box-shadow: 0 0 0 2px var(--purple);
-    }
-    .tl-entry.research .tl-dot { background: var(--deep-purple); }
- 
-    .tl-header {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: 4px;
-      margin-bottom: 6px;
-    }
-    .tl-role {
-      font-family: Georgia, serif;
-      font-size: 1.05rem;
-      font-weight: bold;
-      color: var(--text-dark);
-      margin: 0;
-    }
-    .tl-date {
-      font-family: 'Nunito', sans-serif;
-      font-size: 0.82rem;
-      color: #999;
-      white-space: nowrap;
-    }
-    .tl-org {
-      font-family: 'Nunito', sans-serif;
-      font-size: 0.92rem;
-      font-weight: 700;
-      color: var(--deep-purple);
-      margin: 0 0 8px;
-    }
-    .tl-bullets {
-      margin: 0;
-      padding-left: 18px;
-      font-family: 'Nunito', sans-serif;
-      font-size: 0.92rem;
-      color: #555;
-      line-height: 1.6;
-    }
-    .tl-bullets li { margin-bottom: 4px; }
- 
-    .timeline-section-tag {
-      font-family: 'Nunito', sans-serif;
-      font-size: 0.78rem;
-      font-weight: 800;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--deep-purple);
-      background: var(--lavender);
-      border-radius: 999px;
-      padding: 3px 12px;
-      display: inline-block;
-      margin-bottom: 18px;
-    }
- 
-    /* ===== HIGHLIGHTS strip ===== */
-    .highlights-strip {
-      background: linear-gradient(135deg, var(--card-bg), var(--soft-pink));
-      border: 3px solid var(--purple);
-      border-radius: 28px;
-      padding: 28px 28px 24px;
-    }
-    .highlights-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      list-style: none;
-      margin: 0;
-      padding: 0;
-    }
-    .highlights-list li {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-family: 'Nunito', sans-serif;
-      font-size: 0.97rem;
-      font-weight: 600;
-      color: var(--deep-purple);
-      background: #fff;
-      border: 2px solid var(--purple);
-      border-radius: 999px;
-      padding: 7px 16px;
-    }
- 
-    /* ===== FOOTER ===== */
-    footer {
-  padding: 20px;
-  font-size: 0.85rem;
-  color: #555;
-  text-align: center;
-  border-top: 1px solid #eee;
-}
+<meta charset="UTF-8">
+<title>About Ms. Miller | Molecute</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="rounded-logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    --purple: #ffabf8; --purple-deep: #a883ff; --purple-ink: #4a2560;
+    --pink: #ff5fae; --lime: #92ffd5; --skyblue: #7ec8f2; --cherry: #e0264f;
+    --bg: #fdf9ff; --line: #f2e2fa;
+    background: var(--bg); color: var(--purple-ink); font-family: 'DM Sans', sans-serif;
+  }
+  a { color: inherit; }
 
-.footer-content {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  align-items: center;
-}
+  nav.topnav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 28px; border-bottom: 2px solid var(--line); position: sticky; top: 0;
+    background: #fff; z-index: 100;
+  }
+  .brand { display: flex; align-items: center; text-decoration: none; }
+  .brand img { height: 38px; display: block; }
+  .navlinks { display: flex; align-items: center; gap: 4px; list-style: none; font-family: 'Space Grotesk', sans-serif; }
+  .navlinks li { position: relative; }
+  .navlinks > li > a, .navlinks > li > button {
+    font-weight: 600; font-size: 0.95rem; color: var(--purple-deep);
+    text-decoration: none; padding: 9px 15px; border-radius: 999px; border: none;
+    background: none; cursor: pointer; display: flex; align-items: center; gap: 5px;
+    font-family: 'Space Grotesk', sans-serif;
+  }
+  .navlinks > li > a:hover, .navlinks > li > button:hover { background: #f7ecfc; }
+  .caret { font-size: 0.6rem; transition: transform 0.2s; }
+  .navlinks > li.open .caret { transform: rotate(180deg); }
+  .dropdown {
+    display: none; position: absolute; top: calc(100% + 6px); right: 0;
+    background: #fff; border: 2px solid var(--line); border-radius: 16px;
+    min-width: 200px; box-shadow: 0 8px 28px rgba(122,63,160,0.16); overflow: hidden; flex-direction: column;
+  }
+  .navlinks > li.open .dropdown { display: flex; }
+  .dropdown a { padding: 12px 18px; text-decoration: none; font-size: 0.9rem; font-weight: 600; color: var(--purple-deep); display: flex; gap: 9px; align-items: center; }
+  .dropdown a:hover { background: var(--bg); }
+  .dropdown a + a { border-top: 1px solid var(--line); }
 
-.cc-license img {
-  height: 1.2em;
-  width: auto;
-  vertical-align: middle;
-  margin-left: 2px;
-}
+  /* ===== HERO ===== */
+  .hero-banner { width: 100%; display: block; }
 
-.cc-license a {
-  text-decoration: none;
-  color: inherit;
-  font-weight: bold;
-}
+  /* ===== BODY ===== */
+  .page-body { max-width: 700px; margin: 0 auto; padding: 48px 28px 60px; display: flex; flex-direction: column; gap: 40px; }
 
-.cc-license a:hover {
-  text-decoration: underline;
-}
- 
-    @media (max-width: 600px) {
-      .hero { padding: 36px 20px 32px; gap: 28px; }
-      .hero-name { font-size: 2.2rem; }
-      nav.topnav { padding: 0 14px; }
-      .nav-brand { font-size: 1.5rem; }
-    }
-  </style>
+  .bio-text { font-size: 1.06rem; line-height: 1.75; color: #444; }
+  .bio-text p { margin: 0 0 16px; }
+  .bio-text p:last-child { margin: 0; }
+
+  .tag-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag { background: #fff; border: 2px solid var(--line); border-radius: 999px; padding: 5px 14px; font-family: 'Space Grotesk', sans-serif; font-size: 0.85rem; font-weight: 600; color: var(--purple-deep); }
+
+  /* ===== CTA CARDS ===== */
+  .cta-row { display: flex; gap: 16px; flex-wrap: wrap; }
+  .cta-card {
+    flex: 1; min-width: 240px; border-radius: 22px; padding: 24px; text-decoration: none;
+    display: flex; flex-direction: column; gap: 8px; color: #fff;
+  }
+  .cta-card.donors { background: linear-gradient(135deg, var(--lime) 0%, #84ddfb 100%); color: var(--purple-ink); }
+  .cta-card.contact { background: linear-gradient(135deg, var(--purple-deep) 0%, var(--purple) 100%); }
+  .cta-card .cta-icon { font-size: 1.6rem; }
+  .cta-card h3 { font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; }
+  .cta-card p { font-size: 0.9rem; opacity: 0.9; line-height: 1.4; }
+  .cta-card .go { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 0.85rem; margin-top: 6px; }
+
+  footer { padding: 28px 20px; font-size: 0.85rem; color: #777; text-align: center; border-top: 1px solid var(--line); margin-top: 20px; }
+  .footer-content { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+  .cc-license img { height: 1.2em; width: auto; vertical-align: middle; margin-left: 2px; }
+  .cc-license a { text-decoration: none; color: inherit; font-weight: bold; }
+  .cc-license a:hover { text-decoration: underline; }
+
+  @media (max-width: 500px) {
+    nav.topnav { padding: 10px 14px; }
+    .brand img { height: 32px; }
+  }
+</style>
 </head>
 <body>
- 
-<!-- ===== NAV ===== -->
+
 <nav class="topnav">
-  <a class="nav-brand" href="index.html">
-    <span class="brand-atom">🧬</span> Molecute
-  </a>
-  <ul class="nav-links">
+  <a class="brand" href="index.html"><img src="logo.png" alt="Molecute"></a>
+  <ul class="navlinks">
     <li class="dd-item" id="resourcesDropdownItem">
-      <button aria-haspopup="true" aria-expanded="false">
-        Resources <span class="caret">▼</span>
-      </button>
+      <button aria-haspopup="true" aria-expanded="false">Resources <span class="caret">▼</span></button>
       <div class="dropdown" role="menu">
-        <a href="https://www.youtube.com/@MsMiller138" target="_blank" rel="noopener"><span class="dd-icon">🎞️</span> Instructional Videos</a>
-        <a href="https://quizlet.com/user/mmiller123523/folders" target="_blank" rel="noopener"><span class="dd-icon">📖</span> Quizlet</a>
+        <a href="https://www.iamascientist.info/stories" target="_blank" rel="noopener">🧑🏽‍🔬 Explore Real Scientists!</a>
+        <a href="archive/index.html">🧬 Molecute Archive</a>
       </div>
     </li>
-    <li class="dd-item" id="rosterDropdownItem">
-      <button aria-haspopup="true" aria-expanded="false">
-        Roster <span class="caret">▼</span>
-      </button>
-      <div class="dropdown" role="menu">
-        <a href="scan.html"><span class="dd-icon">🏫</span> Attendance Scanner</a>
-        <a href="weekly.html"><span class="dd-icon">📊</span> Attendance Filter</a>
-      </div>
-    </li>
-    <li class="dd-item" id="connectDropdownItem">
-      <button aria-haspopup="true" aria-expanded="false">
-        Connect <span class="caret">▼</span>
-      </button>
-      <div class="dropdown" role="menu">
-        <a href="mailto:kenzmiller18@gmail.com"><span class="dd-icon">📧</span> Email Me</a>
-        <a href="about-me.html"><span class="dd-icon">🧬</span> About Me</a>
-      </div>
-    </li>
+    <li><a href="about-me.html">About</a></li>
   </ul>
 </nav>
- 
-<!-- ===== HERO ===== -->
-<section class="hero">
-  <div class="hero-text">
-    <p class="hero-eyebrow">Hello, I'm</p>
-    <h1 class="hero-name">Mackenzie Miller</h1>
-    <p class="hero-title">⚗️ 🧬 👩‍🔬 | 👩‍🏫 🏫 📚</p>
- 
-  </div>
-</section>
- 
-<!-- ===== PAGE BODY ===== -->
+
+<img class="hero-banner" src="about-me.png" alt="Hi, I'm Ms. Miller. Nice to meet you!">
+
+
 <div class="page-body">
- 
-  <!-- BIO -->
-  <section>
-    <div class="section-label"><h2>About Me</h2></div>
-    <div class="bio-text">
-<p>I am a science educator completing my M.Ed. in Secondary Education at DePaul University, serving as a Resident Teacher with the Academy for Urban School Leadership (AUSL) and AmeriCorps. I currently teach five sections of high school Chemistry at George Washington High School in Chicago, including IB MYP courses.</p>
 
-<p>Before transitioning into teaching, I spent more than five years as a research chemist developing new drugs to treat persistent and debilitating diseases. I worked at biotech companies in Boston, MA and Madison, WI synthesizing and characterizing peptides and RNA conjugates for targeted therapies. That background in the lab shapes how I teach: I want students to see science as something real, precise, and genuinely interesting rather than a set of formulas to memorize.</p>
+  <section class="bio-text">
+    <p>I teach middle school science at <strong>James R. Doolittle Elementary School</strong> on Chicago's south side. Before becoming a teacher, I spent more than five years as a research chemist developing new medicines to treat diseases. That background in the lab shapes how I teach: science is something real, precise, and genuinely interesting - not just a set of facts to memorize. When I'm not teaching, I'm probably sewing, reading, or chasing my toddler around a playground somewhere.</p>
+    <p><strong>Molecute</strong> will always be a free, open-access resource.</p>
+   </section>
 
-<p><strong>Molecute</strong> started as a small collection of HTML simulations I built to scaffold abstract concepts for my students. It's grown into a full suite of interactive tools covering topics like atomic structure, bonding, and stoichiometry, designed to meet students where they are and <i>make the invisible visible</i>. <strong>Molecute will always be a free, open-access resource.</strong> When I'm not building simulations, I'm probably sewing, reading, or chasing my toddler around a park where we live on the north side of Chicago.</p>
-    </div>
- 
-  </section>
- 
-  <!-- CREDENTIALS -->
-  <section>
-    <div class="section-label"><h2>Credentials</h2></div>
-    <div class="credentials-grid">
-      <div class="cred-card">
-        <h3>🎓 Education</h3>
-        <div class="cred-item">
-          <p class="cred-title">M.Ed. in Secondary Education</p>
-          <p class="cred-sub">DePaul University</p>
-          <span class="cred-badge">With Distinction · Expected June 2026</span>
-        </div>
-        <div class="cred-item">
-          <p class="cred-title">B.S. Chemistry</p>
-          <p class="cred-sub">University of Wisconsin – Madison</p>
-          <span class="cred-badge">Certificate in Education · Dean's List</span>
-          <span class="cred-badge">Outstanding Chemistry Teaching Assistant</span>
-        </div>
-      </div>
-      <div class="cred-card">
-        <h3>📜 Certification</h3>
-        <div class="cred-item">
-          <p class="cred-title">Illinois Professional Educator License</p>
-          <p class="cred-sub">Anticipated June 2026</p>
-        </div>
-        <div class="cred-item">
-          <p class="cred-title">Middle Grades Science (5–8)</p>
-          <p class="cred-sub">Endorsement</p>
-        </div>
-        <div class="cred-item">
-          <p class="cred-title">Senior High Chemistry (9–12)</p>
-          <p class="cred-sub">Endorsement</p>
-        </div>
-      </div>
-    </div>
+  <section class="cta-row">
+    <a class="cta-card donors" href="https://www.donorschoose.org/sl/9qPfXXBTZQ" target="_blank" rel="noopener">
+      <div class="cta-icon">🎒</div>
+      <h3>Support My Classroom</h3>
+      <p>Help fund supplies and materials through my DonorsChoose page.</p>
+      <span class="go">Give on DonorsChoose →</span>
+    </a>
+    <a class="cta-card contact" href="mailto:kenzmiller18@gmail.com">
+      <div class="cta-icon">📧</div>
+      <h3>Get in Touch</h3>
+      <p>Questions, collaboration, or just want to say hi? Email me anytime.</p>
+      <span class="go">kenzmiller18@gmail.com →</span>
+    </a>
   </section>
 
-  <section style="margin-top: 52px;">
-  <div class="section-label"><h2>Impact in the Classroom</h2></div>
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
-    
-    <div class="cred-card" style="border-style: solid; background: var(--card-bg);">
-      <p style="font-style: italic; margin-bottom: 12px;">"She makes even the hardest lesson fun with her way of explaining making it fun and easy."</p>
-      <p style="text-align: right; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.85rem; color: var(--deep-purple); margin: 0;">— Chemistry Student, CVS</p>
-    </div>
-
-    <div class="cred-card" style="border-style: solid; background: var(--card-bg);">
-      <p style="font-style: italic; margin-bottom: 12px;">"Que explica muy bien... nos tiene mucha pasiensia." (She explains very well... she has a lot of patience.)</p>
-      <p style="text-align: right; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.85rem; color: var(--deep-purple); margin: 0;">— Chemistry Student, GWHS</p>
-    </div>
-
-      <div class="cred-card" style="border-style: solid; background: var(--card-bg);">
-      <p style="font-style: italic; margin-bottom: 12px;">"I liked how she gave us chances to speak and show what we learn on the board. </p>
-      <p style="text-align: right; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.85rem; color: var(--deep-purple); margin: 0;">— IB MYP Chemistry Student, GWHS</p>
-    </div>
-
-    <div class="cred-card" style="border-style: solid; background: var(--card-bg);">
-      <p style="font-style: italic; margin-bottom: 12px;">"Es muy buena profesora... se toma el tiempo de entender." (She is a very good teacher... she takes the time to understand.)</p>
-      <p style="text-align: right; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.85rem; color: var(--deep-purple); margin: 0;">— Chemistry Student, GWHS</p>
-    </div>
-
-        <div class="cred-card" style="border-style: solid; background: var(--card-bg);">
-      <p style="font-style: italic; margin-bottom: 12px;">"She explains everything so well and if we need help she comes right away when she can.</p>
-      <p style="text-align: right; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.85rem; color: var(--deep-purple); margin: 0;">— IB MYP Chemistry Student, GWHS</p>
-    </div>
-
-        <div class="cred-card" style="border-style: solid; background: var(--card-bg)">
-      <p style="font-style: italic; margin-bottom: 12px;">"She strongly cares for her students and it shows when she teaches."</p>
-      <p style="text-align: right; font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 0.85rem; color: var(--deep-purple); margin: 0;">— Chemistry Student, CVS</p>
-    </div>
-
-
-
-
-  </div>
-</section>
- 
-  <!-- HIGHLIGHTS -->
-  <section>
-    <div class="section-label"><h2>Highlights</h2></div>
-    <div class="highlights-strip">
-      <ul class="highlights-list">
-        <li>📊 Data-Informed Instruction</li>
-        <li>💻 Customized Simulations</li>
-        <li>🎯 Student-Centered</li>
-        <li>🔬 STEM Career Connections</li>
-        <li>🎮 Gamified Learning</li>
-        <li>🏆 Mastery-Based Grading</li>
-        <li>📐 NGSS-Aligned</li>
-        <li>🤝 Modern Classroom Project</li>
-      </ul>
-    </div>
-  </section>
-
-
- 
-  <!-- EXPERIENCE -->
-  <section>
-    <div class="section-label"><h2>Experience</h2></div>
-    <div class="timeline">
- 
-      <div class="timeline-section-tag">🏫 Teaching</div>
- 
-      <div class="tl-entry">
-        <div class="tl-dot"></div>
-        <div class="tl-header">
-          <p class="tl-role">AUSL Resident Teacher – Science (AmeriCorps)</p>
-          <span class="tl-date">Aug 2025 – Present</span>
-        </div>
-        <p class="tl-org">George Washington HS / Chicago Vocational Career Academy, Chicago IL</p>
-        <ul class="tl-bullets">
-          <li>Teaches five sections of high school Chemistry, including IB MYP courses, with NGSS-aligned and mastery-based instruction.</li>
-          <li>Uses frequent formative assessment and a custom Google Workspace system to visualize student data and identify misconceptions.</li>
-          <li>Built interactive HTML simulations for atomic structure, bonding, balancing equations, and stoichiometry — live on this site.</li>
-          <li>Designed a scan-enabled attendance system adopted by 20+ teachers to automate communication with students, families, and staff.</li>
-        </ul>
-      </div>
- 
-      <div class="tl-entry">
-        <div class="tl-dot"></div>
-        <div class="tl-header">
-          <p class="tl-role">Undergraduate Teaching Assistant</p>
-          <span class="tl-date">Jan 2017 – May 2018</span>
-        </div>
-        <p class="tl-org">UW–Madison Chemistry Department, Madison WI</p>
-        <ul class="tl-bullets">
-          <li>Led discussion and laboratory sections for General and Organic Chemistry. Awarded Outstanding Chemistry Teaching Assistant.</li>
-        </ul>
-      </div>
- 
-      <div class="timeline-section-tag" style="margin-top: 12px;">🔬 Industry Research</div>
- 
-      <div class="tl-entry research">
-        <div class="tl-dot"></div>
-        <div class="tl-header">
-          <p class="tl-role">Senior Research Associate, Chemistry</p>
-          <span class="tl-date">Feb 2023 – Mar 2024</span>
-        </div>
-        <p class="tl-org">Abiologics, Boston MA</p>
-        <ul class="tl-bullets">
-          <li>Synthesized, purified, and analyzed peptides for biological studies.</li>
-          <li>Developed a novel synthetic method to cyclize peptides at high throughput.</li>
-        </ul>
-      </div>
- 
-      <div class="tl-entry research">
-        <div class="tl-dot"></div>
-        <div class="tl-header">
-          <p class="tl-role">Associate Chemist I & II – Bioconjugation</p>
-          <span class="tl-date">Sep 2019 – Jan 2023</span>
-        </div>
-        <p class="tl-org">Arrowhead Pharmaceuticals, Madison WI</p>
-        <ul class="tl-bullets">
-          <li>Synthesized, purified, characterized, and formulated RNA conjugates.</li>
-          <li>Served as interim manager for two teams, coordinating workflows and staff development.</li>
-        </ul>
-      </div>
- 
-      <div class="tl-entry research">
-        <div class="tl-dot"></div>
-        <div class="tl-header">
-          <p class="tl-role">Assistant Scientist</p>
-          <span class="tl-date">Feb 2019 – Sep 2019</span>
-        </div>
-        <p class="tl-org">Pharmaceutical Product Development LLC, Middleton WI</p>
-        <ul class="tl-bullets">
-          <li>Characterized large and small molecules adhering to controlled substance regulations.</li>
-        </ul>
-      </div>
- 
-    </div>
-  </section>
- 
-  <!-- CONTACT -->
-  <section>
-    <div class="section-label"><h2>Get in Touch</h2></div>
-    <div style="display: flex; flex-wrap: wrap; gap: 14px; align-items: center;">
-      <a href="mailto:kenzmiller18@gmail.com" class="btn-primary">📧 kenzmiller18@gmail.com</a>
-      <a href="tel:8155011921" class="btn-secondary">📞 (815) 501-1921</a>
-      <a href="about-me.pdf" target="_blank" class="btn-secondary">📄 Download Hiring Flyer</a>
-    </div>
-  </section>
- 
 </div>
- 
+
 <footer>
   <div class="footer-content">
-    
     <span class="cc-license">
-      <a href="https://www.molecute.org/">Molecute</a> © 2026 by 
-      <a href="https://www.molecute.org/about-me.html">Mackenzie Miller</a> is licensed under 
+      <a href="index.html">Molecute</a> © 2026 by
+      <a href="about-me.html">Mackenzie Miller</a> is licensed under
       <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="license noopener noreferrer">CC BY-NC-SA 4.0
         <img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="CC">
         <img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="Attribution">
@@ -766,13 +139,9 @@
       </a>
     </span>
   </div>
-  <div class="ai-disclaimer" style="font-size: 0.75rem; font-style: italic; opacity: 0.8;">
-    Portions of this site’s code were developed with AI assistance to enhance clarity, accessibility, and user experience.
-  </div>
 </footer>
- 
+
 <script>
-  // ===== All Dropdowns =====
   (function(){
     const ddItems = document.querySelectorAll(".dd-item");
     ddItems.forEach(item => {
@@ -793,6 +162,6 @@
     });
   })();
 </script>
- 
+
 </body>
 </html>

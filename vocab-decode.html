@@ -1,0 +1,832 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Word Decoder</title>
+<style>
+:root{
+  --bg:#f7f4fb;
+  --card:#ffffff;
+  --ink:#231528;
+  --muted:#5a4a64;
+  --line: rgba(35,21,40,.12);
+
+  --accent:#a6d8ff;
+  --accent2:#a9c9ff;
+
+  --good:#16a34a;
+  --bad:#dc2626;
+  --warn:#d97706;
+
+  --r:18px;
+  --shadow: 0 14px 40px rgba(35,21,40,.10);
+  --tileShadow: 0 10px 20px rgba(35,21,40,.10);
+
+  --font: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+body{
+  margin:0; min-height:100vh; background: var(--bg); color: var(--ink);
+  font-family: var(--font); display:flex; justify-content:center; padding: 18px;
+}
+.app{ width: min(760px, 100%); display:block; }
+.panel{ background: var(--card); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); overflow:hidden; }
+header{
+  padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,.22);
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  color:#000; display:flex; gap:12px; align-items:center; justify-content:space-between;
+}
+.title{ display:flex; flex-direction:column; gap:4px; flex-grow:1; }
+.title h1{ margin:0; font-size:18px; letter-spacing:.2px; }
+.title p{ margin:0; font-size:12px; color:#1e3a6e; line-height:1.35; }
+.hubLink{ display:inline-block; margin-bottom:8px; text-decoration:none; font-weight:bold; color:#1e3a6e; }
+.hubLink:hover{ text-decoration:underline; }
+button{
+  appearance:none; border:1px solid rgba(255,255,255,.28); background: rgba(255,255,255,.25);
+  color:#1e3a6e; padding:10px 12px; border-radius:14px; cursor:pointer; font-weight:750; font-size:13px;
+  transition: transform .05s ease, background .2s ease, border-color .2s ease; user-select:none;
+}
+button:hover{ background: rgba(255,255,255,.40); }
+button:disabled{ opacity:.45; cursor:not-allowed; }
+.main{ padding:16px; }
+
+.modeRow{ display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+.modeBtn{ background:#eaf1ff; color:#1e3a6e; border:1px solid var(--line); }
+.modeBtn.active{ background: linear-gradient(90deg, var(--accent), var(--accent2)); border-color: transparent; }
+
+.pillRow{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+.pill{ background:#eaf1ff; border:1px solid var(--line); border-radius:12px; padding:8px 12px; font-size:13px; }
+.pill em{ font-style:normal; font-weight:800; }
+
+.stageBanner{ text-align:center; font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.5px; color:#1e3a6e; margin-bottom:10px; }
+
+.wordCard{ background:#eef4ff; border:1px solid var(--line); border-radius:16px; padding:22px 16px; margin-bottom:16px; }
+.wordRow{ display:flex; gap:4px; justify-content:center; flex-wrap:wrap; align-items:stretch; }
+.letterBox{
+  width:38px; height:48px; background:#fff; border:2px solid var(--line); border-radius:8px;
+  display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800;
+  text-transform:lowercase;
+}
+.gap{ width:14px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.gap .bar{ width:3px; height:34px; border-radius:3px; background:transparent; }
+.gap.active .bar{ background:#6b7280; }
+.gap.good .bar{ background:var(--good); width:4px; }
+.gap.bad .bar{ background:var(--bad); width:4px; }
+.gap.locked{ cursor:default; }
+.gap:not(.locked):hover .bar{ background:#9ca3af; }
+.wordRow.readonly .gap{ cursor:default; }
+.wordRow.small .letterBox{ width:28px; height:36px; font-size:15px; }
+.wordRow.small .gap{ width:10px; }
+.wordRow.small .gap .bar{ height:26px; }
+
+.historyStack{ display:flex; flex-direction:column; gap:8px; margin-bottom:12px; }
+
+.segmentRow{ display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-bottom:18px; }
+.segmentCol{ display:flex; flex-direction:column; align-items:center; gap:8px; }
+.segmentLabel{ font-weight:900; font-size:17px; background:#eef4ff; border:2px solid #93c5fd; border-radius:10px; padding:8px 14px; }
+.slot{
+  min-width:130px; min-height:52px; border:2px dashed var(--line); border-radius:12px;
+  display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px;
+  padding:6px 10px; cursor:pointer; background:#fff; text-align:center;
+}
+.slot.filled{ border-style:solid; background:#eef4ff; }
+.slot.good{ border-style:solid; border-color:var(--good); background:#dcfce7; color:#14532d; cursor:default; }
+.slot.warnTile{ border-style:solid; border-color:var(--warn); background:#fef3c7; color:#78350f; cursor:default; }
+.slot.bad{ border-style:solid; border-color:var(--bad); background:#fee2e2; color:#7f1d1d; cursor:default; }
+
+.attemptSegRow{ display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+
+.bankLabel{ font-size:12px; color:var(--muted); margin: 4px 0 8px; text-align:center; }
+.tileBank{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:16px; }
+.tile{
+  background: linear-gradient(180deg, #fff, #eef4ff); border:1px solid var(--line); border-radius:12px;
+  padding:10px 14px; font-weight:700; font-size:13.5px; box-shadow: var(--tileShadow); cursor:pointer;
+}
+.tile:hover{ transform: translateY(-1px); }
+.tile.used{ opacity:.25; pointer-events:none; }
+
+.actionsRow{ display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+.actionsRow button{ flex:1; min-width:120px; }
+.btn-primary{ background:#1e3a6e; color:#fff; border:none; }
+.btn-primary:hover{ background:#1e40af; }
+
+.msg{ text-align:center; font-size:14px; padding:10px; border-radius:12px; background:#eaf1ff; margin-bottom:10px; }
+.msg.good{ background:#dcfce7; color:#14532d; }
+.msg.bad{ background:#fee2e2; color:#7f1d1d; }
+.msg.warn{ background:#fef3c7; color:#78350f; }
+
+.breakdown{ background:#fff; border:2px solid #60a5fa; border-radius:18px; padding:20px 22px; margin-bottom:14px; display:none; }
+.breakdown.show{ display:block; }
+.breakdown h3{ margin:0 0 14px; font-size:18px; color:#1e3a6e; }
+.breakdown .part{ display:flex; justify-content:space-between; font-size:17px; padding:8px 0; border-bottom:1px dashed var(--line); gap:12px; }
+.breakdown .part span:first-child{ font-weight:800; }
+.breakdown .part:last-child{ border-bottom:none; }
+
+#submit-modal{ display:none; position:fixed; inset:0; background:rgba(35,21,40,.55); align-items:center; justify-content:center; padding:16px; z-index:50; }
+#submit-modal.open{ display:flex; }
+.modal-card{ background:#fff; border-radius:18px; padding:20px; width:min(420px,100%); box-shadow:var(--shadow); }
+.modal-card h2{ margin:0 0 6px; font-size:18px; }
+.modal-sub{ font-size:13px; color:var(--muted); margin:0 0 14px; }
+.modal-label{ display:block; font-size:12px; font-weight:700; margin:10px 0 4px; color:var(--muted); }
+.modal-input{ width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; font-size:14px; }
+.teacher-grid{ display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
+.teacher-btn{ background:#eaf1ff; border:1px solid var(--line); color:#1e3a6e; }
+.teacher-btn.selected{ background:#1e3a6e; color:#fff; }
+.modal-error{ color:var(--bad); font-size:12px; min-height:16px; margin-top:8px; }
+.modal-actions{ display:flex; gap:10px; margin-top:14px; }
+.modal-actions button{ flex:1; }
+.btn-cancel{ background:#eaf1ff; color:#1e3a6e; border:1px solid var(--line); }
+</style>
+</head>
+<body>
+<div class="app">
+  <section class="panel">
+    <header>
+      <div class="title">
+        <a href="index.html" class="hubLink">← Back to Hub</a>
+        <h1>🔍 Word Decoder</h1>
+        <p>Find where a word splits into parts, then prove you know what each part means.</p>
+      </div>
+      <button id="btnNew">New Word</button>
+    </header>
+
+    <div class="main">
+      <div class="modeRow">
+        <button class="modeBtn" id="modeDaily">📅 Daily</button>
+        <button class="modeBtn" id="modePractice">🔁 Practice</button>
+      </div>
+
+      <div class="pillRow">
+        <div class="pill">Parts needed: <em id="partsNeeded">–</em></div>
+        <div class="pill" id="streakPill" style="display:none;">🔥 Streak: <em id="streakCount">0</em></div>
+      </div>
+
+      <div class="stageBanner" id="stageBanner">Stage 1 · Find the Parts</div>
+
+      <div class="wordCard">
+        <div class="wordRow" id="wordRow"></div>
+      </div>
+
+      <div id="message" class="msg">Click between letters to mark where you think this word splits into parts.</div>
+
+      <!-- Stage 1 -->
+      <div id="stage1Area">
+        <div class="historyStack" id="historyStack1"></div>
+        <div class="actionsRow">
+          <button class="btn-primary" id="btnCheckSplit">Check Segmentation</button>
+          <button id="btnClearSplit">Clear</button>
+        </div>
+      </div>
+
+      <!-- Stage 2 -->
+      <div id="stage2Area" style="display:none;">
+        <div class="historyStack" id="historyStack2"></div>
+        <div class="segmentRow" id="segmentRow"></div>
+        <div class="bankLabel">Tap a tile to place it. Tap a filled blank to send it back.</div>
+        <div class="tileBank" id="tileBank"></div>
+        <div class="actionsRow">
+          <button class="btn-primary" id="btnCheckMeaning">Check Meanings</button>
+          <button id="btnClearMeaning">Clear</button>
+        </div>
+      </div>
+
+      <div class="breakdown" id="breakdown">
+        <h3>Word breakdown</h3>
+        <div id="breakdownParts"></div>
+      </div>
+
+      <button id="btnReportScore" class="btn-primary" style="width:100%; padding:14px; border-radius:14px; border:none; font-weight:700; font-size:15px;">Submit Final Score (0)</button>
+    </div>
+  </section>
+</div>
+
+<div id="submit-modal">
+  <div class="modal-card">
+    <h2>Submit Your Points</h2>
+    <p class="modal-sub">You are turning in a cumulative score of <strong id="modal-points-display">0</strong> points. Enter your info below.</p>
+    <label class="modal-label" for="student-id-input">Student ID</label>
+    <input class="modal-input" id="student-id-input" type="text" placeholder="e.g. 123456" autocomplete="off" />
+    <label class="modal-label" for="student-name-input">Your Name</label>
+    <input class="modal-input" id="student-name-input" type="text" placeholder="First and last name" autocomplete="off" />
+    <label class="modal-label">Your Teacher</label>
+    <div class="teacher-grid" id="teacher-grid"></div>
+    <div class="modal-error" id="modal-error"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="modal-cancel-btn">Cancel</button>
+      <button class="btn-primary" id="modal-confirm-btn">Submit Points</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Teacher submission scaffold (mirrors the other games) ──
+const TEACHERS = {
+  "NOT THIS ONE": {
+    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSckXbWQsVWobjrktGMoF7AtY6gMch0eQMjsGlddVv1cxgNHgQ/formResponse",
+    entries: { studentID:"entry.511300054", displayName:"entry.366340186", sim:"entry.1832756779", score:"entry.221944829", token:"entry.1636605257" }
+  },
+};
+const SIM_ID = "worddecoder";
+const TOKEN_SALT = "MoLeCuTeOrG";
+
+// ── Word bank (same content as Root Builder, used in reverse) ──
+const BANK = 
+[
+  { word:"biology", parts:["bio","logy"], meanings:{bio:"life", logy:"study of"}, def:"the study of life", unit:"life science" },
+  { word:"geology", parts:["geo","logy"], meanings:{geo:"earth", logy:"study of"}, def:"the study of earth", unit:"earth science" },
+  { word:"zoology", parts:["zoo","logy"], meanings:{zoo:"animals", logy:"study of"}, def:"the study of animals", unit:"life science" },
+  { word:"ecology", parts:["eco","logy"], meanings:{eco:"environments", logy:"study of"}, def:"the study of environments", unit:"ecology" },
+  { word:"hydrosphere", parts:["hydro","sphere"], meanings:{hydro:"water", sphere:"ball"}, def:"the water layer that wraps Earth like a ball", unit:"earth science" },
+  { word:"atmosphere", parts:["atmo","sphere"], meanings:{atmo:"air", sphere:"ball"}, def:"the layer of air that surrounds Earth like a ball", unit:"earth science" },
+  { word:"thermometer", parts:["thermo","meter"], meanings:{thermo:"heat", meter:"measure"}, def:"a tool used to measure heat", unit:"physical science" },
+  { word:"microscope", parts:["micro","scope"], meanings:{micro:"small", scope:"view"}, def:"a tool used to view small things", unit:"tools" },
+  { word:"telescope", parts:["tele","scope"], meanings:{tele:"far", scope:"view"}, def:"a tool used to view faraway things", unit:"tools" },
+  { word:"herbivore", parts:["herbi","vore"], meanings:{herbi:"plant", vore:"eater"}, def:"a plant eater", unit:"ecology" },
+  { word:"carnivore", parts:["carni","vore"], meanings:{carni:"meat", vore:"eater"}, def:"a meat eater", unit:"ecology" },
+  { word:"omnivore", parts:["omni","vore"], meanings:{omni:"all", vore:"eater"}, def:"an eater of all foods", unit:"ecology" },
+  { word:"exoskeleton", parts:["exo","skeleton"], meanings:{exo:"outside", skeleton:"skeleton"}, def:"a skeleton on the outside of the body", unit:"life science" },
+  { word:"endoskeleton", parts:["endo","skeleton"], meanings:{endo:"inside", skeleton:"skeleton"}, def:"a skeleton on the inside of the body", unit:"life science" },
+  { word:"unicellular", parts:["uni","cell","ular"], meanings:{uni:"one", cell:"cell", ular:"made of"}, def:"made of one cell", unit:"cells" },
+  { word:"multicellular", parts:["multi","cell","ular"], meanings:{multi:"many", cell:"cell", ular:"made of"}, def:"made of many cells", unit:"cells" },
+  { word:"decompose", parts:["de","compose"], meanings:{de:"reverse", compose:"put together"}, def:"the reverse of being put together", unit:"ecology" },
+  { word:"amphibian", parts:["amphi","bian"], meanings:{amphi:"both", bian:"living"}, def:"an animal built for living in both water and on land", unit:"life science" },
+  { word:"pathogen", parts:["patho","gen"], meanings:{patho:"disease", gen:"producer"}, def:"a producer of disease", unit:"microbiome" },
+  { word:"antibiotic", parts:["anti","bio","tic"], meanings:{anti:"against", bio:"living things", tic:"relating to"}, def:"something relating to fighting against living things", unit:"microbiome" },
+  { word:"symbiosis", parts:["sym","bio","sis"], meanings:{sym:"together", bio:"living things", sis:"condition"}, def:"the condition of living things existing together", unit:"microbiome" },
+  { word:"microorganism", parts:["micro","organism"], meanings:{micro:"small", organism:"living thing"}, def:"a small living thing", unit:"microbiome" },
+  { word:"chlorophyll", parts:["chloro","phyll"], meanings:{chloro:"green", phyll:"leaf"}, def:"the green substance found in a leaf", unit:"life science" },
+  { word:"hemoglobin", parts:["hemo","globin"], meanings:{hemo:"blood", globin:"round protein"}, def:"the round protein found in blood", unit:"life science" },
+  { word:"hydrophobic", parts:["hydro","phobic"], meanings:{hydro:"water", phobic:"fearing"}, def:"describes something that is fearing water", unit:"physical science" },
+  { word:"hydrophilic", parts:["hydro","philic"], meanings:{hydro:"water", philic:"loving"}, def:"describes something that is loving water", unit:"physical science" },
+  { word:"biodegradable", parts:["bio","de","gradable"], meanings:{bio:"living things", de:"down", gradable:"able to be broken"}, def:"able to be broken down by living things", unit:"ecology" },
+  { word:"chromosome", parts:["chromo","some"], meanings:{chromo:"color", some:"body"}, def:"a coiled body that takes on color when stained", unit:"genetics" },
+  { word:"cytoplasm", parts:["cyto","plasm"], meanings:{cyto:"cell", plasm:"substance"}, def:"the formed substance filling a cell", unit:"cells" },
+  { word:"autotroph", parts:["auto","troph"], meanings:{auto:"self", troph:"feeding"}, def:"an organism capable of self feeding", unit:"ecology" },
+  { word:"heterotroph", parts:["hetero","troph"], meanings:{hetero:"other", troph:"feeding"}, def:"an organism that relies on feeding on other organisms", unit:"ecology" },
+  { word:"metamorphosis", parts:["meta","morph","osis"], meanings:{meta:"change", morph:"form", osis:"process"}, def:"the process of a change in form", unit:"life science" },
+  { word:"exothermic", parts:["exo","thermic"], meanings:{exo:"outward", thermic:"heat"}, def:"a reaction that releases heat outward", unit:"physical science" },
+  { word:"endothermic", parts:["endo","thermic"], meanings:{endo:"inward", thermic:"heat"}, def:"a reaction that absorbs heat inward", unit:"physical science" },
+  { word:"lithosphere", parts:["litho","sphere"], meanings:{litho:"rock", sphere:"ball"}, def:"the rock layer that forms a ball around Earth", unit:"earth science" },
+  { word:"seismology", parts:["seismo","logy"], meanings:{seismo:"shaking", logy:"study of"}, def:"the study of shaking ground", unit:"earth science" },
+  { word:"astronomy", parts:["astro","nomy"], meanings:{astro:"stars", nomy:"arranging"}, def:"the arranging of knowledge about stars", unit:"earth science" },
+  { word:"meteorology", parts:["meteoro","logy"], meanings:{meteoro:"atmosphere", logy:"study of"}, def:"the study of the atmosphere and weather", unit:"earth science" },
+  { word:"seismograph", parts:["seismo","graph"], meanings:{seismo:"shaking", graph:"recording"}, def:"a tool that makes a recording of shaking ground", unit:"earth science" },
+  { word:"cardiovascular", parts:["cardio","vascul","ar"], meanings:{cardio:"heart", vascul:"vessel", ar:"relating to"}, def:"relating to the heart and blood vessels", unit:"life science" },
+  { word:"aerobic", parts:["aero","bic"], meanings:{aero:"air", bic:"relating to"}, def:"relating to needing air to live", unit:"microbiome" },
+  { word:"anaerobic", parts:["an","aero","bic"], meanings:{an:"without", aero:"air", bic:"relating to"}, def:"relating to occurring without air", unit:"microbiome" },
+  { word:"decomposer", parts:["de","compose","r"], meanings:{de:"reverse", compose:"put together", r:"one that does"}, def:"one that does the reverse of things being put together", unit:"ecology" },
+  { word:"photosynthesis", parts:["photo","syn","thesis"], meanings:{photo:"light", syn:"together", thesis:"putting"}, def:"the putting of food together using light", unit:"life science" },
+  { word:"dermatology", parts:["dermato","logy"], meanings:{dermato:"skin", logy:"study of"}, def:"the study of skin", unit:"life science" },
+  { word:"neurology", parts:["neuro","logy"], meanings:{neuro:"nerves", logy:"study of"}, def:"the study of nerves", unit:"life science" },
+  { word:"entomology", parts:["entomo","logy"], meanings:{entomo:"insects", logy:"study of"}, def:"the study of insects", unit:"life science" },
+  { word:"ornithology", parts:["ornitho","logy"], meanings:{ornitho:"birds", logy:"study of"}, def:"the study of birds", unit:"life science" },
+  { word:"volcanology", parts:["volcano","logy"], meanings:{volcano:"volcanoes", logy:"study of"}, def:"the study of volcanoes", unit:"earth science" },
+  { word:"oceanography", parts:["oceano","graphy"], meanings:{oceano:"oceans", graphy:"recording of"}, def:"the recording of knowledge about oceans", unit:"earth science" },
+  { word:"biography", parts:["bio","graphy"], meanings:{bio:"life", graphy:"writing of"}, def:"a writing of someone's life", unit:"vocabulary" },
+  { word:"geography", parts:["geo","graphy"], meanings:{geo:"earth", graphy:"writing of"}, def:"a writing of knowledge about earth", unit:"earth science" },
+  { word:"polygon", parts:["poly","gon"], meanings:{poly:"many", gon:"angles"}, def:"a shape with many angles", unit:"math/geometry" },
+  { word:"pentagon", parts:["penta","gon"], meanings:{penta:"five", gon:"angles"}, def:"a shape with five angles", unit:"math/geometry" },
+  { word:"hexagon", parts:["hexa","gon"], meanings:{hexa:"six", gon:"angles"}, def:"a shape with six angles", unit:"math/geometry" },
+  { word:"octagon", parts:["octa","gon"], meanings:{octa:"eight", gon:"angles"}, def:"a shape with eight angles", unit:"math/geometry" },
+  { word:"triangle", parts:["tri","angle"], meanings:{tri:"three", angle:"angles"}, def:"a shape with three angles", unit:"math/geometry" },
+  { word:"quadrilateral", parts:["quadri","lateral"], meanings:{quadri:"four", lateral:"sides"}, def:"a shape with four sides", unit:"math/geometry" },
+  { word:"centimeter", parts:["centi","meter"], meanings:{centi:"hundredth", meter:"meter"}, def:"one hundredth of a meter", unit:"measurement" },
+  { word:"kilometer", parts:["kilo","meter"], meanings:{kilo:"thousand", meter:"meters"}, def:"a distance of one thousand meters", unit:"measurement" },
+  { word:"millimeter", parts:["milli","meter"], meanings:{milli:"thousandth", meter:"meter"}, def:"one thousandth of a meter", unit:"measurement" },
+  { word:"kilogram", parts:["kilo","gram"], meanings:{kilo:"thousand", gram:"grams"}, def:"a mass of one thousand grams", unit:"measurement" },
+  { word:"thermostat", parts:["thermo","stat"], meanings:{thermo:"heat", stat:"steady"}, def:"a device that keeps heat steady", unit:"physical science" },
+  { word:"barometer", parts:["baro","meter"], meanings:{baro:"pressure", meter:"measure"}, def:"a tool used to measure pressure", unit:"earth science" },
+  { word:"hygrometer", parts:["hygro","meter"], meanings:{hygro:"moisture", meter:"measure"}, def:"a tool used to measure moisture", unit:"earth science" },
+  { word:"geothermal", parts:["geo","thermal"], meanings:{geo:"earth", thermal:"heat"}, def:"heat that comes from the earth", unit:"earth science" },
+  { word:"hydroelectric", parts:["hydro","electric"], meanings:{hydro:"water", electric:"electricity"}, def:"electricity generated using the power of water", unit:"physical science" },
+  { word:"invertebrate", parts:["in","vertebr","ate"], meanings:{in:"without", vertebr:"backbone", ate:"having"}, def:"having a body without a backbone", unit:"life science" },
+  { word:"bilateral", parts:["bi","lateral"], meanings:{bi:"two", lateral:"sides"}, def:"having two sides", unit:"life science" },
+  { word:"symmetry", parts:["sym","metry"], meanings:{sym:"same", metry:"measure"}, def:"having the same measure on both sides", unit:"life science" },
+  { word:"photoperiod", parts:["photo","period"], meanings:{photo:"light", period:"length of time"}, def:"the length of time an organism is exposed to light", unit:"life science" },
+  { word:"nocturnal", parts:["noct","urnal"], meanings:{noct:"night", urnal:"active during"}, def:"active during the night", unit:"ecology" },
+  { word:"diurnal", parts:["di","urnal"], meanings:{di:"day", urnal:"active during"}, def:"active during the day", unit:"ecology" },
+  { word:"insectivore", parts:["insecti","vore"], meanings:{insecti:"insect", vore:"eater"}, def:"an insect eater", unit:"ecology" },
+  { word:"piscivore", parts:["pisci","vore"], meanings:{pisci:"fish", vore:"eater"}, def:"a fish eater", unit:"ecology" },
+  { word:"photosensitive", parts:["photo","sensitive"], meanings:{photo:"light", sensitive:"reacts to"}, def:"something that reacts to light", unit:"life science" },
+  { word:"thermoregulate", parts:["thermo","regulate"], meanings:{thermo:"heat", regulate:"control"}, def:"to control body heat", unit:"life science" },
+  { word:"bioluminescence", parts:["bio","lumin","escence"], meanings:{bio:"living things", lumin:"light", escence:"process"}, def:"the process of light being produced by living things", unit:"life science" },
+  { word:"desalination", parts:["de","salin","ation"], meanings:{de:"removal of", salin:"salt", ation:"the process"}, def:"the process of removal of salt from water", unit:"earth science" },
+  { word:"evaporation", parts:["e","vapor","ation"], meanings:{e:"out", vapor:"vapor", ation:"the process"}, def:"the process of turning into vapor and rising out", unit:"earth science" },
+  { word:"deforestation", parts:["de","forest","ation"], meanings:{de:"removal of", forest:"forest", ation:"the process"}, def:"the process of removal of a forest", unit:"ecology" },
+  { word:"reforestation", parts:["re","forest","ation"], meanings:{re:"again", forest:"forest", ation:"the process"}, def:"the process of planting a forest again", unit:"ecology" },
+  { word:"pollination", parts:["pollin","ation"], meanings:{pollin:"pollen transfer", ation:"the process"}, def:"the process of pollen transfer between flowers", unit:"life science" },
+  { word:"germination", parts:["germin","ation"], meanings:{germin:"sprouting", ation:"the process"}, def:"the process of a seed sprouting", unit:"life science" },
+  { word:"respiration", parts:["re","spir","ation"], meanings:{re:"back", spir:"breathing", ation:"the process"}, def:"the process of breathing air back into the body", unit:"life science" },
+  { word:"fossilization", parts:["fossil","ization"], meanings:{fossil:"fossil", ization:"the process of becoming"}, def:"the process of becoming a fossil", unit:"earth science" },
+  { word:"crystallization", parts:["crystall","ization"], meanings:{crystall:"crystal", ization:"the process of becoming"}, def:"the process of becoming a crystal", unit:"earth science" },
+  { word:"sedimentary", parts:["sediment","ary"], meanings:{sediment:"settled particles", ary:"relating to"}, def:"relating to rock formed from settled particles", unit:"earth science" },
+];
+
+// ── DOM refs ──
+const modeDaily = document.getElementById("modeDaily");
+const modePractice = document.getElementById("modePractice");
+const partsNeeded = document.getElementById("partsNeeded");
+const streakPill = document.getElementById("streakPill");
+const streakCountEl = document.getElementById("streakCount");
+const stageBanner = document.getElementById("stageBanner");
+const wordRow = document.getElementById("wordRow");
+const msgEl = document.getElementById("message");
+const stage1Area = document.getElementById("stage1Area");
+const stage2Area = document.getElementById("stage2Area");
+const historyStack1 = document.getElementById("historyStack1");
+const historyStack2 = document.getElementById("historyStack2");
+const segmentRow = document.getElementById("segmentRow");
+const tileBank = document.getElementById("tileBank");
+const btnCheckSplit = document.getElementById("btnCheckSplit");
+const btnClearSplit = document.getElementById("btnClearSplit");
+const btnCheckMeaning = document.getElementById("btnCheckMeaning");
+const btnClearMeaning = document.getElementById("btnClearMeaning");
+const btnNew = document.getElementById("btnNew");
+const breakdownEl = document.getElementById("breakdown");
+const breakdownParts = document.getElementById("breakdownParts");
+const btnReportScore = document.getElementById("btnReportScore");
+
+const submitModal = document.getElementById('submit-modal');
+const modalPointsDisplay = document.getElementById('modal-points-display');
+const studentIdInput = document.getElementById('student-id-input');
+const studentNameInput = document.getElementById('student-name-input');
+const teacherGrid = document.getElementById('teacher-grid');
+const modalError = document.getElementById('modal-error');
+const modalCancelBtn = document.getElementById('modal-cancel-btn');
+const modalConfirmBtn = document.getElementById('modal-confirm-btn');
+
+let mode = "daily";
+let target = null;
+let correctBoundaries = new Set(); // interior cut positions, e.g. {3} for "bio|logy"
+let activeCuts = new Set();        // cuts the student has toggled this attempt, not yet checked
+let lockedCuts = new Set();        // confirmed-correct cuts (permanent)
+let attempts1 = [];                // history rows for stage 1: array of Map(pos -> 'good'|'bad')
+let stage = 1;                     // 1 = segmentation, 2 = meaning-matching
+
+let lockedMeaning = [];  // per-part: null or the confirmed meaning text
+let slotFill = [];       // per-part: tile id or null
+let tiles = [];           // { id, text, used }
+let attempts2 = [];       // history rows for stage 2
+
+let totalBankedPoints = 0;
+let selectedTeacher = null;
+let dailyAlreadyPlayedToday = false;
+let gameOver = false;
+
+function todayISO(){
+  const d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+}
+function fnv1a(str){
+  let h = 0x811c9dc5;
+  for (let i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = (h*0x01000193)>>>0; }
+  return h >>> 0;
+}
+function shuffle(arr){
+  const a = arr.slice();
+  for (let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+function pickDailyWord(){
+  const seed = fnv1a(todayISO() + "-decoder");
+  return BANK[seed % BANK.length];
+}
+function pickPracticeWord(){
+  return BANK[Math.floor(Math.random() * BANK.length)];
+}
+function computeCorrectBoundaries(t){
+  const set = new Set();
+  let pos = 0;
+  t.parts.forEach((p, i) => {
+    pos += p.length;
+    if (i < t.parts.length - 1) set.add(pos);
+  });
+  return set;
+}
+
+function setMessage(text, tone=""){
+  msgEl.className = "msg" + (tone ? " " + tone : "");
+  msgEl.textContent = text;
+}
+function updateScoreButton(){
+  btnReportScore.textContent = `Submit Final Score (${totalBankedPoints})`;
+}
+
+// ── Render a word row (used for both the live board and history rows) ──
+// cutStatus: Map from position -> 'active' | 'good' | 'bad' | 'locked'
+function renderWordRow(container, word, cutStatus, opts){
+  opts = opts || {};
+  container.innerHTML = "";
+  container.className = "wordRow" + (opts.small ? " small" : "") + (!opts.interactive ? " readonly" : "");
+
+  for (let i = 0; i < word.length; i++){
+    const box = document.createElement("div");
+    box.className = "letterBox";
+    box.textContent = word[i];
+    container.appendChild(box);
+
+    if (i < word.length - 1){
+      const pos = i + 1;
+      const gap = document.createElement("div");
+      const status = cutStatus.get(pos);
+      gap.className = "gap" + (status ? " " + status : "");
+      const bar = document.createElement("div");
+      bar.className = "bar";
+      gap.appendChild(bar);
+      if (opts.interactive && status !== "locked"){
+        gap.addEventListener("click", () => opts.onToggle(pos));
+      } else {
+        gap.classList.add("locked");
+      }
+      container.appendChild(gap);
+    }
+  }
+}
+
+function liveCutStatusMap(){
+  const map = new Map();
+  lockedCuts.forEach(p => map.set(p, "locked"));
+  activeCuts.forEach(p => { if (!map.has(p)) map.set(p, "active"); });
+  return map;
+}
+
+function renderStage1(){
+  renderWordRow(wordRow, target.word, liveCutStatusMap(), { interactive: true, onToggle: toggleCut });
+  historyStack1.innerHTML = "";
+  attempts1.forEach(rowMap => {
+    const rowEl = document.createElement("div");
+    renderWordRow(rowEl, target.word, rowMap, { interactive: false, small: true });
+    historyStack1.appendChild(rowEl);
+  });
+}
+
+function toggleCut(pos){
+  if (gameOver) return;
+  if (activeCuts.has(pos)) activeCuts.delete(pos); else activeCuts.add(pos);
+  renderStage1();
+}
+
+function clearSplit(){
+  if (gameOver) return;
+  activeCuts.clear();
+  renderStage1();
+}
+
+function checkSegmentation(){
+  if (gameOver) return;
+  if (activeCuts.size === 0){
+    setMessage("Click between letters to mark at least one split before checking.", "warn");
+    return;
+  }
+  const snapshot = new Map();
+  lockedCuts.forEach(p => snapshot.set(p, "locked"));
+  let anyWrong = false;
+  activeCuts.forEach(pos => {
+    if (correctBoundaries.has(pos)){
+      snapshot.set(pos, "good");
+      lockedCuts.add(pos);
+    } else {
+      snapshot.set(pos, "bad");
+      anyWrong = true;
+    }
+  });
+  attempts1.push(snapshot);
+  activeCuts.clear();
+  renderStage1();
+
+  if (lockedCuts.size === correctBoundaries.size){
+    const pts = Math.max(3, 10 - (attempts1.length - 1) * 2);
+    totalBankedPoints += pts;
+    updateScoreButton();
+    setMessage(`✅ Parts found! +${pts} pts. Now figure out what each part means.`, "good");
+    startStage2();
+  } else if (anyWrong){
+    setMessage("Some of those splits aren't quite right — check the history below and try again.", "warn");
+  } else {
+    setMessage("Good progress! Keep marking splits until every part is found.", "good");
+  }
+}
+
+// ── Stage 2: meaning matching (mirrors Root Builder's tile mechanic) ──
+function startStage2(){
+  stage = 2;
+  stageBanner.textContent = "Stage 2 · Match the Meanings";
+  stage1Area.style.display = "none";
+  stage2Area.style.display = "block";
+
+  lockedMeaning = new Array(target.parts.length).fill(null);
+  slotFill = new Array(target.parts.length).fill(null);
+  attempts2 = [];
+  buildMeaningTiles();
+  renderStage2();
+}
+
+function buildMeaningTiles(){
+  const correctMeanings = target.parts.map(p => target.meanings[p]);
+  const correctSet = new Set(correctMeanings);
+  const otherMeanings = [];
+  BANK.forEach(w => {
+    if (w.word === target.word) return;
+    Object.values(w.meanings).forEach(m => {
+      if (!correctSet.has(m) && !otherMeanings.includes(m)) otherMeanings.push(m);
+    });
+  });
+  const distractorCount = Math.min(otherMeanings.length, correctMeanings.length + 4);
+  const distractors = shuffle(otherMeanings).slice(0, distractorCount);
+  const pool = shuffle([...correctMeanings, ...distractors]);
+  tiles = pool.map((m, i) => ({ id: "m"+i, text: m, used: false }));
+}
+
+function renderSegmentHeader(){
+  // shows the solved word split into its parts, read-only, above the blanks
+  const status = new Map();
+  correctBoundaries.forEach(p => status.set(p, "locked"));
+  return status;
+}
+
+function renderStage2(){
+  segmentRow.innerHTML = "";
+  target.parts.forEach((part, i) => {
+    const col = document.createElement("div");
+    col.className = "segmentCol";
+    const label = document.createElement("div");
+    label.className = "segmentLabel";
+    label.textContent = part;
+    col.appendChild(label);
+
+    const slot = document.createElement("div");
+    if (lockedMeaning[i]){
+      slot.className = "slot good";
+      slot.textContent = lockedMeaning[i];
+    } else {
+      slot.className = "slot";
+      const filledId = slotFill[i];
+      if (filledId){
+        const tile = tiles.find(t => t.id === filledId);
+        slot.textContent = tile.text;
+        slot.classList.add("filled");
+      } else {
+        slot.textContent = "?";
+      }
+      slot.addEventListener("click", () => {
+        if (gameOver || !slotFill[i]) return;
+        const tile = tiles.find(t => t.id === slotFill[i]);
+        tile.used = false;
+        slotFill[i] = null;
+        renderStage2();
+      });
+    }
+    col.appendChild(slot);
+    segmentRow.appendChild(col);
+  });
+
+  tileBank.innerHTML = "";
+  tiles.forEach(tile => {
+    const btn = document.createElement("div");
+    btn.className = "tile" + (tile.used ? " used" : "");
+    btn.textContent = tile.text;
+    btn.addEventListener("click", () => {
+      if (gameOver || tile.used) return;
+      const emptyIdx = slotFill.findIndex((v, i) => v === null && !lockedMeaning[i]);
+      if (emptyIdx === -1) return;
+      slotFill[emptyIdx] = tile.id;
+      tile.used = true;
+      renderStage2();
+    });
+    tileBank.appendChild(btn);
+  });
+
+  historyStack2.innerHTML = "";
+  attempts2.forEach(rowData => {
+    const row = document.createElement("div");
+    row.className = "attemptSegRow";
+    rowData.forEach(cell => {
+      const slot = document.createElement("div");
+      slot.className = "slot " + cell.status;
+      slot.textContent = cell.text;
+      row.appendChild(slot);
+    });
+    historyStack2.appendChild(row);
+  });
+}
+
+function checkMeanings(){
+  if (gameOver) return;
+  if (target.parts.some((_, i) => !lockedMeaning[i] && slotFill[i] === null)){
+    setMessage("Fill every blank before checking.", "warn");
+    return;
+  }
+  const rowSnapshot = [];
+  let allCorrect = true;
+  const freshlyLocked = [];
+
+  target.parts.forEach((part, i) => {
+    const correct = target.meanings[part];
+    if (lockedMeaning[i]){
+      rowSnapshot.push({ text: lockedMeaning[i], status: "good" });
+      return;
+    }
+    const tile = tiles.find(t => t.id === slotFill[i]);
+    const guessed = tile.text;
+    if (guessed === correct){
+      rowSnapshot.push({ text: guessed, status: "good" });
+      freshlyLocked.push(i);
+    } else if (target.parts.map(p => target.meanings[p]).includes(guessed)){
+      rowSnapshot.push({ text: guessed, status: "warnTile" });
+      allCorrect = false;
+    } else {
+      rowSnapshot.push({ text: guessed, status: "bad" });
+      allCorrect = false;
+    }
+  });
+
+  attempts2.push(rowSnapshot);
+
+  freshlyLocked.forEach(i => {
+    lockedMeaning[i] = target.meanings[target.parts[i]];
+    const tileId = slotFill[i];
+    tiles = tiles.filter(t => t.id !== tileId);
+    slotFill[i] = null;
+  });
+  target.parts.forEach((part, i) => {
+    if (lockedMeaning[i]) return;
+    const correct = target.meanings[part];
+    const tileId = slotFill[i];
+    if (tileId){
+      const tile = tiles.find(t => t.id === tileId);
+      if (tile && tile.text !== correct){ tile.used = false; slotFill[i] = null; }
+    }
+  });
+
+  renderStage2();
+
+  if (allCorrect){
+    const pts = Math.max(3, 10 - (attempts2.length - 1) * 2);
+    totalBankedPoints += pts;
+    updateScoreButton();
+    setMessage(`🎉 Fully decoded "${target.word}"! +${pts} pts.`, "good");
+    showBreakdown();
+    gameOver = true;
+    if (mode === "daily") recordDailyResult();
+  } else {
+    setMessage("Green = locked in. Yellow = right meaning, wrong part. Red = doesn't belong here. Keep going!", "warn");
+  }
+}
+
+function clearMeaning(){
+  if (gameOver) return;
+  slotFill.forEach((tid, i) => {
+    if (lockedMeaning[i]) return;
+    if (tid){ tiles.find(t => t.id === tid).used = false; slotFill[i] = null; }
+  });
+  renderStage2();
+}
+
+function showBreakdown(){
+  breakdownParts.innerHTML = "";
+  target.parts.forEach(p => {
+    const row = document.createElement("div");
+    row.className = "part";
+    row.innerHTML = `<span>${p}</span><span>${target.meanings[p]}</span>`;
+    breakdownParts.appendChild(row);
+  });
+  const row = document.createElement("div");
+  row.className = "part";
+  row.innerHTML = `<span><strong>Full meaning</strong></span><span><strong>${target.def}</strong></span>`;
+  breakdownParts.appendChild(row);
+  breakdownEl.classList.add("show");
+}
+
+// ── Daily streak ──
+function loadStreakState(){
+  const last = localStorage.getItem("worddecoder-lastPlayedDate");
+  const streak = parseInt(localStorage.getItem("worddecoder-streak") || "0", 10);
+  dailyAlreadyPlayedToday = last === todayISO();
+  streakCountEl.textContent = streak;
+}
+function recordDailyResult(){
+  const today = todayISO();
+  const last = localStorage.getItem("worddecoder-lastPlayedDate");
+  let streak = parseInt(localStorage.getItem("worddecoder-streak") || "0", 10);
+  const yesterday = new Date(Date.now() - 86400000);
+  const yISO = yesterday.getFullYear()+"-"+String(yesterday.getMonth()+1).padStart(2,"0")+"-"+String(yesterday.getDate()).padStart(2,"0");
+  streak = (last === yISO) ? streak + 1 : 1;
+  localStorage.setItem("worddecoder-lastPlayedDate", today);
+  localStorage.setItem("worddecoder-streak", String(streak));
+  streakCountEl.textContent = streak;
+  dailyAlreadyPlayedToday = true;
+}
+
+function startNewWord(){
+  target = mode === "daily" ? pickDailyWord() : pickPracticeWord();
+  correctBoundaries = computeCorrectBoundaries(target);
+  activeCuts = new Set();
+  lockedCuts = new Set();
+  attempts1 = [];
+  stage = 1;
+  gameOver = false;
+
+  partsNeeded.textContent = target.parts.length;
+  stageBanner.textContent = "Stage 1 · Find the Parts";
+  stage1Area.style.display = "block";
+  stage2Area.style.display = "none";
+  breakdownEl.classList.remove("show");
+  btnCheckSplit.disabled = false;
+
+  renderStage1();
+
+  if (mode === "daily" && dailyAlreadyPlayedToday){
+    setMessage("You already decoded today's word — nice work! Come back tomorrow, or switch to Practice.", "warn");
+    gameOver = true;
+    btnCheckSplit.disabled = true;
+  } else {
+    setMessage("Click between letters to mark where you think this word splits into parts.");
+  }
+}
+
+// ── Mode controls ──
+function setMode(newMode){
+  mode = newMode;
+  modeDaily.classList.toggle("active", mode === "daily");
+  modePractice.classList.toggle("active", mode === "practice");
+  streakPill.style.display = mode === "daily" ? "inline-flex" : "none";
+  loadStreakState();
+  startNewWord();
+}
+modeDaily.addEventListener("click", () => setMode("daily"));
+modePractice.addEventListener("click", () => setMode("practice"));
+
+btnCheckSplit.addEventListener("click", checkSegmentation);
+btnClearSplit.addEventListener("click", clearSplit);
+btnCheckMeaning.addEventListener("click", checkMeanings);
+btnClearMeaning.addEventListener("click", clearMeaning);
+btnNew.addEventListener("click", () => {
+  if (mode === "daily"){ setMessage("Daily word is the same for everyone today — switch to Practice for more rounds.", "warn"); return; }
+  startNewWord();
+});
+
+// ── Score submission (mirrors the other games) ──
+Object.keys(TEACHERS).forEach(name => {
+  const btn = document.createElement('button');
+  btn.className = 'teacher-btn';
+  btn.textContent = name;
+  btn.type = "button";
+  btn.addEventListener('click', () => {
+    selectedTeacher = name;
+    document.querySelectorAll('.teacher-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    modalError.textContent = '';
+  });
+  teacherGrid.appendChild(btn);
+});
+btnReportScore.onclick = () => {
+  modalPointsDisplay.textContent = totalBankedPoints;
+  studentIdInput.value = '';
+  studentNameInput.value = '';
+  selectedTeacher = null;
+  modalError.textContent = '';
+  modalConfirmBtn.disabled = false;
+  modalConfirmBtn.textContent = 'Submit Points';
+  document.querySelectorAll('.teacher-btn').forEach(b => b.classList.remove('selected'));
+  submitModal.classList.add('open');
+  setTimeout(() => studentIdInput.focus(), 100);
+};
+modalCancelBtn.onclick = () => submitModal.classList.remove('open');
+modalConfirmBtn.onclick = async () => {
+  const id = studentIdInput.value.trim();
+  const name = studentNameInput.value.trim();
+  if (!id){ modalError.textContent = "Please enter your student ID."; studentIdInput.focus(); return; }
+  if (!name){ modalError.textContent = "Please enter your name."; studentNameInput.focus(); return; }
+  if (!selectedTeacher){ modalError.textContent = "Please select your teacher."; return; }
+  modalError.textContent = '';
+  modalConfirmBtn.disabled = true;
+  modalConfirmBtn.textContent = 'Submitting…';
+  const teacher = TEACHERS[selectedTeacher];
+  const payload = { v:1, sim: SIM_ID, name, score: totalBankedPoints, t: Date.now(), nonce: Math.random().toString(36).slice(2,10) };
+  const core = JSON.stringify(payload);
+  payload.sig = fnv1a(core + "|" + TOKEN_SALT).toString(16);
+  const token = btoa(JSON.stringify(payload));
+  const body = new URLSearchParams();
+  body.set(teacher.entries.studentID, id);
+  body.set(teacher.entries.displayName, name);
+  body.set(teacher.entries.sim, SIM_ID);
+  body.set(teacher.entries.score, String(totalBankedPoints));
+  body.set(teacher.entries.token, token);
+  try {
+    await fetch(teacher.formUrl, { method:"POST", mode:"no-cors", headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"}, body: body.toString() });
+    alert(`Points successfully submitted to ${selectedTeacher}! Screen will now refresh.`);
+  } catch (error){
+    console.error(error);
+    alert("Network response failure. Please capture or show this screen to your teacher!");
+  } finally {
+    location.reload();
+  }
+};
+
+// ── Boot ──
+loadStreakState();
+setMode("daily");
+</script>
+</body>
+</html>
