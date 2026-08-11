@@ -1,0 +1,1194 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Class Hub</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;700;800;900&family=Space+Mono:wght@400;700&display=swap');
+  :root{
+    --bg:#f6d2ff; --panel:#f9f4fd; --ink:#1f1f1f; --muted:#40334f;
+    --accent:#4c13a8; --accent2:#f04bd8; --good:#2ecc71; --bad:#ff6b6b;
+    --red:#ff5b5b; --yellow:#ffc94d; --green:#4cd97b;
+    --shadow:0 10px 30px rgba(0,0,0,.10); --radius:18px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;padding-bottom:76px;}
+  header{background:rgb(230,173,255);border-bottom:1px solid #ddd;padding:14px 20px;text-align:center;position:sticky;top:0;z-index:5;}
+  header h1{font-size:1.2rem;font-weight:900;color:var(--accent);}
+  .wrap{max-width:950px;margin:0 auto;padding:20px 16px;}
+  .card{background:var(--panel);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px;border:1px solid rgba(0,0,0,.05);margin-bottom:16px;}
+
+  /* ── Identity screen ─────────────────────────────── */
+  label{display:block;font-weight:800;font-size:.85rem;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin-bottom:6px;}
+  select,textarea{width:100%;padding:14px 16px;border:2px solid #ddd;border-radius:12px;font-family:'Nunito',sans-serif;font-size:1rem;font-weight:700;margin-bottom:18px;resize:vertical;}
+  textarea{font-weight:600;min-height:70px;}
+  .btn{width:100%;background:var(--accent);color:white;border:none;padding:16px;border-radius:14px;font-weight:900;font-size:1.1rem;cursor:pointer;box-shadow:0 4px 14px rgba(76,19,168,.3);}
+  .icon-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;}
+  .icon-btn{font-size:1.6rem;padding:10px;border:3px solid transparent;background:#ede7f6;border-radius:12px;cursor:pointer;text-align:center;}
+  .icon-btn.selected{border-color:var(--accent2);background:rgba(240,75,216,.12);}
+
+  /* ── Tab bar ─────────────────────────────────────── */
+  .tabbar{position:fixed;bottom:0;left:0;right:0;background:white;border-top:1px solid #e2d5ee;display:flex;justify-content:space-around;padding:8px 4px;z-index:10;}
+  .tab{flex:1;text-align:center;background:none;border:none;font-family:'Nunito',sans-serif;font-weight:800;font-size:.7rem;color:var(--muted);cursor:pointer;padding:6px 2px;}
+  .tab .t-icon{display:block;font-size:1.3rem;margin-bottom:2px;}
+  .tab.active{color:var(--accent2);}
+
+  /* ── Badge / balance (shared look) ──────────────── */
+  .badge{display:flex;align-items:center;gap:14px;margin-bottom:16px;}
+  .badge .icon{font-size:2.2rem;}
+  .badge .name{font-size:1.2rem;font-weight:900;color:var(--accent);}
+  .balance{text-align:center;padding:18px;background:linear-gradient(135deg,var(--accent) 0%,#7b2ff7 100%);border-radius:16px;color:white;margin-bottom:16px;}
+  .balance .num{font-size:2.4rem;font-weight:900;}
+  .balance .label{font-size:.75rem;text-transform:uppercase;letter-spacing:.08em;font-weight:800;opacity:.9;}
+  .note-box{background:#fff8e1;border-radius:12px;padding:14px 16px;font-weight:700;color:#5a4a1a;font-size:.9rem;margin-bottom:16px;display:none;}
+
+  .goal-title{font-weight:900;font-size:.8rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;}
+  .goal-track{background:#ede7f6;border-radius:10px;height:24px;overflow:hidden;margin-bottom:6px;}
+  .goal-fill{height:100%;background:var(--accent2);border-radius:10px;transition:width .6s ease;width:0%;}
+  .goal-nums{font-size:.8rem;font-weight:700;color:var(--muted);text-align:center;}
+
+  /* ── Shop ─────────────────────────────────────────── */
+  .shop-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+  .shop-item{background:#ede7f6;border-radius:12px;padding:12px;text-align:center;}
+  .shop-item .icon{font-size:1.6rem;margin-bottom:4px;}
+  .shop-item .item-name{font-weight:800;font-size:.8rem;margin-bottom:4px;}
+  .shop-item .cost{font-weight:900;color:var(--accent);font-size:.85rem;margin-bottom:8px;}
+  .shop-btn{width:100%;border:none;padding:8px;border-radius:8px;font-weight:800;font-size:.75rem;cursor:pointer;background:var(--good);color:white;}
+  .shop-btn:disabled{background:#ccc;cursor:default;}
+  .req-pill{display:inline-block;background:#fff8e1;color:#5a4a1a;border-radius:20px;padding:4px 12px;font-size:.7rem;font-weight:700;margin:3px 3px 0 0;}
+  .req-pill.approved{background:#d4edda;color:#155724;}
+  .req-pill.denied{background:#f8d7da;color:#721c24;}
+
+  /* ── Help ─────────────────────────────────────────── */
+  .sev-btn{width:100%;border:none;color:white;padding:18px;border-radius:14px;font-weight:900;font-size:1rem;cursor:pointer;margin-bottom:12px;text-align:left;display:flex;align-items:center;gap:14px;}
+  .sev-btn .dot{width:18px;height:18px;border-radius:50%;background:white;flex-shrink:0;}
+  .sev-btn.red{background:var(--red);}
+  .sev-btn.yellow{background:var(--yellow);color:#4a3b00;}
+  .sev-btn.green{background:var(--green);}
+  .sev-desc{font-weight:600;font-size:.75rem;opacity:.85;display:block;margin-top:2px;}
+  .waiting-box{text-align:center;}
+  .waiting-box .big-dot{width:60px;height:60px;border-radius:50%;margin:0 auto 14px;}
+  .waiting-box .big-dot.red{background:var(--red);}
+  .waiting-box .big-dot.yellow{background:var(--yellow);}
+  .waiting-box .big-dot.green{background:var(--green);}
+  .waiting-box .msg{font-weight:800;font-size:1rem;margin-bottom:16px;}
+  .change-row{display:flex;gap:8px;margin-bottom:10px;}
+  .change-row button{flex:1;border:none;border-radius:10px;padding:10px;font-weight:800;color:white;cursor:pointer;font-size:.8rem;}
+  .cancel-btn{width:100%;background:var(--muted);color:white;border:none;padding:12px;border-radius:10px;font-weight:800;cursor:pointer;margin-top:8px;}
+
+  /* ── Agenda / lists ──────────────────────────────── */
+  .agenda-date{font-size:.75rem;font-weight:800;color:var(--accent2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;}
+  .agenda-msg{font-size:1rem;font-weight:700;line-height:1.5;white-space:pre-wrap;}
+  .search-box{width:100%;padding:12px 14px;border:2px solid #ddd;border-radius:12px;font-size:.95rem;margin-bottom:14px;}
+  .root-row{display:flex;justify-content:space-between;padding:10px 4px;border-bottom:1px solid #ede7f6;}
+  .root-word{font-weight:900;color:var(--accent);}
+  .root-meaning{font-weight:600;color:var(--muted);}
+
+  /* ── Vocab: Study/Play sub-tabs + matching game ─────────── */
+  .vocab-modes{display:flex;gap:8px;}
+  .vmode-btn{flex:1;border:none;background:#ede7f6;color:var(--muted);font-weight:800;padding:10px;border-radius:10px;cursor:pointer;font-size:.85rem;}
+  .vmode-btn.active{background:var(--accent);color:white;}
+  .game-status{text-align:center;font-weight:800;color:var(--muted);font-size:.85rem;margin-bottom:10px;}
+  .game-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+  .game-tile{background:#ede7f6;border:3px solid transparent;border-radius:12px;padding:14px 8px;font-weight:800;font-size:.82rem;text-align:center;cursor:pointer;min-height:56px;display:flex;align-items:center;justify-content:center;line-height:1.2;}
+  .game-tile.selected{border-color:var(--accent2);background:rgba(240,75,216,.12);}
+  .game-tile.matched{background:rgba(76,217,123,.3);color:#1c7a3e;cursor:default;opacity:.55;}
+  .game-tile.wrong{background:rgba(255,107,107,.35);}
+  .game-result{text-align:center;}
+  .game-result .score-big{font-size:1.6rem;font-weight:900;color:var(--accent);margin:6px 0;}
+  .game-result .pts-earned{font-weight:800;color:var(--accent2);margin:10px 0 16px;}
+  .wywo-item{padding:12px 0;border-bottom:1px solid #ede7f6;}
+  .wywo-date{font-weight:900;font-size:.85rem;color:var(--accent2);}
+  .wywo-desc{font-weight:600;margin:4px 0 8px;}
+  .link-btn{display:block;width:100%;text-align:center;background:var(--accent);color:white;text-decoration:none;padding:12px;border-radius:10px;font-weight:800;margin-bottom:10px;}
+
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;text-align:center;}
+  .cal-dow{font-size:.7rem;font-weight:800;color:var(--muted);text-transform:uppercase;padding:4px 0;}
+  .cal-day{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:6px 2px 5px;min-height:58px;border-radius:12px;font-weight:800;font-size:.8rem;background:#ede7f6;}
+  .cal-day.today{background:var(--accent);color:white;}
+  .cal-day.blank{background:transparent;min-height:0;}
+  .cal-day-num{line-height:1;}
+  .cal-icons{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:1px;margin-top:3px;line-height:1;max-width:100%;}
+  .cal-icons .cal-icon{font-size:1.05rem;}
+  .cal-icons .cal-icon-more{font-size:.65rem;font-weight:800;color:var(--muted);align-self:center;}
+  .cal-day.today .cal-icons .cal-icon-more{color:white;}
+  .cal-day.has-deadline{cursor:pointer;}
+  @media (min-width:400px){
+    .cal-day{min-height:64px;padding:8px 2px 6px;}
+    .cal-icons .cal-icon{font-size:1.15rem;}
+  }
+  .cal-tooltip{position:fixed;background:var(--ink);color:white;padding:8px 12px;border-radius:10px;font-size:.8rem;font-weight:700;max-width:220px;z-index:50;pointer-events:none;box-shadow:0 6px 18px rgba(0,0,0,.25);display:none;}
+  .cal-hint{text-align:center;font-size:.7rem;color:var(--muted);font-weight:600;margin-top:8px;opacity:.7;}
+  .dl-item{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #ede7f6;}
+  .dl-item .dl-name{font-weight:800;}
+  .dl-item .dl-type{font-size:.75rem;color:var(--muted);font-weight:600;display:block;margin-top:2px;}
+  .dl-item .dl-when{font-weight:900;color:var(--accent2);font-size:.85rem;text-align:right;white-space:nowrap;}
+
+  .empty{text-align:center;color:var(--muted);font-weight:700;padding:20px;}
+
+  /* ── Today: unit question / word of day / homework ──── */
+  .uq-box{background:linear-gradient(135deg,var(--accent) 0%,#7b2ff7 100%);color:white;border-radius:14px;padding:14px 16px;margin-bottom:16px;}
+  .uq-label{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;opacity:.85;margin-bottom:4px;}
+  .uq-text{font-weight:800;font-size:1.05rem;line-height:1.35;}
+  .wod-box{background:#ede7f6;border-radius:14px;padding:14px 16px;margin-bottom:16px;}
+  .wod-label{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:4px;}
+  .wod-word{font-weight:900;font-size:1.1rem;color:var(--accent);}
+  .wod-def{font-weight:600;color:var(--muted);margin-top:2px;}
+  .hw-today-item{padding:8px 0;border-bottom:1px solid #ede7f6;font-weight:700;}
+  .hw-today-item .hw-type{font-weight:600;color:var(--muted);font-size:.8rem;margin-left:4px;}
+
+  .dl-item.checked .dl-name{text-decoration:line-through;opacity:.5;}
+  .dl-item.checked .dl-type{opacity:.5;}
+  .dl-check{width:22px;height:22px;margin-right:10px;flex-shrink:0;accent-color:var(--accent2);}
+  .dl-item{gap:8px;}
+  .dl-left{display:flex;align-items:center;flex:1;min-width:0;}
+</style>
+</head>
+<body>
+<header><h1 id="header-title">🧪 Class Hub</h1></header>
+
+<!-- ══ IDENTITY: PICK NAME ══ -->
+<div class="wrap" id="pick-screen">
+  <div class="card">
+    <label>Find your name</label>
+    <select id="name-select"><option value="">Loading roster…</option></select>
+    <button class="btn" onclick="chooseName()">Continue</button>
+  </div>
+</div>
+
+<!-- ══ IDENTITY: PICK ICON (first time only) ══ -->
+<div class="wrap" id="icon-screen" style="display:none;">
+  <div class="card">
+    <label>Pick your icon (yours all year!)</label>
+    <div class="icon-grid" id="icon-grid"></div>
+    <button class="btn" onclick="confirmIcon()">Lock It In</button>
+  </div>
+</div>
+
+<!-- ══ MAIN APP ══ -->
+<div id="app" style="display:none;">
+
+  <!-- TODAY / AGENDA -->
+  <div class="wrap tabview" id="view-today">
+    <div class="card">
+      <div class="badge"><span class="icon" id="dash-icon">⭐</span><span class="name" id="dash-name">Student</span></div>
+    </div>
+    <div class="card">
+      <div class="uq-box" id="uq-box" style="display:none;">
+        <div class="uq-label">🎯 Unit Question</div>
+        <div class="uq-text" id="uq-text"></div>
+      </div>
+      <div class="wod-box" id="wod-box" style="display:none;">
+        <div class="wod-label">🔤 Science Word of the Day</div>
+        <div class="wod-word" id="wod-word"></div>
+        <div class="wod-def" id="wod-def"></div>
+      </div>
+      <div class="goal-title">📌 Today</div>
+      <div class="agenda-date" id="agenda-date"></div>
+      <div class="agenda-msg" id="agenda-msg">Loading…</div>
+      <a class="link-btn" id="agenda-materials-link" href="#" target="_blank" style="display:none;margin-top:14px;">📎 Materials</a>
+      <a class="link-btn" id="bellringer-link" href="#" target="_blank" style="display:none;margin-top:10px;">📝 Today's Bell Ringer / Exit Ticket</a>
+    </div>
+    <div class="card" id="hw-today-card" style="display:none;">
+      <div class="goal-title">📝 Due Today</div>
+      <div id="hw-today-list"></div>
+    </div>
+  </div>
+
+  <!-- DEADLINES -->
+  <div class="wrap tabview" id="view-deadlines" style="display:none;">
+    <div class="card">
+      <div class="goal-title" id="cal-month-label">📅 Calendar</div>
+      <div class="cal-grid" id="cal-grid"></div>
+      <div class="cal-hint">Hold Shift and hover a day to see what's due</div>
+    </div>
+    <div class="card">
+      <div class="goal-title">⏰ Upcoming</div>
+      <div id="deadlines-list">Loading…</div>
+    </div>
+  </div>
+
+  <!-- POINTS -->
+  <div class="wrap tabview" id="view-points" style="display:none;">
+    <div class="card">
+      <div class="balance">
+        <div class="num" id="dash-points">0</div>
+        <div class="label">Your Points</div>
+      </div>
+      <div class="note-box" id="dash-note"></div>
+    </div>
+    <div class="card">
+      <div class="goal-title">🍪 Class Goal Progress</div>
+      <div class="goal-track"><div class="goal-fill" id="goal-fill"></div></div>
+      <div class="goal-nums" id="goal-nums">Loading…</div>
+    </div>
+    <div class="card">
+      <div class="goal-title">🎁 Reward Shop</div>
+      <div id="shop-grid" class="shop-grid"></div>
+      <div id="my-requests"></div>
+    </div>
+  </div>
+
+  <!-- HELP -->
+  <div class="wrap tabview" id="view-help" style="display:none;">
+    <div class="card" id="help-submit-card">
+      <label>How stuck are you?</label>
+      <button class="sev-btn red" onclick="pickSeverity('red')">
+        <span class="dot"></span>
+        <span>Red<span class="sev-desc">Can't move forward — totally stuck</span></span>
+      </button>
+      <button class="sev-btn yellow" onclick="pickSeverity('yellow')">
+        <span class="dot"></span>
+        <span>Yellow<span class="sev-desc">Stuck, but can keep working on other parts</span></span>
+      </button>
+      <button class="sev-btn green" onclick="pickSeverity('green')">
+        <span class="dot"></span>
+        <span>Green<span class="sev-desc">Quick question — not blocking me</span></span>
+      </button>
+    </div>
+    <div class="card" id="help-note-card" style="display:none;">
+      <label>What are you stuck on? (optional)</label>
+      <textarea id="note-field" placeholder="e.g. question 4, don't understand the graph..."></textarea>
+      <button class="btn" onclick="submitRequest()">Send Request</button>
+    </div>
+    <div class="card waiting-box" id="help-waiting-card" style="display:none;">
+      <div class="big-dot" id="waiting-dot"></div>
+      <div class="msg" id="waiting-msg">Request sent!</div>
+      <div class="change-row">
+        <button style="background:var(--red);" onclick="changeSeverity('red')">Red</button>
+        <button style="background:var(--yellow);color:#4a3b00;" onclick="changeSeverity('yellow')">Yellow</button>
+        <button style="background:var(--green);" onclick="changeSeverity('green')">Green</button>
+      </div>
+      <button class="cancel-btn" onclick="cancelMyRequest()">I figured it out — Cancel</button>
+    </div>
+  </div>
+
+  <!-- ROOT WORDS / VOCAB -->
+  <div class="wrap tabview" id="view-roots" style="display:none;">
+    <div class="card">
+      <div class="vocab-modes">
+        <button class="vmode-btn active" id="vmode-study" onclick="switchVocabMode('study')">📖 Study</button>
+        <button class="vmode-btn" id="vmode-play" onclick="switchVocabMode('play')">🎮 Play</button>
+      </div>
+    </div>
+    <div class="card" id="vocab-study-card">
+      <input class="search-box" id="root-search" placeholder="Search a root or meaning…" oninput="renderRoots()">
+      <div id="root-list"></div>
+    </div>
+    <div class="card" id="vocab-game-card" style="display:none;">
+      <div id="game-setup">
+        <label>Pick a unit to review</label>
+        <select id="game-unit-select"></select>
+        <button class="btn" onclick="startGame()">🎮 Start Matching Game</button>
+      </div>
+      <div id="game-board-wrap" style="display:none;">
+        <div class="game-status" id="game-status"></div>
+        <div class="game-grid" id="game-grid"></div>
+      </div>
+      <div class="game-result" id="game-result" style="display:none;"></div>
+    </div>
+  </div>
+
+  <!-- MISSED WORK -->
+  <div class="wrap tabview" id="view-wywo" style="display:none;">
+    <div class="card">
+      <div class="goal-title">📁 While You Were Out</div>
+      <div id="wywo-list">Loading…</div>
+    </div>
+  </div>
+
+  <!-- LINKS -->
+  <div class="wrap tabview" id="view-links" style="display:none;">
+    <div class="card">
+      <div class="goal-title">🔗 Class Links</div>
+      <div id="links-list">Loading…</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- TAB BAR -->
+<div class="tabbar" id="tabbar" style="display:none;">
+  <button class="tab active" data-tab="today" onclick="switchTab('today')"><span class="t-icon">📌</span>Today</button>
+  <button class="tab" data-tab="points" onclick="switchTab('points')"><span class="t-icon">⭐</span>Points</button>
+  <button class="tab" data-tab="help" onclick="switchTab('help')"><span class="t-icon">🙋</span>Help</button>
+  <button class="tab" data-tab="deadlines" onclick="switchTab('deadlines')"><span class="t-icon">📅</span>Deadlines</button>
+  <button class="tab" data-tab="roots" onclick="switchTab('roots')"><span class="t-icon">📚</span>Vocab</button>
+  <button class="tab" data-tab="wywo" onclick="switchTab('wywo')"><span class="t-icon">📁</span>Missed</button>
+  <button class="tab" data-tab="links" onclick="switchTab('links')"><span class="t-icon">🔗</span>Links</button>
+</div>
+
+<script>
+// ── CONFIG — fill these in ──────────────────────────────
+const SHEET_ID      = '1hcrOxColtV2Yb9zrNThX5Pk1KU0O-Tn9kuSLM5q3ffc';
+const GID_POINTS    = 0;
+const GID_SETTINGS  = 1014050203;
+const GID_REWARDS   = 1889239929;
+const GID_REQUESTS  = 797501889;
+const GID_HELP      = 2115945135;   // ← set to your HelpRequests tab GID
+const GID_AGENDA    = 534645066;   // ← set to your Agenda tab GID
+const GID_ROOTWORDS = 1417955683;   // ← set to your RootWords tab GID
+const GID_LINKS     = 1363213121;   // ← set to your Links tab GID
+// GID_WYWO is no longer used — the "Missed" tab now reads from GID_AGENDA
+// directly (see renderMissed()). Your old WhileYouWereOut sheet tab is safe
+// to keep as an archive, or delete it — the code no longer touches it.
+const SCRIPT_URL    = 'https://script.google.com/macros/s/AKfycbxQFpJmB8Jc6Rwj-L255Ea6YgpPS9A1LyPZ3QKBIpoY5kbHwWPe5Q60HoqfuaQDCJqP/exec';
+
+const ICONS = ['🧪','⚗️','🔬','🧬','🍄','🔥','🐢','🌡️','🧲','💎','🌊','🍀','🦋','🌙','⭐','🎯','🚀','🦊','🐝','🐬'];
+
+// ── CLASS SETUP ──────────────────────────────────────────
+// Each class period gets its own bookmark link, e.g.:
+//   student-hub.html?class=6A   student-hub.html?class=6B
+//   student-hub.html?class=7    student-hub.html?class=8
+// Edit the labels/grades below to match your actual periods.
+const CLASS_INFO = {
+  '6A': {grade: '6', label: '6th Grade — Period A', bellRingerUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSfAELIhm0uKhnPgj-Q-ItfcCrfCZPAUhhLcno1wSMmlrmojhw/viewform?usp=header'},
+  '6B': {grade: '6', label: '6th Grade — Period B', bellRingerUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSfAELIhm0uKhnPgj-Q-ItfcCrfCZPAUhhLcno1wSMmlrmojhw/viewform?usp=header'},
+  '7':  {grade: '7', label: '7th Grade', bellRingerUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSfAELIhm0uKhnPgj-Q-ItfcCrfCZPAUhhLcno1wSMmlrmojhw/viewform?usp=header'},
+  '8':  {grade: '8', label: '8th Grade', bellRingerUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSfAELIhm0uKhnPgj-Q-ItfcCrfCZPAUhhLcno1wSMmlrmojhw/viewform?usp=header'}
+};
+const CLASS_CODE = new URLSearchParams(window.location.search).get('class') || '6A';
+const CLASS_GRADE = (CLASS_INFO[CLASS_CODE] || CLASS_INFO['6A']).grade;
+const CLASS_LABEL = (CLASS_INFO[CLASS_CODE] || CLASS_INFO['6A']).label;
+const BELLRINGER_URL = (CLASS_INFO[CLASS_CODE] || CLASS_INFO['6A']).bellRingerUrl;
+document.getElementById('header-title').textContent = '🧪 ' + CLASS_LABEL;
+
+const GID_DEADLINES = 570020299; // ← set to your Deadlines tab GID
+const GID_UNITQ     = 531046057; // ← set to your UnitQuestion tab GID (columns: Grade | Question — one row per grade, just overwrite the Question when the unit changes)
+const GID_WORDOFDAY = 1446449667;// ← set to your WordOfDay tab GID (columns: Date | Word | Definition | Grade — same pattern as Agenda, so you can schedule words ahead of time)
+
+let roster = [];
+let myRow = null;
+let pickedIcon = null;
+let pendingSeverity = null;
+let myRequestRow = null;
+let rootWords = [];
+let pollTimers = [];
+
+const savedRow = localStorage.getItem('pointsRow');
+
+window.onload = () => loadRoster(() => {
+  if (savedRow && roster.find(s => s.row === Number(savedRow))) {
+    myRow = Number(savedRow);
+    enterApp();
+  }
+});
+
+function loadRoster(cb) {
+  gvizQuery(GID_POINTS, (rows) => {
+    roster = rows.map((r, i) => ({
+      row: i + 2,
+      icon: (r.c[0] && r.c[0].v != null) ? r.c[0].v : '',
+      name: (r.c[1] && r.c[1].v != null) ? r.c[1].v : '',
+      points: (r.c[2] && r.c[2].v != null) ? Number(r.c[2].v) : 0,
+      note: (r.c[3] && r.c[3].v != null) ? r.c[3].v : '',
+      classCode: (r.c[4] && r.c[4].v != null) ? String(r.c[4].v).trim() : ''
+    })).filter(s => s.name && s.classCode === CLASS_CODE);
+
+    const sel = document.getElementById('name-select');
+    sel.innerHTML = '<option value="">Select your name…</option>' +
+      roster.map(s => `<option value="${s.row}">${s.name}</option>`).join('');
+
+    if (cb) cb();
+  });
+}
+
+function chooseName() {
+  const row = Number(document.getElementById('name-select').value);
+  if (!row) { alert('Please select your name'); return; }
+  myRow = row;
+  const student = roster.find(s => s.row === row);
+
+  if (!student.icon) {
+    const grid = document.getElementById('icon-grid');
+    grid.innerHTML = '';
+    ICONS.forEach(ic => {
+      const btn = document.createElement('div');
+      btn.className = 'icon-btn';
+      btn.textContent = ic;
+      btn.onclick = () => {
+        document.querySelectorAll('.icon-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        pickedIcon = ic;
+      };
+      grid.appendChild(btn);
+    });
+    document.getElementById('pick-screen').style.display = 'none';
+    document.getElementById('icon-screen').style.display = 'block';
+  } else {
+    localStorage.setItem('pointsRow', myRow);
+    enterApp();
+  }
+}
+
+function confirmIcon() {
+  if (!pickedIcon) { alert('Pick an icon first!'); return; }
+  fetch(`${SCRIPT_URL}?action=setIcon&sheetId=${SHEET_ID}&row=${myRow}&icon=${encodeURIComponent(pickedIcon)}`, {mode:'no-cors'}).catch(()=>{});
+  localStorage.setItem('pointsRow', myRow);
+  const s = roster.find(x => x.row === myRow); s.icon = pickedIcon;
+  enterApp();
+}
+
+function enterApp() {
+  document.getElementById('pick-screen').style.display = 'none';
+  document.getElementById('icon-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('tabbar').style.display = 'flex';
+
+  const s = roster.find(x => x.row === myRow);
+  document.getElementById('dash-icon').textContent = s.icon || '⭐';
+  document.getElementById('dash-name').textContent = s.name;
+
+  loadAgenda(); // also populates the "Missed" tab — see renderMissed()
+  refreshPoints();
+  checkExistingHelp();
+  loadRootWords();
+  loadLinks();
+  loadDeadlines();
+  loadUnitQuestion();
+  loadWordOfDay();
+
+  if (BELLRINGER_URL) {
+    const link = document.getElementById('bellringer-link');
+    link.href = BELLRINGER_URL;
+    link.style.display = 'block';
+  }
+
+  pollTimers.push(setInterval(refreshPoints, 8000));
+  pollTimers.push(setInterval(pollHelpStatus, 6000));
+}
+
+function switchTab(name) {
+  document.querySelectorAll('.tabview').forEach(v => v.style.display = 'none');
+  document.getElementById('view-' + name).style.display = 'block';
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+}
+
+// ══ TODAY / AGENDA ══════════════════════════════════════
+// Agenda is now the single source of truth for both the "Today" card and
+// the "What You Missed" tab — columns: Date | Message | Grade | Link
+// (Link is optional; fill it in whenever there's something a student would
+// need to catch up on, e.g. a worksheet or article).
+function loadAgenda() {
+  gvizQuery(GID_AGENDA, (rows) => {
+    const items = rows
+      .map(r => ({
+        date: parseGvizDate(r.c[0] ? r.c[0].v : null),
+        message: r.c[1] && r.c[1].v != null ? r.c[1].v : '',
+        grade: r.c[2] && r.c[2].v != null ? String(r.c[2].v).trim() : '',
+        link: r.c[3] && r.c[3].v != null ? r.c[3].v : ''
+      }))
+      .filter(r => r.date && r.grade === CLASS_GRADE);
+
+    if (!items.length) {
+      document.getElementById('agenda-date').textContent = '';
+      document.getElementById('agenda-msg').textContent = 'Nothing posted yet — check back soon!';
+      renderMissed([]);
+      return;
+    }
+
+    const todayKey = dateKey(new Date());
+    let match = items.find(r => dateKey(r.date) === todayKey);
+
+    if (!match) {
+      // No entry for today (e.g. teacher hasn't posted yet) — fall back to
+      // the most recent PAST entry rather than whatever row happens to be last.
+      const past = items.filter(r => r.date.getTime() <= Date.now())
+                         .sort((a, b) => b.date.getTime() - a.date.getTime());
+      match = past[0] || items[items.length - 1];
+    }
+
+    document.getElementById('agenda-date').textContent = match.date.toLocaleDateString(undefined, {weekday:'long', month:'short', day:'numeric'});
+    document.getElementById('agenda-msg').textContent = match.message || 'Nothing posted yet — check back soon!';
+
+    const materialsLink = document.getElementById('agenda-materials-link');
+    if (match.link) {
+      materialsLink.href = match.link;
+      materialsLink.style.display = 'block';
+    } else {
+      materialsLink.style.display = 'none';
+    }
+
+    renderMissed(items);
+  });
+}
+
+function dateKey(d) {
+  return d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate();
+}
+
+// ══ UNIT QUESTION ═══════════════════════════════════════
+// Columns: Grade | Question — one row per grade, just overwrite the
+// Question cell whenever the unit changes. No date logic needed.
+function loadUnitQuestion() {
+  if (!GID_UNITQ) return;
+  gvizQuery(GID_UNITQ, (rows) => {
+    const match = rows
+      .map(r => ({
+        grade: r.c[0] && r.c[0].v != null ? String(r.c[0].v).trim() : '',
+        question: r.c[1] && r.c[1].v != null ? r.c[1].v : ''
+      }))
+      .find(r => r.grade === CLASS_GRADE);
+
+    const box = document.getElementById('uq-box');
+    if (match && match.question) {
+      document.getElementById('uq-text').textContent = match.question;
+      box.style.display = 'block';
+    } else {
+      box.style.display = 'none';
+    }
+  });
+}
+
+// ══ WORD OF THE DAY ═════════════════════════════════════
+// Columns: Date | Word | Definition | Grade — same pattern as Agenda,
+// so words can be scheduled ahead of time. Falls back to the most
+// recent past entry if nothing is posted for today yet.
+function loadWordOfDay() {
+  if (!GID_WORDOFDAY) return;
+  gvizQuery(GID_WORDOFDAY, (rows) => {
+    const items = rows
+      .map(r => ({
+        date: parseGvizDate(r.c[0] ? r.c[0].v : null),
+        word: r.c[1] && r.c[1].v != null ? r.c[1].v : '',
+        def: r.c[2] && r.c[2].v != null ? r.c[2].v : '',
+        grade: r.c[3] && r.c[3].v != null ? String(r.c[3].v).trim() : ''
+      }))
+      .filter(r => r.date && r.word && r.grade === CLASS_GRADE);
+
+    const box = document.getElementById('wod-box');
+    if (!items.length) { box.style.display = 'none'; return; }
+
+    const todayKey = dateKey(new Date());
+    let match = items.find(r => dateKey(r.date) === todayKey);
+    if (!match) {
+      const past = items.filter(r => r.date.getTime() <= Date.now())
+                         .sort((a, b) => b.date.getTime() - a.date.getTime());
+      match = past[0];
+    }
+
+    if (match) {
+      document.getElementById('wod-word').textContent = match.word;
+      document.getElementById('wod-def').textContent = match.def || '';
+      box.style.display = 'block';
+    } else {
+      box.style.display = 'none';
+    }
+  });
+}
+
+// ══ POINTS ══════════════════════════════════════════════
+function refreshPoints() {
+  loadRoster(() => {
+    const s = roster.find(x => x.row === myRow);
+    if (!s) return;
+    document.getElementById('dash-points').textContent = s.points;
+
+    const noteBox = document.getElementById('dash-note');
+    if (s.note) { noteBox.style.display = 'block'; noteBox.textContent = '📝 ' + s.note; }
+    else { noteBox.style.display = 'none'; }
+
+    const liveTotal = roster.reduce((sum, x) => sum + (x.points || 0), 0);
+    gvizQuery(GID_SETTINGS, (rows) => {
+      const goal = findGoal(rows);
+      const pct = Math.min(100, Math.round((liveTotal / goal) * 100));
+      document.getElementById('goal-fill').style.width = pct + '%';
+      document.getElementById('goal-nums').textContent = `${liveTotal} / ${goal} points right now`;
+    });
+
+    loadShop(s);
+  });
+}
+
+function findGoal(rows) {
+  for (const r of rows) {
+    const label = r.c[0] && r.c[0].v != null ? String(r.c[0].v).trim().toLowerCase() : '';
+    const cls = r.c[2] && r.c[2].v != null ? String(r.c[2].v).trim() : '';
+    if (label === 'classgoal' && cls === CLASS_CODE) {
+      return (r.c[1] && r.c[1].v != null) ? Number(r.c[1].v) : 100;
+    }
+  }
+  return 100;
+}
+
+function loadShop(student) {
+  gvizQuery(GID_REWARDS, (rows) => {
+    const rewards = rows.map(r => ({
+      icon: r.c[0] && r.c[0].v != null ? r.c[0].v : '🎁',
+      item: r.c[1] && r.c[1].v != null ? r.c[1].v : '',
+      cost: r.c[2] && r.c[2].v != null ? Number(r.c[2].v) : 0
+    })).filter(r => r.item);
+    renderShop(rewards, student);
+  });
+
+  gvizQuery(GID_REQUESTS, (rows) => {
+    const mine = rows.map((r, i) => ({
+      row: i + 2,
+      studentRow: r.c[1] && r.c[1].v != null ? Number(r.c[1].v) : null,
+      item: r.c[4] && r.c[4].v != null ? r.c[4].v : '',
+      status: r.c[6] && r.c[6].v != null ? r.c[6].v : 'Pending'
+    })).filter(r => r.studentRow === myRow);
+
+    document.getElementById('my-requests').innerHTML = mine.map(r =>
+      `<span class="req-pill ${r.status.toLowerCase()}">${r.item}: ${r.status}</span>`
+    ).join('');
+  });
+}
+
+function renderShop(rewards, student) {
+  document.getElementById('shop-grid').innerHTML = rewards.map(r => {
+    const canAfford = student.points >= r.cost;
+    return `
+      <div class="shop-item">
+        <div class="icon">${r.icon}</div>
+        <div class="item-name">${r.item}</div>
+        <div class="cost">${r.cost} pts</div>
+        <button class="shop-btn" ${canAfford ? '' : 'disabled'}
+          onclick="requestItem('${r.item.replace(/'/g,"\\'")}', ${r.cost}, '${r.icon}')">
+          ${canAfford ? 'Request' : 'Not enough'}
+        </button>
+      </div>`;
+  }).join('');
+}
+
+function requestItem(item, cost, icon) {
+  const student = roster.find(x => x.row === myRow);
+  fetch(`${SCRIPT_URL}?action=requestReward&sheetId=${SHEET_ID}&row=${myRow}&name=${encodeURIComponent(student.name)}&icon=${encodeURIComponent(icon)}&item=${encodeURIComponent(item)}&cost=${cost}&classCode=${CLASS_CODE}`, {mode:'no-cors'}).catch(()=>{});
+  alert(`Requested: ${item}! Your teacher will approve it soon.`);
+}
+
+// ══ HELP ════════════════════════════════════════════════
+function checkExistingHelp() {
+  gvizQuery(GID_HELP, (rows) => {
+    const mine = rows.map((r, i) => ({
+      row: i + 2,
+      studentRow: r.c[1] && r.c[1].v != null ? Number(r.c[1].v) : null,
+      severity: r.c[4] && r.c[4].v != null ? r.c[4].v : 'green',
+      status: r.c[6] && r.c[6].v != null ? r.c[6].v : 'Waiting'
+    })).filter(r => r.studentRow === myRow && r.status === 'Waiting');
+
+    if (mine.length) {
+      myRequestRow = mine[mine.length - 1].row;
+      showWaiting(mine[mine.length - 1].severity);
+    } else {
+      myRequestRow = null;
+      showHelpSubmit();
+    }
+  });
+}
+
+function showHelpSubmit() {
+  document.getElementById('help-submit-card').style.display = 'block';
+  document.getElementById('help-note-card').style.display = 'none';
+  document.getElementById('help-waiting-card').style.display = 'none';
+}
+
+function pickSeverity(sev) {
+  pendingSeverity = sev;
+  document.getElementById('note-field').value = '';
+  document.getElementById('help-submit-card').style.display = 'none';
+  document.getElementById('help-note-card').style.display = 'block';
+}
+
+function submitRequest() {
+  const s = roster.find(x => x.row === myRow);
+  const note = document.getElementById('note-field').value.trim();
+  fetch(`${SCRIPT_URL}?action=submitHelp&sheetId=${SHEET_ID}&row=${myRow}&name=${encodeURIComponent(s.name)}&icon=${encodeURIComponent(s.icon)}&severity=${pendingSeverity}&note=${encodeURIComponent(note)}&classCode=${CLASS_CODE}`, {mode:'no-cors'}).catch(()=>{});
+  showWaiting(pendingSeverity);
+  setTimeout(checkExistingHelp, 800);
+}
+
+function showWaiting(severity) {
+  document.getElementById('help-submit-card').style.display = 'none';
+  document.getElementById('help-note-card').style.display = 'none';
+  document.getElementById('help-waiting-card').style.display = 'block';
+  document.getElementById('waiting-dot').className = 'big-dot ' + severity;
+  const msgs = {red: "Sent! Marked as fully stuck.", yellow: "Sent! Stuck, but can keep working.", green: "Sent! Quick question is on the list."};
+  document.getElementById('waiting-msg').textContent = msgs[severity] || 'Request sent!';
+}
+
+function pollHelpStatus() {
+  if (!myRequestRow) return;
+  gvizQuery(GID_HELP, (rows) => {
+    const r = rows[myRequestRow - 2];
+    const status = r && r.c[6] && r.c[6].v != null ? r.c[6].v : 'Waiting';
+    if (status !== 'Waiting') {
+      myRequestRow = null;
+      showHelpSubmit();
+    }
+  });
+}
+
+function changeSeverity(sev) {
+  if (!myRequestRow) return;
+  fetch(`${SCRIPT_URL}?action=updateSeverity&sheetId=${SHEET_ID}&row=${myRequestRow}&severity=${sev}`, {mode:'no-cors'}).catch(()=>{});
+  showWaiting(sev);
+}
+
+function cancelMyRequest() {
+  if (!myRequestRow) return;
+  fetch(`${SCRIPT_URL}?action=cancelHelp&sheetId=${SHEET_ID}&row=${myRequestRow}`, {mode:'no-cors'}).catch(()=>{});
+  myRequestRow = null;
+  showHelpSubmit();
+}
+
+// ══ ROOT WORDS / VOCAB ══════════════════════════════════
+function loadRootWords() {
+  gvizQuery(GID_ROOTWORDS, (rows) => {
+    rootWords = rows.map(r => ({
+      root: r.c[0] && r.c[0].v != null ? r.c[0].v : '',
+      meaning: r.c[1] && r.c[1].v != null ? r.c[1].v : '',
+      grade: r.c[2] && r.c[2].v != null ? String(r.c[2].v).trim() : '',
+      unit: r.c[3] && r.c[3].v != null ? String(r.c[3].v).trim() : ''
+    })).filter(r => r.root && r.grade === CLASS_GRADE);
+    renderRoots();
+    populateGameUnits();
+  });
+}
+
+function renderRoots() {
+  const q = document.getElementById('root-search').value.trim().toLowerCase();
+  const filtered = rootWords.filter(r =>
+    !q || r.root.toLowerCase().includes(q) || r.meaning.toLowerCase().includes(q)
+  );
+  const list = document.getElementById('root-list');
+  if (!filtered.length) { list.innerHTML = '<div class="empty">No matches</div>'; return; }
+  list.innerHTML = filtered.map(r =>
+    `<div class="root-row"><span class="root-word">${r.root}</span><span class="root-meaning">${r.meaning}</span></div>`
+  ).join('');
+}
+
+// ── Study / Play sub-tabs ────────────────────────────────
+function switchVocabMode(mode) {
+  document.getElementById('vmode-study').classList.toggle('active', mode === 'study');
+  document.getElementById('vmode-play').classList.toggle('active', mode === 'play');
+  document.getElementById('vocab-study-card').style.display = mode === 'study' ? 'block' : 'none';
+  document.getElementById('vocab-game-card').style.display = mode === 'play' ? 'block' : 'none';
+  if (mode === 'play') resetGameSetup();
+}
+
+// ── Matching game ─────────────────────────────────────────
+let gamePairs = [];
+let gameTiles = [];
+let gameSelected = null;
+let gameMismatches = 0;
+let gameLocked = false;
+const GAME_ROUND_SIZE = 6;   // pairs per round (capped by however much vocab exists)
+const GAME_DAILY_CAP = 3;    // rounds/day that actually earn points — replaying beyond
+                              // this is still fun, it just stops paying out, so kids
+                              // can't just grind the same 6 words for infinite points.
+
+function populateGameUnits() {
+  const sel = document.getElementById('game-unit-select');
+  if (!sel) return;
+  const units = [...new Set(rootWords.map(r => r.unit).filter(Boolean))];
+  sel.innerHTML = '<option value="__all__">All units so far</option>' +
+    units.map(u => `<option value="${u.replace(/"/g,'&quot;')}">${u}</option>`).join('');
+}
+
+function resetGameSetup() {
+  document.getElementById('game-setup').style.display = 'block';
+  document.getElementById('game-board-wrap').style.display = 'none';
+  document.getElementById('game-result').style.display = 'none';
+}
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function startGame() {
+  const unit = document.getElementById('game-unit-select').value;
+  const pool = unit === '__all__' ? rootWords : rootWords.filter(r => r.unit === unit);
+
+  if (pool.length < 3) {
+    alert('Not enough vocab words here yet to play — try "All units so far," or ask your teacher to add more.');
+    return;
+  }
+
+  const size = Math.min(GAME_ROUND_SIZE, pool.length);
+  gamePairs = shuffle(pool).slice(0, size).map((p, i) => ({...p, pairId: i}));
+  gameMismatches = 0;
+  gameSelected = null;
+  gameLocked = false;
+
+  gameTiles = shuffle([
+    ...gamePairs.map(p => ({tileId: 'r' + p.pairId, pairId: p.pairId, text: p.root, matched: false})),
+    ...gamePairs.map(p => ({tileId: 'm' + p.pairId, pairId: p.pairId, text: p.meaning, matched: false}))
+  ]);
+
+  document.getElementById('game-setup').style.display = 'none';
+  document.getElementById('game-board-wrap').style.display = 'block';
+  document.getElementById('game-result').style.display = 'none';
+  updateGameStatus();
+  renderGameBoard();
+}
+
+function renderGameBoard() {
+  const grid = document.getElementById('game-grid');
+  grid.innerHTML = gameTiles.map(t => `
+    <div class="game-tile ${t.matched ? 'matched' : ''} ${gameSelected && gameSelected.tileId === t.tileId ? 'selected' : ''}"
+      data-tile="${t.tileId}" onclick="tapTile('${t.tileId}')">${t.text}</div>
+  `).join('');
+}
+
+function updateGameStatus() {
+  const matchedPairs = gameTiles.filter(t => t.matched).length / 2;
+  document.getElementById('game-status').textContent =
+    `${matchedPairs} / ${gamePairs.length} matched  ·  ${gameMismatches} miss${gameMismatches === 1 ? '' : 'es'}`;
+}
+
+function tapTile(tileId) {
+  if (gameLocked) return;
+  const tile = gameTiles.find(t => t.tileId === tileId);
+  if (!tile || tile.matched) return;
+
+  if (!gameSelected) {
+    gameSelected = tile;
+    renderGameBoard();
+    return;
+  }
+  if (gameSelected.tileId === tile.tileId) {
+    gameSelected = null;
+    renderGameBoard();
+    return;
+  }
+
+  if (gameSelected.pairId === tile.pairId) {
+    gameSelected.matched = true;
+    tile.matched = true;
+    gameSelected = null;
+    renderGameBoard();
+    updateGameStatus();
+    if (gameTiles.every(t => t.matched)) finishGame();
+  } else {
+    gameMismatches++;
+    gameLocked = true;
+    const firstId = gameSelected.tileId, secondId = tile.tileId;
+    [firstId, secondId].forEach(id => {
+      const el = document.querySelector(`[data-tile="${id}"]`);
+      if (el) el.classList.add('wrong');
+    });
+    setTimeout(() => {
+      gameSelected = null;
+      gameLocked = false;
+      renderGameBoard();
+      updateGameStatus();
+    }, 650);
+  }
+}
+
+function finishGame() {
+  document.getElementById('game-board-wrap').style.display = 'none';
+  const resultEl = document.getElementById('game-result');
+  resultEl.style.display = 'block';
+
+  let tier, pts;
+  if (gameMismatches === 0) { tier = '🏆 Perfect!'; pts = 5; }
+  else if (gameMismatches <= 2) { tier = '👍 Nice work!'; pts = 3; }
+  else { tier = '✅ Round complete'; pts = 1; }
+
+  const playsToday = getGamePlaysToday();
+  let earned = 0;
+  if (playsToday < GAME_DAILY_CAP) {
+    earned = pts;
+    incrementGamePlaysToday();
+    awardPoints(earned);
+  }
+
+  resultEl.innerHTML = `
+    <div class="score-big">${tier}</div>
+    <div>${gamePairs.length} pairs · ${gameMismatches} miss${gameMismatches === 1 ? '' : 'es'}</div>
+    ${earned > 0
+      ? `<div class="pts-earned">+${earned} points!</div>`
+      : `<div class="pts-earned" style="color:var(--muted);">Daily practice points used up for today — come back tomorrow!</div>`}
+    <button class="btn" onclick="resetGameSetup()">Play Again</button>
+  `;
+}
+
+function gameDateKeyToday() {
+  const d = new Date();
+  return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+}
+function getGamePlaysToday() {
+  return Number(localStorage.getItem(`vocabGamePlays_${myRow}_${gameDateKeyToday()}`) || 0);
+}
+function incrementGamePlaysToday() {
+  localStorage.setItem(`vocabGamePlays_${myRow}_${gameDateKeyToday()}`, getGamePlaysToday() + 1);
+}
+
+function awardPoints(amount) {
+  fetch(`${SCRIPT_URL}?action=adjustPoints&sheetId=${SHEET_ID}&row=${myRow}&delta=${amount}`, {mode:'no-cors'}).catch(()=>{});
+  setTimeout(refreshPoints, 600); // pick up the new balance once the script writes it
+}
+
+// ══ WHILE YOU WERE OUT ══════════════════════════════════
+// Pulled straight from the Agenda data loadAgenda() already fetched — no
+// separate tab or second data entry needed. Every past agenda entry shows
+// up here automatically; entries with a Link get a materials button.
+function renderMissed(agendaItems) {
+  const now = new Date(); now.setHours(0,0,0,0);
+  const items = agendaItems
+    .filter(r => r.date.getTime() <= now.getTime())
+    .sort((a, b) => b.date.getTime() - a.date.getTime()) // most recent first
+    .slice(0, 20);
+
+  const list = document.getElementById('wywo-list');
+  if (!items.length) { list.innerHTML = '<div class="empty">Nothing posted yet</div>'; return; }
+  list.innerHTML = items.map(it => `
+    <div class="wywo-item">
+      <div class="wywo-date">${it.date.toLocaleDateString(undefined, {weekday:'short', month:'short', day:'numeric'})}</div>
+      <div class="wywo-desc">${it.message}</div>
+      ${it.link ? `<a class="link-btn" href="${it.link}" target="_blank">Open Materials</a>` : ''}
+    </div>
+  `).join('');
+}
+
+// ══ LINKS ═══════════════════════════════════════════════
+function loadLinks() {
+  gvizQuery(GID_LINKS, (rows) => {
+    const items = rows.map(r => ({
+      label: r.c[0] && r.c[0].v != null ? r.c[0].v : '',
+      url: r.c[1] && r.c[1].v != null ? r.c[1].v : '',
+      grade: r.c[2] && r.c[2].v != null ? String(r.c[2].v).trim() : ''
+    })).filter(r => r.label && r.url && r.grade === CLASS_GRADE);
+
+    const list = document.getElementById('links-list');
+    if (!items.length) { list.innerHTML = '<div class="empty">No links posted yet</div>'; return; }
+    list.innerHTML = items.map(it =>
+      `<a class="link-btn" href="${it.url}" target="_blank">${it.label}</a>`
+    ).join('');
+  });
+}
+
+// ══ DEADLINES / CALENDAR ════════════════════════════════
+let deadlines = [];
+
+// Type → icon. Matching is case-insensitive and checks whether the Type
+// text CONTAINS the key below, so "Reading Homework" still matches
+// "reading", "Lab Report" still matches "lab", etc. Order matters —
+// first match wins — so more specific keys are listed first.
+const TYPE_ICONS = [
+  ['no school',   '🚫'],
+  ['break',       '🚫'],
+  ['holiday',     '🚫'],
+  ['field trip',  '🚌'],
+  ['assembly',    '📣'],
+  ['first day',   '🎒'],
+  ['last day',    '🎓'],
+  ['half day',    '🌤️'],
+  ['lab',         '🧪'],
+  ['note',        '📝'],
+  ['quiz',        '❓'],
+  ['test',        '🧠'],
+  ['exam',        '🧠'],
+  ['project',     '🛠️'],
+  ['activity',    '🎨'],
+  ['video',       '🎥'],
+  ['reading',     '📖'],
+  ['homework',    '📚'],
+  ['event',       '🎉'],
+];
+function iconForType(type) {
+  const t = (type || '').toLowerCase();
+  for (const [key, icon] of TYPE_ICONS) {
+    if (t.includes(key)) return icon;
+  }
+  return '📌'; // fallback for anything uncategorized
+}
+
+function loadDeadlines() {
+  gvizQuery(GID_DEADLINES, (rows) => {
+    deadlines = rows.map(r => ({
+      date: parseGvizDate(r.c[0] ? r.c[0].v : null),
+      item: r.c[2] && r.c[2].v != null ? r.c[2].v : '',
+      type: r.c[3] && r.c[3].v != null ? r.c[3].v : '',
+      grade: r.c[1] && r.c[1].v != null ? String(r.c[1].v).trim() : ''
+    })).filter(d => d.date && d.item && d.grade === CLASS_GRADE);
+
+    renderCalendar();
+    renderUpcoming();
+    renderHomeworkToday();
+  });
+}
+
+// Shows anything due today directly on the Today tab, so students don't
+// have to flip to the Deadlines tab to see what's due.
+function renderHomeworkToday() {
+  const today = new Date();
+  const items = deadlines.filter(d =>
+    d.date.getFullYear() === today.getFullYear() &&
+    d.date.getMonth() === today.getMonth() &&
+    d.date.getDate() === today.getDate()
+  );
+  const card = document.getElementById('hw-today-card');
+  if (!items.length) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+  document.getElementById('hw-today-list').innerHTML = items.map(d =>
+    `<div class="hw-today-item">${iconForType(d.type)} ${d.item}${d.type ? `<span class="hw-type">(${d.type})</span>` : ''}</div>`
+  ).join('');
+}
+
+function renderCalendar() {
+  const today = new Date();
+  const year = today.getFullYear(), month = today.getMonth();
+  const monthLabel = today.toLocaleDateString(undefined, {month:'long', year:'numeric'});
+  document.getElementById('cal-month-label').textContent = '📅 ' + monthLabel;
+
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  let html = ['S','M','T','W','T','F','S'].map(d => `<div class="cal-dow">${d}</div>`).join('');
+  for (let i = 0; i < firstDay; i++) html += '<div class="cal-day blank"></div>';
+  for (let day = 1; day <= daysInMonth; day++) {
+    const isToday = day === today.getDate();
+    const itemsForDay = deadlines.filter(d =>
+      d.date.getFullYear() === year && d.date.getMonth() === month && d.date.getDate() === day
+    );
+    const hasDeadline = itemsForDay.length > 0;
+    const tooltipText = itemsForDay.map(d => d.item + (d.type ? ` (${d.type})` : '')).join(', ');
+
+    // Show up to 3 icons per day so the cell doesn't overflow; if there
+    // are more items than that, collapse the rest into a "+N" badge.
+    const MAX_ICONS = 3;
+    const shown = itemsForDay.slice(0, MAX_ICONS);
+    const extra = itemsForDay.length - shown.length;
+    const iconsHtml = shown.map(d => `<span class="cal-icon">${iconForType(d.type)}</span>`).join('')
+      + (extra > 0 ? `<span class="cal-icon-more">+${extra}</span>` : '');
+
+    html += `<div class="cal-day ${isToday ? 'today' : ''} ${hasDeadline ? 'has-deadline' : ''}"
+      ${hasDeadline ? `data-tooltip="${tooltipText.replace(/"/g,'&quot;')}"` : ''}>
+      <span class="cal-day-num">${day}</span>
+      ${hasDeadline ? `<div class="cal-icons">${iconsHtml}</div>` : ''}
+    </div>`;
+  }
+  document.getElementById('cal-grid').innerHTML = html;
+  attachCalTooltips();
+}
+
+// Shift+hover shows what's due that day, without adding a click/tap step
+// that would compete with the rest of the tab-based navigation.
+let shiftHeld = false;
+document.addEventListener('keydown', e => { if (e.key === 'Shift') shiftHeld = true; updateTooltipVisibility(); });
+document.addEventListener('keyup', e => { if (e.key === 'Shift') shiftHeld = false; hideCalTooltip(); });
+
+let hoveredDayEl = null;
+function attachCalTooltips() {
+  document.querySelectorAll('.cal-day.has-deadline').forEach(el => {
+    el.addEventListener('mouseenter', (e) => { hoveredDayEl = el; updateTooltipVisibility(e); });
+    el.addEventListener('mousemove', (e) => { if (shiftHeld) positionTooltip(e); });
+    el.addEventListener('mouseleave', () => { hoveredDayEl = null; hideCalTooltip(); });
+  });
+}
+
+function updateTooltipVisibility(e) {
+  if (!hoveredDayEl || !shiftHeld) { hideCalTooltip(); return; }
+  const tip = document.getElementById('cal-tooltip');
+  tip.textContent = hoveredDayEl.dataset.tooltip;
+  tip.style.display = 'block';
+  if (e) positionTooltip(e);
+}
+
+function positionTooltip(e) {
+  const tip = document.getElementById('cal-tooltip');
+  tip.style.left = (e.clientX + 14) + 'px';
+  tip.style.top = (e.clientY + 14) + 'px';
+}
+
+function hideCalTooltip() {
+  document.getElementById('cal-tooltip').style.display = 'none';
+}
+
+// Checked-off state is purely local (per device, per student) — it's just
+// for the student's own planning and never talks to the sheet/points system.
+function deadlineKey(d) {
+  return dateKey(d.date) + '|' + d.item;
+}
+function getCheckedDeadlines() {
+  try { return JSON.parse(localStorage.getItem('dlChecked_' + myRow)) || {}; }
+  catch (e) { return {}; }
+}
+function toggleDeadlineCheck(key) {
+  const checked = getCheckedDeadlines();
+  checked[key] = !checked[key];
+  localStorage.setItem('dlChecked_' + myRow, JSON.stringify(checked));
+  renderUpcoming();
+}
+
+// Only these types show up in the Upcoming list — everything else (labs,
+// quizzes, field trips, etc.) still shows on the calendar, just not here,
+// so the list stays focused on what students actually need to prep for.
+const LIST_TYPES = ['test', 'exam', 'reading', 'homework'];
+function isListType(type) {
+  const t = (type || '').toLowerCase();
+  return LIST_TYPES.some(key => t.includes(key));
+}
+
+function renderUpcoming() {
+  const now = new Date(); now.setHours(0,0,0,0);
+  const upcoming = deadlines
+    .filter(d => d.date.getTime() >= now.getTime() && isListType(d.type))
+    .sort((a, b) => a.date.getTime() - b.date.getTime())
+    .slice(0, 10);
+
+  const list = document.getElementById('deadlines-list');
+  if (!upcoming.length) { list.innerHTML = '<div class="empty">Nothing coming up</div>'; return; }
+
+  const checked = getCheckedDeadlines();
+  list.innerHTML = upcoming.map(d => {
+    const days = Math.round((d.date.setHours(0,0,0,0) - now.getTime()) / 86400000);
+    const when = days === 0 ? 'Today' : days === 1 ? 'Tomorrow' : `In ${days} days`;
+    const key = deadlineKey(d);
+    const isChecked = !!checked[key];
+    return `
+      <div class="dl-item ${isChecked ? 'checked' : ''}">
+        <div class="dl-left">
+          <input type="checkbox" class="dl-check" ${isChecked ? 'checked' : ''} onchange="toggleDeadlineCheck('${key.replace(/'/g,"\\'")}')">
+          <div><span class="dl-name">${d.item}</span>${d.type ? `<span class="dl-type">${d.type}</span>` : ''}</div>
+        </div>
+        <div class="dl-when">${when}</div>
+      </div>`;
+  }).join('');
+}
+
+// ── Helpers ──────────────────────────────────────────────
+function formatGvizDate(raw) {
+  const d = parseGvizDate(raw);
+  if (!d) return '';
+  return d.toLocaleDateString(undefined, {weekday:'short', month:'short', day:'numeric'});
+}
+function parseGvizDate(raw) {
+  if (raw == null) return null;
+  if (typeof raw === 'string' && raw.indexOf('Date(') === 0) {
+    const parts = raw.substring(5, raw.length - 1).split(',').map(Number);
+    return new Date(parts[0], parts[1], parts[2], parts[3] || 0, parts[4] || 0, parts[5] || 0);
+  }
+  const d = new Date(raw);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+// ── gviz reader ──────────────────────────────────────────
+let gvizCounter = 0;
+function gvizQuery(gid, onSuccess) {
+  const cbName = '__gvizCb_' + (gvizCounter++);
+  const scriptId = 'gviz-script-' + cbName;
+  window[cbName] = function(response) {
+    delete window[cbName];
+    const el = document.getElementById(scriptId);
+    if (el) el.remove();
+    onSuccess(response.table.rows || []);
+  };
+  const script = document.createElement('script');
+  script.id = scriptId;
+  script.src = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json;responseHandler:${cbName}&tq=select%20*&gid=${gid}&_=${Date.now()}`;
+  document.head.appendChild(script);
+}
+</script>
+<div class="cal-tooltip" id="cal-tooltip"></div>
+</body>
+</html>
