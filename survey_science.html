@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Science Mindset — Science Class</title>
+<style>
+  :root{
+    --purple1:#cd9bff; --purple2:#ab90ff; --purple3:#a78bfa;
+    --bg1:#cd9bff; --bg2:#8b5cf6;
+    --card:#ffffff; --text:#2d2250; --muted:#7a71a3;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; font-family:'Segoe UI',system-ui,sans-serif;
+    background:linear-gradient(135deg,var(--bg1),var(--bg2));
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .card{
+    background:var(--card); border-radius:24px; padding:32px 28px;
+    max-width:520px; width:100%; box-shadow:0 20px 50px rgba(30,20,80,.35);
+    position:relative; overflow:hidden;
+  }
+  .progress-wrap{height:8px; background:#ece9f9; border-radius:6px; overflow:hidden; margin-bottom:22px;}
+  .progress-bar{height:100%; width:0%; background:linear-gradient(90deg,var(--purple1),var(--purple3)); transition:width .35s ease;}
+  .step-count{font-size:12px; color:var(--muted); text-align:right; margin-bottom:6px; font-weight:600; letter-spacing:.3px;}
+  h1{font-size:22px; margin:0 0 4px; color:var(--text);}
+  .sub{color:var(--muted); font-size:14px; margin-bottom:18px;}
+  .question{display:none; animation:fade .3s ease;}
+  .question.active{display:block;}
+  @keyframes fade{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+  .q-emoji{font-size:38px; margin-bottom:6px;}
+  .q-text{font-size:19px; font-weight:700; color:var(--text); margin-bottom:16px; line-height:1.35;}
+  input[type=text], input[type=date]{
+    width:100%; padding:14px 16px; border:2px solid #e4e0f7; border-radius:14px;
+    font-size:16px; outline:none; transition:border .2s; color:var(--text);
+  }
+  input:focus{border-color:var(--purple2);}
+  .options{display:flex; flex-direction:column; gap:10px;}
+  .opt-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .opt{
+    padding:14px 16px; border:2px solid #e4e0f7; border-radius:14px; cursor:pointer;
+    font-size:15px; color:var(--text); text-align:left; background:#faf9ff;
+    transition:all .15s; font-weight:500; user-select:none;
+  }
+  .opt:hover{border-color:var(--purple3); background:#f2effc;}
+  .opt.selected{background:linear-gradient(135deg,var(--purple1),var(--purple2)); color:#fff; border-color:transparent; box-shadow:0 6px 16px rgba(106,90,205,.35);}
+  .multi-hint{font-size:12px; color:var(--muted); margin:-10px 0 12px;}
+  .nav{display:flex; justify-content:space-between; align-items:center; margin-top:22px; gap:10px;}
+  button{
+    border:none; border-radius:14px; padding:13px 22px; font-size:15px; font-weight:700;
+    cursor:pointer; transition:transform .15s, box-shadow .15s;
+  }
+  button:active{transform:scale(.97);}
+  .btn-back{background:#f0edfb; color:var(--purple1);}
+  .btn-back:disabled{opacity:0; pointer-events:none;}
+  .btn-next{background:linear-gradient(135deg,var(--purple1),var(--purple2)); color:#fff; box-shadow:0 8px 20px rgba(106,90,205,.35); margin-left:auto;}
+  .btn-next:disabled{opacity:.4; box-shadow:none; cursor:default;}
+  .done{text-align:center; padding:20px 0;}
+  .done .emoji{font-size:56px;}
+  .done h2{color:var(--text); margin:10px 0 6px;}
+  .done p{color:var(--muted); font-size:14px;}
+  .status{font-size:13px; margin-top:10px; color:var(--muted);}
+  textarea{
+    width:100%; padding:14px 16px; border:2px solid #e4e0f7; border-radius:14px;
+    font-size:16px; outline:none; transition:border .2s; color:var(--text);
+    font-family:inherit; resize:vertical; min-height:90px;
+  }
+  textarea:focus{border-color:var(--purple2);}
+  .scale-row{display:flex; gap:6px; margin-bottom:10px;}
+  .scale-btn{
+    flex:1; padding:12px 0; border:2px solid #e4e0f7; border-radius:10px; text-align:center;
+    cursor:pointer; font-weight:700; font-size:15px; color:var(--text); background:#faf9ff;
+    transition:all .15s; user-select:none;
+  }
+  .scale-btn:hover{border-color:var(--purple3); background:#f2effc;}
+  .scale-btn.selected{background:linear-gradient(135deg,var(--purple1),var(--purple2)); color:#fff; border-color:transparent; box-shadow:0 6px 16px rgba(106,90,205,.35);}
+  .scale-labels{display:flex; justify-content:space-between; font-size:12px; color:var(--muted); gap:10px;}
+  .scale-labels span{flex:1;}
+  .scale-labels span:last-child{text-align:right;}
+</style>
+</head>
+<body>
+<div class="card">
+
+  <div id="quizArea">
+    <div class="step-count" id="stepCount">Question 1 of 11</div>
+    <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+    <h1>Your Science Mindset 🔬</h1>
+    <div class="sub">I'm curious about how you think about science.</div>
+
+    <!-- 1: name -->
+    <div class="question active" data-key="name">
+      <div class="q-emoji">👋</div>
+      <div class="q-text">What's your name?</div>
+      <input type="text" id="input-name" placeholder="First and last name" autocomplete="off">
+    </div>
+
+    <!-- 2: class period -->
+    <div class="question" data-key="period">
+      <div class="q-emoji">🏫</div>
+      <div class="q-text">Which class period are you in?</div>
+      <div class="options opt-grid" data-field="period">
+        <div class="opt" data-value="6A">6A</div>
+        <div class="opt" data-value="6B">6B</div>
+        <div class="opt" data-value="7">7th grade</div>
+        <div class="opt" data-value="8">8th grade</div>
+      </div>
+    </div>
+
+    <!-- 1: science interests -->
+    <div class="question active" data-key="interests">
+      <div class="q-emoji">🧪</div>
+      <div class="q-text">Which of these science topics sound interesting to you?</div>
+      <div class="multi-hint">Tap all that apply.</div>
+      <div class="options opt-grid" data-field="interests" data-multi="true">
+        <div class="opt" data-value="Dinosaurs">🦖 Dinosaurs</div>
+        <div class="opt" data-value="Space/Aliens">👽 Space & aliens</div>
+        <div class="opt" data-value="Explosions/Chemistry">💥 Explosions/chem</div>
+        <div class="opt" data-value="Medicine/Human body">🩺 Medicine/body</div>
+        <div class="opt" data-value="Plants">🌱 Plants</div>
+        <div class="opt" data-value="Animals">🐾 Animals</div>
+        <div class="opt" data-value="Weather">🌪️ Weather</div>
+        <div class="opt" data-value="Technology/Robots">🤖 Tech/robots</div>
+        <div class="opt" data-value="Makeup/Cosmetics">💄 Makeup & Cosmetics</div>
+      </div>
+    </div>
+
+    <!-- 2: I wonder -->
+    <div class="question" data-key="i_wonder">
+      <div class="q-emoji">🤔</div>
+      <div class="q-text">I wonder... what questions do you have about the world around you?</div>
+      <textarea id="input-i_wonder" placeholder="Human bodies, animals, space, nature, how things work..."></textarea>
+    </div>
+
+    <!-- 3: What if -->
+    <div class="question" data-key="what_if">
+      <div class="q-emoji">✨</div>
+      <div class="q-text">What if... imagine something you'd like to invent or create. What would it be?</div>
+      <textarea id="input-what_if" placeholder="A new invention, discovery, experiment, or wild idea..."></textarea>
+    </div>
+
+    <!-- 4: facts vs way of thinking -->
+    <div class="question" data-key="q_facts_or_thinking">
+      <div class="q-emoji">💭</div>
+      <div class="q-text">Do you think science is mostly about facts to memorize, or a way to look at the world?</div>
+      <div class="options" data-field="q_facts_or_thinking">
+        <div class="opt" data-value="Mostly facts to memorize">Mostly facts to memorize</div>
+        <div class="opt" data-value="A way of thinking and asking questions">A way to look at the world</div>
+        <div class="opt" data-value="Both, about equally">Both, about equally</div>
+        <div class="opt" data-value="Not sure">Not sure</div>
+      </div>
+    </div>
+
+    <!-- 5: do scientists know everything -->
+    <div class="question" data-key="q_know_everything">
+      <div class="q-emoji">🤓</div>
+      <div class="q-text">Do you think scientists know everything?</div>
+      <div class="options" data-field="q_know_everything">
+        <div class="opt" data-value="Yes, mostly">Yes, mostly</div>
+        <div class="opt" data-value="No, there's a lot they don't know">No, there's a lot they don't know</div>
+        <div class="opt" data-value="Not sure">Not sure</div>
+      </div>
+    </div>
+
+    <!-- 6: are scientists creative -->
+    <div class="question" data-key="q_creative">
+      <div class="q-emoji">🎭</div>
+      <div class="q-text">Do you think scientists need to be creative?</div>
+      <div class="options" data-field="q_creative">
+        <div class="opt" data-value="Yes">Yes</div>
+        <div class="opt" data-value="No">No</div>
+        <div class="opt" data-value="Not sure">Not sure</div>
+      </div>
+    </div>
+
+    <!-- 7: does science change -->
+    <div class="question" data-key="q_changes">
+      <div class="q-emoji">🔄</div>
+      <div class="q-text">Do you think that science ever changes?</div>
+      <div class="options" data-field="q_changes">
+        <div class="opt" data-value="Yes, ideas can change">Yes, ideas can change</div>
+        <div class="opt" data-value="No, once it's proven it's final">No, once it's proven it's final</div>
+        <div class="opt" data-value="Not sure">Not sure</div>
+      </div>
+    </div>
+
+    <!-- 8: are you good at science -->
+    <div class="question" data-key="q_self_rating">
+      <div class="q-emoji">⭐</div>
+      <div class="q-text">Do you think you're good at science?</div>
+      <div class="options" data-field="q_self_rating">
+        <div class="opt" data-value="Yes, definitely">Yes, definitely</div>
+        <div class="opt" data-value="Kind of">Kind of</div>
+        <div class="opt" data-value="Not really">Not really</div>
+        <div class="opt" data-value="Not sure yet">Not sure yet</div>
+      </div>
+    </div>
+
+    <!-- 9: excitement scale -->
+    <div class="question" data-key="q_excited">
+      <div class="q-emoji">🚀</div>
+      <div class="q-text">How excited are you for this class?</div>
+      <div class="scale-row" data-field="q_excited"></div>
+      <div class="scale-labels"><span>Not at all</span><span>Can't wait!</span></div>
+    </div>
+
+    <!-- 10: nervous scale -->
+    <div class="question" data-key="q_nervous">
+      <div class="q-emoji">😬</div>
+      <div class="q-text">How nervous are you for this class?</div>
+      <div class="scale-row" data-field="q_nervous"></div>
+      <div class="scale-labels"><span>Not nervous</span><span>Very nervous</span></div>
+    </div>
+
+    <!-- 11: anything else -->
+    <div class="question" data-key="additional_notes">
+      <div class="q-emoji">📝</div>
+      <div class="q-text">Anything else about your feelings toward science?</div>
+      <textarea id="input-additional_notes" placeholder="Optional—share anything on your mind!"></textarea>
+    </div>
+
+    <div class="nav">
+      <button class="btn-back" id="backBtn">Back</button>
+      <button class="btn-next" id="nextBtn" disabled>Next</button>
+    </div>
+  </div>
+
+  <div id="doneArea" style="display:none;" class="done">
+    <div class="emoji">🎉</div>
+    <h2>Thanks!</h2>
+    <p>Your answers were submitted.</p>
+    <div class="status" id="submitStatus">Sending...</div>
+  </div>
+
+</div>
+
+<script>
+// ── Google Form 2 — REPLACE with your real form action + entry IDs ──
+const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScEFRSkfIB6guR3QMecI7T19xx11Ol8skNT4_XTDR-xYG59Fg/formResponse";
+const ENTRIES = {
+   name:               "entry.366340186",
+  period:             "entry.638759707",
+  interests:          "entry.946767974",
+  i_wonder:           "entry.102486999",
+  what_if:            "entry.466831278",
+  q_facts_or_thinking:"entry.1946980985",
+  q_know_everything:  "entry.425519958",
+  q_creative:         "entry.1295630281",
+  q_changes:          "entry.1363473233",
+  q_self_rating:      "entry.949184046",
+  q_excited:          "entry.1049062048",
+  q_nervous:          "entry.1434710687",
+  additional_notes:   "entry.118987814"
+};
+
+const OPTIONAL_FIELDS = ["i_wonder", "what_if", "additional_notes"];
+
+const questions = document.querySelectorAll('.question');
+const total = questions.length;
+let current = 0;
+const answers = {};
+
+const stepCount = document.getElementById('stepCount');
+const progressBar = document.getElementById('progressBar');
+const nextBtn = document.getElementById('nextBtn');
+const backBtn = document.getElementById('backBtn');
+
+function render(){
+  questions.forEach((q,i)=> q.classList.toggle('active', i===current));
+  stepCount.textContent = `Question ${current+1} of ${total}`;
+  progressBar.style.width = `${((current+1)/total)*100}%`;
+  backBtn.disabled = current===0;
+  nextBtn.textContent = current===total-1 ? 'Submit' : 'Next';
+  updateNextState();
+}
+
+function updateNextState(){
+  const q = questions[current];
+  const k = q.dataset.key;
+  if(OPTIONAL_FIELDS.includes(k)){ nextBtn.disabled = false; return; }
+  const val = answers[k];
+  const hasAnswer = Array.isArray(val) ? val.length>0 : !!(val && val.trim && val.trim()!=='' ) || !!(val && !val.trim);
+  nextBtn.disabled = !hasAnswer;
+}
+
+// text/date/textarea inputs
+document.querySelectorAll('input[type=text], input[type=date], textarea').forEach(inp=>{
+  inp.addEventListener('input', ()=>{
+    const k = inp.closest('.question').dataset.key;
+    answers[k] = inp.value;
+    updateNextState();
+  });
+});
+
+// 1-10 scale rows
+document.querySelectorAll('.scale-row').forEach(row=>{
+  const field = row.dataset.field;
+  for(let i=1;i<=10;i++){
+    const btn = document.createElement('div');
+    btn.className = 'scale-btn';
+    btn.textContent = i;
+    btn.dataset.value = i;
+    btn.addEventListener('click', ()=>{
+      row.querySelectorAll('.scale-btn').forEach(b=>b.classList.remove('selected'));
+      btn.classList.add('selected');
+      answers[field] = String(i);
+      updateNextState();
+    });
+    row.appendChild(btn);
+  }
+});
+
+// single-select options
+document.querySelectorAll('.options:not([data-multi])').forEach(group=>{
+  group.querySelectorAll('.opt').forEach(opt=>{
+    opt.addEventListener('click', ()=>{
+      group.querySelectorAll('.opt').forEach(o=>o.classList.remove('selected'));
+      opt.classList.add('selected');
+      answers[group.dataset.field] = opt.dataset.value;
+      updateNextState();
+    });
+  });
+});
+
+// multi-select options
+document.querySelectorAll('.options[data-multi]').forEach(group=>{
+  answers[group.dataset.field] = [];
+  group.querySelectorAll('.opt').forEach(opt=>{
+    opt.addEventListener('click', ()=>{
+      opt.classList.toggle('selected');
+      const field = group.dataset.field;
+      const val = opt.dataset.value;
+      const arr = answers[field] || [];
+      if(arr.includes(val)) answers[field] = arr.filter(v=>v!==val);
+      else answers[field] = [...arr, val];
+      updateNextState();
+    });
+  });
+});
+
+nextBtn.addEventListener('click', ()=>{
+  if(current < total-1){
+    current++;
+    render();
+  } else {
+    submitAnswers();
+  }
+});
+backBtn.addEventListener('click', ()=>{
+  if(current>0){ current--; render(); }
+});
+
+function submitAnswers(){
+  document.getElementById('quizArea').style.display = 'none';
+  document.getElementById('doneArea').style.display = 'block';
+
+  const formData = new FormData();
+  Object.keys(ENTRIES).forEach(key=>{
+    let val = answers[key];
+    if(Array.isArray(val)) val = val.join(', ');
+    formData.append(ENTRIES[key], val || '');
+  });
+
+  fetch(FORM_URL, { method:'POST', mode:'no-cors', body: formData })
+    .then(()=>{ document.getElementById('submitStatus').textContent = 'All set — thank you!'; })
+    .catch(()=>{ document.getElementById('submitStatus').textContent = 'Submitted (offline check unavailable).'; });
+}
+
+render();
+</script>
+</body>
+</html>

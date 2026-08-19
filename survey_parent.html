@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Parent Survey — Science Class</title>
+<style>
+  :root{
+    --purple1:#cd9bff; --purple2:#ab90ff; --purple3:#a78bfa;
+    --bg1:#cd9bff; --bg2:#8b5cf6;
+    --card:#ffffff; --text:#2d2250; --muted:#7a71a3;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; font-family:'Segoe UI',system-ui,sans-serif;
+    background:linear-gradient(135deg,var(--bg1),var(--bg2));
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .card{
+    background:var(--card); border-radius:24px; padding:32px 28px;
+    max-width:520px; width:100%; box-shadow:0 20px 50px rgba(30,20,80,.35);
+    position:relative; overflow:hidden;
+  }
+  .progress-wrap{height:8px; background:#ece9f9; border-radius:6px; overflow:hidden; margin-bottom:22px;}
+  .progress-bar{height:100%; width:0%; background:linear-gradient(90deg,var(--purple1),var(--purple3)); transition:width .35s ease;}
+  .step-count{font-size:12px; color:var(--muted); text-align:right; margin-bottom:6px; font-weight:600; letter-spacing:.3px;}
+  h1{font-size:22px; margin:0 0 4px; color:var(--text);}
+  .sub{color:var(--muted); font-size:14px; margin-bottom:18px;}
+  .question{display:none; animation:fade .3s ease;}
+  .question.active{display:block;}
+  @keyframes fade{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
+  .q-emoji{font-size:38px; margin-bottom:6px;}
+  .q-text{font-size:19px; font-weight:700; color:var(--text); margin-bottom:16px; line-height:1.35;}
+  .q-label{font-size:14px; color:var(--muted); margin-bottom:8px; font-weight:500;}
+  input[type=text], input[type=email], input[type=tel]{
+    width:100%; padding:14px 16px; border:2px solid #e4e0f7; border-radius:14px;
+    font-size:16px; outline:none; transition:border .2s; color:var(--text);
+    margin-bottom:10px;
+  }
+  input:focus{border-color:var(--purple2);}
+  .options{display:flex; flex-direction:column; gap:10px;}
+  .opt{
+    padding:14px 16px; border:2px solid #e4e0f7; border-radius:14px; cursor:pointer;
+    font-size:15px; color:var(--text); text-align:left; background:#faf9ff;
+    transition:all .15s; font-weight:500; user-select:none;
+  }
+  .opt:hover{border-color:var(--purple3); background:#f2effc;}
+  .opt.selected{background:linear-gradient(135deg,var(--purple1),var(--purple2)); color:#fff; border-color:transparent; box-shadow:0 6px 16px rgba(106,90,205,.35);}
+  .nav{display:flex; justify-content:space-between; align-items:center; margin-top:22px; gap:10px;}
+  button{
+    border:none; border-radius:14px; padding:13px 22px; font-size:15px; font-weight:700;
+    cursor:pointer; transition:transform .15s, box-shadow .15s;
+  }
+  button:active{transform:scale(.97);}
+  .btn-back{background:#f0edfb; color:var(--purple1);}
+  .btn-back:disabled{opacity:0; pointer-events:none;}
+  .btn-next{background:linear-gradient(135deg,var(--purple1),var(--purple2)); color:#fff; box-shadow:0 8px 20px rgba(106,90,205,.35); margin-left:auto;}
+  .btn-next:disabled{opacity:.4; box-shadow:none; cursor:default;}
+  .done{text-align:center; padding:20px 0;}
+  .done .emoji{font-size:56px;}
+  .done h2{color:var(--text); margin:10px 0 6px;}
+  .done p{color:var(--muted); font-size:14px;}
+  .status{font-size:13px; margin-top:10px; color:var(--muted);}
+  textarea{
+    width:100%; padding:14px 16px; border:2px solid #e4e0f7; border-radius:14px;
+    font-size:16px; outline:none; transition:border .2s; color:var(--text);
+    font-family:inherit; resize:vertical; min-height:90px;
+  }
+  textarea:focus{border-color:var(--purple2);}
+  .two-col{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .two-col input{margin-bottom:0;}
+  .contact-method-group{margin-top:16px;}
+  .contact-method-group .q-label{margin-bottom:10px;}
+  .freq-options{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+  .freq-opt{
+    padding:10px 12px; border:2px solid #e4e0f7; border-radius:10px; cursor:pointer;
+    font-size:14px; color:var(--text); text-align:center; background:#faf9ff;
+    transition:all .15s; font-weight:500; user-select:none;
+  }
+  .freq-opt:hover{border-color:var(--purple3); background:#f2effc;}
+  .freq-opt.selected{background:linear-gradient(135deg,var(--purple1),var(--purple2)); color:#fff; border-color:transparent; box-shadow:0 4px 12px rgba(106,90,205,.3);}
+  .yesno-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+</style>
+</head>
+<body>
+<div class="card">
+
+  <div id="quizArea">
+    <div class="step-count" id="stepCount">Question 1 of 8</div>
+    <div class="progress-wrap"><div class="progress-bar" id="progressBar"></div></div>
+    <h1>Welcome to Middle School Science! 👋</h1>
+    <div class="sub">I'd love to hear from you.</div>
+    
+
+    <div class="question active" data-key="student_name">
+      <div class="q-emoji">👨‍👩‍👧</div>
+      <div class="q-text">Which student(s) are you supporting?</div>
+      <input type="text" id="input-parent_name" placeholder="Ex: John Doe, Annie Victor" autocomplete="off">
+    </div>
+
+    <!-- 1: name & relationship -->
+    <div class="question active" data-key="parent_name">
+      <div class="q-emoji">👨‍👩‍👧</div>
+      <div class="q-text">Parent/guardian name(s) and relationship</div>
+      <input type="text" id="input-parent_name" placeholder="Ex: Jane Smith (parent), Marcus Johnson (guardian)" autocomplete="off">
+    </div>
+
+    <!-- 2: email -->
+    <div class="question" data-key="email">
+      <div class="q-emoji">📧</div>
+      <div class="q-text">Email address</div>
+      <input type="email" id="input-email" placeholder="your@email.com" autocomplete="off">
+    </div>
+
+    <!-- 3: phone -->
+    <div class="question" data-key="phone">
+      <div class="q-emoji">📱</div>
+      <div class="q-text">Phone number</div>
+      <input type="tel" id="input-phone" placeholder="(123) 456-7890" autocomplete="off">
+    </div>
+
+    <!-- 4: preferred contact method & frequency -->
+    <div class="question" data-key="contact_method">
+      <div class="q-emoji">💬</div>
+      <div class="q-text">How would you prefer I contact you?</div>
+      <div class="options" data-field="contact_method">
+        <div class="opt" data-value="Email">📧 Email</div>
+        <div class="opt" data-value="Text/Phone">📱 Text or phone call</div>
+        <div class="opt" data-value="Either">Either works</div>
+      </div>
+      <div class="contact-method-group">
+        <div class="q-label">How often would you like to hear from me?</div>
+        <div class="freq-options" data-field="contact_frequency">
+          <div class="freq-opt" data-value="AsMuchAsPos">As often as possible</div>
+          <div class="freq-opt" data-value="Weekly">Weekly</div>
+          <div class="freq-opt" data-value="Monthly">Monthly</div>
+          <div class="freq-opt" data-value="Only if needed">Only if needed</div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- 5: student interests outside school -->
+    <div class="question" data-key="student_interests">
+      <div class="q-emoji">⭐</div>
+      <div class="q-text">What are your student's interests outside of school?</div>
+      <div class="q-label">This helps me connect science to what they care about.</div>
+      <textarea id="input-student_interests" placeholder="Sports, art, video games, music, cooking, makeup, YouTube channels, etc."></textarea>
+    </div>
+
+    <!-- 6: anything about student -->
+    <div class="question" data-key="student_info">
+      <div class="q-emoji">💭</div>
+      <div class="q-text">Anything I should know about your student?</div>
+      <div class="q-label">Learning differences, anxiety, confidence, motivation, communication style, anything that helps me support them better.</div>
+      <textarea id="input-student_info" placeholder="Optional, but really valuable!"></textarea>
+    </div>
+
+    <!-- 7: interested in experiments at home -->
+    <div class="question" data-key="home_experiments">
+      <div class="q-emoji">🧪</div>
+      <div class="q-text">Would you be interested in joining our class to help with experiments or activities?</div>
+      <div class="yesno-grid" data-field="home_experiments">
+        <div class="opt" data-value="Yes">Yes, we'd love that!</div>
+        <div class="opt" data-value="Maybe">Maybe—depends on the activity</div>
+        <div class="opt" data-value="No">No, not interested</div>
+      </div>
+    </div>
+
+    <!-- 8: anything else -->
+    <div class="question" data-key="additional_comments">
+      <div class="q-emoji">📝</div>
+      <div class="q-text">Anything else you'd like me to know?</div>
+      <textarea id="input-additional_comments" placeholder="Optional—share anything else that would help!"></textarea>
+    </div>
+
+    <div class="nav">
+      <button class="btn-back" id="backBtn">Back</button>
+      <button class="btn-next" id="nextBtn" disabled>Next</button>
+    </div>
+  </div>
+
+  <div id="doneArea" style="display:none;" class="done">
+    <div class="emoji">🙏</div>
+    <h2>Thank you!</h2>
+    <p>Your response was submitted.</p>
+    <div class="status" id="submitStatus">Sending...</div>
+  </div>
+
+</div>
+
+<script>
+// ── Google Form — REPLACE with your real form action + entry IDs ──
+const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfCkPGAIfEy8zOfmGJHwD5967NCmEwYaVGjJ83bhfgzxMj_5w/formResponse";
+const ENTRIES = {
+  student_name:          "entry.366340186",
+  parent_name:           "entry.638759707",
+  email:                 "entry.522021562",
+  phone:                 "entry.946767974",
+  contact_method:        "entry.1529090875",
+  contact_frequency:     "entry.1159272037",
+  student_interests:     "entry.1693205683",
+  student_info:          "entry.438190651",
+  home_experiments:      "entry.1436355290",
+  additional_comments:   "entry.755017142"
+};
+
+const OPTIONAL_FIELDS = ["student_info", "additional_comments"];
+
+const questions = document.querySelectorAll('.question');
+const total = questions.length;
+let current = 0;
+const answers = {};
+
+const stepCount = document.getElementById('stepCount');
+const progressBar = document.getElementById('progressBar');
+const nextBtn = document.getElementById('nextBtn');
+const backBtn = document.getElementById('backBtn');
+
+function render(){
+  questions.forEach((q,i)=> q.classList.toggle('active', i===current));
+  stepCount.textContent = `Question ${current+1} of ${total}`;
+  progressBar.style.width = `${((current+1)/total)*100}%`;
+  backBtn.disabled = current===0;
+  nextBtn.textContent = current===total-1 ? 'Submit' : 'Next';
+  updateNextState();
+}
+
+function updateNextState(){
+  const q = questions[current];
+  const k = q.dataset.key;
+  
+  // Question 4 is special: both contact_method AND contact_frequency must be set
+  if(k === 'contact_method'){
+    const hasMethod = !!answers['contact_method'];
+    const hasFreq = !!answers['contact_frequency'];
+    nextBtn.disabled = !(hasMethod && hasFreq);
+    return;
+  }
+  
+  if(OPTIONAL_FIELDS.includes(k)){ nextBtn.disabled = false; return; }
+  const val = answers[k];
+  const hasAnswer = Array.isArray(val) ? val.length>0 : !!(val && val.trim && val.trim()!=='' );
+  nextBtn.disabled = !hasAnswer;
+}
+
+// text/email/tel/textarea inputs
+document.querySelectorAll('input[type=text], input[type=email], input[type=tel], textarea').forEach(inp=>{
+  inp.addEventListener('input', ()=>{
+    const k = inp.closest('.question').dataset.key;
+    answers[k] = inp.value;
+    updateNextState();
+  });
+});
+
+// single-select options
+document.querySelectorAll('.options:not([data-multi])').forEach(group=>{
+  group.querySelectorAll('.opt').forEach(opt=>{
+    opt.addEventListener('click', ()=>{
+      group.querySelectorAll('.opt').forEach(o=>o.classList.remove('selected'));
+      opt.classList.add('selected');
+      answers[group.dataset.field] = opt.dataset.value;
+      updateNextState();
+    });
+  });
+});
+
+// frequency options (for contact preference)
+document.querySelectorAll('.freq-options').forEach(group=>{
+  group.querySelectorAll('.freq-opt').forEach(opt=>{
+    opt.addEventListener('click', ()=>{
+      group.querySelectorAll('.freq-opt').forEach(o=>o.classList.remove('selected'));
+      opt.classList.add('selected');
+      answers[group.dataset.field] = opt.dataset.value;
+      updateNextState();
+    });
+  });
+});
+
+nextBtn.addEventListener('click', ()=>{
+  if(current < total-1){
+    current++;
+    render();
+  } else {
+    submitAnswers();
+  }
+});
+backBtn.addEventListener('click', ()=>{
+  if(current>0){ current--; render(); }
+});
+
+function submitAnswers(){
+  document.getElementById('quizArea').style.display = 'none';
+  document.getElementById('doneArea').style.display = 'block';
+
+  const formData = new FormData();
+  Object.keys(ENTRIES).forEach(key=>{
+    let val = answers[key];
+    if(Array.isArray(val)) val = val.join(', ');
+    formData.append(ENTRIES[key], val || '');
+  });
+
+  fetch(FORM_URL, { method:'POST', mode:'no-cors', body: formData })
+    .then(()=>{ document.getElementById('submitStatus').textContent = 'All set — thank you!'; })
+    .catch(()=>{ document.getElementById('submitStatus').textContent = 'Submitted (offline check unavailable).'; });
+}
+
+render();
+</script>
+</body>
+</html>
