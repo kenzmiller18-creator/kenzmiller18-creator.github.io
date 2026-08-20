@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bell Ringer</title>
+<style>
+  :root{
+    --purple1:#cd9bff; --purple2:#ab90ff; --purple3:#a78bfa;
+    --bg1:#cd9bff; --bg2:#8b5cf6;
+    --card:#ffffff; --text:#2d2250; --muted:#7a71a3;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh; font-family:'Segoe UI',system-ui,sans-serif;
+    background:linear-gradient(135deg,var(--bg1),var(--bg2));
+    display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .card{
+    background:var(--card); border-radius:24px; padding:32px 28px;
+    max-width:520px; width:100%; box-shadow:0 20px 50px rgba(30,20,80,.35);
+    position:relative; overflow:hidden;
+  }
+  .header{margin-bottom:24px;}
+  .emoji{font-size:36px; margin-bottom:8px;}
+  h1{font-size:22px; margin:0 0 4px; color:var(--text);}
+  .sub{color:var(--muted); font-size:14px; margin-bottom:18px;}
+  .form-section{margin-bottom:20px;}
+  .form-section label{
+    display:block; font-size:14px; font-weight:600; color:var(--text); margin-bottom:8px;
+  }
+  select, textarea, input[type=text]{
+    width:100%; padding:12px 14px; border:2px solid #e4e0f7; border-radius:12px;
+    font-size:15px; outline:none; transition:border .2s; color:var(--text);
+    font-family:inherit;
+  }
+  select:focus, textarea:focus, input[type=text]:focus{border-color:var(--purple2);}
+  .two-col{display:grid; grid-template-columns:1fr 1fr; gap:12px;}
+  .two-col select{width:100%; margin:0;}
+  textarea{
+    resize:vertical; min-height:60px; margin-bottom:16px;
+  }
+  .q-label{
+    font-size:13px; font-weight:600; color:var(--text); margin-bottom:6px;
+  }
+  .q-label.optional{color:var(--muted); font-weight:500;}
+  .question-field{display:none;}
+  .question-field.active{display:block;}
+  .divider{height:1px; background:#e4e0f7; margin:20px 0;}
+  .nav{display:flex; gap:10px; margin-top:22px;}
+  button{
+    flex:1; border:none; border-radius:12px; padding:14px 18px; font-size:15px; font-weight:700;
+    cursor:pointer; transition:transform .15s, box-shadow .15s;
+  }
+  button:active{transform:scale(.97);}
+  .btn-submit{
+    background:linear-gradient(135deg,var(--purple1),var(--purple2)); color:#fff; box-shadow:0 8px 20px rgba(106,90,205,.35);
+  }
+  .btn-submit:disabled{opacity:.4; box-shadow:none; cursor:default;}
+  .done{text-align:center; padding:20px 0;}
+  .done .emoji{font-size:48px; margin-bottom:12px;}
+  .done h2{color:var(--text); margin:0 0 6px; font-size:20px;}
+  .done p{color:var(--muted); font-size:14px;}
+  .status{font-size:13px; margin-top:10px; color:var(--muted);}
+</style>
+</head>
+<body>
+<div class="card">
+
+  <div id="formArea">
+    <div class="header">
+      <div class="emoji" id="headerEmoji">🔔</div>
+      <h1 id="headerTitle">Bell Ringer</h1>
+      <div class="sub" id="headerSub">I'm so glad you're here today!</div>
+    </div>
+
+    <form id="responseForm">
+      <!-- Name dropdown -->
+      <div class="form-section">
+        <label for="student_name">Your name</label>
+        <select id="student_name" name="student_name" required>
+          <option value="">— Select your name —</option>
+        </select>
+      </div>
+
+      <!-- Class period dropdown -->
+      <div class="form-section">
+        <label for="class_period">Class period</label>
+        <select id="class_period" name="class_period" required>
+          <option value="">— Select your period —</option>
+          <option value="6A">6A</option>
+          <option value="6B">6B</option>
+          <option value="7">7th grade</option>
+          <option value="8">8th grade</option>
+        </select>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Response fields (up to 7) -->
+      <div id="questionsContainer"></div>
+
+      <div class="nav">
+        <button type="submit" class="btn-submit" id="submitBtn">Submit</button>
+      </div>
+    </form>
+  </div>
+
+  <div id="doneArea" style="display:none;" class="done">
+    <div class="emoji">✅</div>
+    <h2>Done!</h2>
+    <p>Your response was submitted.</p>
+    <div class="status" id="submitStatus">Sending...</div>
+  </div>
+
+</div>
+
+<script>
+
+const SETTINGS = {
+  // How many questions to show this week (1–7 rn, can add more as needed but gotta update form too)
+  questionCount: 3,
+  
+  // Labels for each question 
+  questionLabels: [
+    "Question 1",
+    "Question 2",
+    "Question 3",
+    "Question 4 (optional)",
+    "Question 5 (optional)",
+    "Question 6 (optional)",
+    "Question 7 (optional)"
+  ],
+  
+  // Header 
+  headerEmoji: "🔔",
+  headerTitle: "Bell Ringer",
+  headerSub: "Take 3 minutes to respond.",
+  
+  // Class roster - aspen update
+  roster: [
+   "names here"
+  ]
+};
+
+
+const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeJ2mqZseyMvdch4WXio27Oul-IP9QMudZ3jUeF_k_BP7WQkQ//formResponse";
+const ENTRIES = {
+  student_name: "entry.613533817",
+  class_period: "entry.682790454",
+  response_1: "entry.1270009933",
+  response_2: "entry.1217292012",
+  response_3: "entry.851332020",
+  response_4: "entry.1642391089",
+  response_5: "entry.1381267585",
+  response_6: "entry.557774863",
+  response_7: "entry.1162169670"
+};
+
+
+// Set header
+document.getElementById('headerEmoji').textContent = SETTINGS.headerEmoji;
+document.getElementById('headerTitle').textContent = SETTINGS.headerTitle;
+document.getElementById('headerSub').textContent = SETTINGS.headerSub;
+
+// Populate name dropdown
+const rosterSelect = document.getElementById('student_name');
+SETTINGS.roster.sort().forEach(name => {
+  const option = document.createElement('option');
+  option.value = name;
+  option.textContent = name;
+  rosterSelect.appendChild(option);
+});
+
+// Build response fields dynamically
+const container = document.getElementById('questionsContainer');
+for(let i = 1; i <= 7; i++){
+  const fieldDiv = document.createElement('div');
+  fieldDiv.className = 'form-section question-field';
+  fieldDiv.id = `q${i}-field`;
+  
+  if(i <= SETTINGS.questionCount) fieldDiv.classList.add('active');
+  
+  const label = document.createElement('div');
+  label.className = i > SETTINGS.questionCount ? 'q-label optional' : 'q-label';
+  label.textContent = SETTINGS.questionLabels[i-1];
+  
+  const textarea = document.createElement('textarea');
+  textarea.name = `response_${i}`;
+  textarea.id = `response_${i}`;
+  textarea.placeholder = 'Type your response...';
+  
+  fieldDiv.appendChild(label);
+  fieldDiv.appendChild(textarea);
+  container.appendChild(fieldDiv);
+}
+
+// Form submission
+document.getElementById('responseForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  
+  const name = document.getElementById('student_name').value;
+  const period = document.getElementById('class_period').value;
+  
+  if(!name || !period){
+    alert('Please select your name and class period.');
+    return;
+  }
+  
+  document.getElementById('formArea').style.display = 'none';
+  document.getElementById('doneArea').style.display = 'block';
+  
+  const formData = new FormData();
+  formData.append(ENTRIES.student_name, name);
+  formData.append(ENTRIES.class_period, period);
+  
+  for(let i = 1; i <= 7; i++){
+    const val = document.getElementById(`response_${i}`).value;
+    formData.append(ENTRIES[`response_${i}`], val || '');
+  }
+  
+  fetch(FORM_URL, { method:'POST', mode:'no-cors', body: formData })
+    .then(()=>{ document.getElementById('submitStatus').textContent = 'All set!'; })
+    .catch(()=>{ document.getElementById('submitStatus').textContent = 'Submitted (offline check unavailable).'; });
+});
+</script>
+</body>
+</html>
