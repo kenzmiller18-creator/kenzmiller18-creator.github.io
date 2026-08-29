@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Bell Ringer</title>
+<title>Bell Ringer / Exit Ticket</title>
 <style>
   :root{
     --purple1:#cd9bff; --purple2:#ab90ff; --purple3:#a78bfa;
@@ -62,6 +62,23 @@
   .done h2{color:var(--text); margin:0 0 6px; font-size:20px;}
   .done p{color:var(--muted); font-size:14px;}
   .status{font-size:13px; margin-top:10px; color:var(--muted);}
+  .opt-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .options{display:flex; flex-direction:column; gap:10px;}
+  .opt{
+    padding:12px 14px; border:2px solid #e4e0f7; border-radius:12px; cursor:pointer;
+    font-size:14px; color:var(--text); text-align:center; background:#faf9ff;
+    transition:all .15s; font-weight:600; user-select:none;
+  }
+  .opt:hover{border-color:var(--purple3); background:#f2effc;}
+  .opt.selected{background:linear-gradient(135deg,var(--purple1),var(--purple2)); color:#fff; border-color:transparent; box-shadow:0 4px 12px rgba(106,90,205,.3);}
+  .scale-row{display:flex; gap:6px; margin-bottom:6px;}
+  .scale-btn{
+    flex:1; padding:10px 0; border:2px solid #e4e0f7; border-radius:10px; text-align:center;
+    cursor:pointer; font-weight:700; font-size:13px; color:var(--text); background:#faf9ff;
+    transition:all .15s; user-select:none;
+  }
+  .scale-btn:hover{border-color:var(--purple3); background:#f2effc;}
+  .scale-btn.selected{background:linear-gradient(135deg,var(--purple1),var(--purple2)); color:#fff; border-color:transparent; box-shadow:0 4px 12px rgba(106,90,205,.3);}
 </style>
 </head>
 <body>
@@ -71,15 +88,20 @@
     <div class="header">
       <div class="emoji" id="headerEmoji">🔔</div>
       <h1 id="headerTitle">Bell Ringer</h1>
-      <div class="sub" id="headerSub">I'm so glad you're here today!</div>
+      <div class="sub" id="headerSub">Take 3 minutes to respond.</div>
     </div>
 
     <form id="responseForm">
-      <!-- Name dropdown -->
+      <!-- Day of week dropdown -->
       <div class="form-section">
-        <label for="student_name">Your name</label>
-        <select id="student_name" name="student_name" required>
-          <option value="">— Select your name —</option>
+        <label for="day_of_week">Day of the week</label>
+        <select id="day_of_week" name="day_of_week" required>
+          <option value="">— Select the day —</option>
+          <option value="Monday">Monday</option>
+          <option value="Tuesday">Tuesday</option>
+          <option value="Wednesday">Wednesday</option>
+          <option value="Thursday">Thursday</option>
+          <option value="Friday">Friday</option>
         </select>
       </div>
 
@@ -91,7 +113,16 @@
           <option value="6A">6A</option>
           <option value="6B">6B</option>
           <option value="7">7th grade</option>
-          <option value="8">8th grade</option>
+          <option value="8A">8A</option>
+          <option value="8B">8B</option>
+        </select>
+      </div>
+
+      <!-- Name dropdown -->
+      <div class="form-section">
+        <label for="student_name">Your name</label>
+        <select id="student_name" name="student_name" required>
+          <option value="">— Select your period first —</option>
         </select>
       </div>
 
@@ -118,36 +149,339 @@
 <script>
 
 const SETTINGS = {
-  // How many questions to show this week (1–7 rn, can add more as needed but gotta update form too)
-  questionCount: 3,
+
+  questionsByPeriodAndDay: {
+    '6A': {
+      'Monday': {
+        questionCount: 3,
+        questions: [
+          { text: "What do you think the word 'scale' means in science class?", type: "text" },
+          { text: "What is an organism?", type: "text" },
+          { text: "How many words can you think of that start with 'micro'? (ex: microscope)"}
+        ]
+      },
+      'Tuesday': {
+        questionCount: 2,
+        questions: [
+          { text: "True or False: All organisms are visible.", type: "multi-select", options: ["True", "False"] },
+          { text: "Select the definition of 'scale' that we discussed yesterday in class.", type: "multi-select", options: ["A scale is something you step on to see how much you weigh.", "Scale tells you how big or small something is."] }
+        ]
+      },
+      'Wednesday': {
+        questionCount: 3,
+        questions: [
+          { text: "The word microorganism is made up of two smaller words. What are the smaller words?", type: "text" },
+          { text: "What do the smaller words that you wrote in the last question mean?", type: "text" },
+          { text: "We'll be learning about cells today. Write down everything you can think of about cells.", type: "text"}
+        ]
+      },
+      'Thursday': {
+        questionCount: 1,
+        questions: [
+          { text: "Write 3 sentences about the cells article that we read yesterday.", type: "text" }
+          
+        ]
+      },
+      'Friday': {
+        questionCount: 4,
+        questions: [
+          { text: "Write a sentence (or two!) about cells, using the words 'scale' and 'size'.", type: "text" },
+          { text: "When you read the word 'culture', what do you think of?", type: "text" },
+          { text: "Which is bigger: cells or molecules?", options: ["cells", "molecules"]},
+          { text: "True or False: All bacteria are dangerous for humans.", options: ["True","False"]}
+        ]
+      }
+    },
+    '6B': {
+      'Monday': {
+        questionCount: 3,
+        questions: [
+          { text: "What do you think the word 'scale' means in science class?", type: "text" },
+          { text: "What is an organism?", type: "text" },
+          { text: "How many words can you think of that start with 'micro'? (ex: microscope)"}
+        ]
+      },
+      'Tuesday': {
+        questionCount: 2,
+        questions: [
+          { text: "True or False: All organisms are visible.", type: "multi-select", options: ["True", "False"] },
+          { text: "Select the definition of 'scale' that we discussed yesterday in class.", type: "multi-select", options: ["A scale is something you step on to see how much you weigh.", "Scale tells you how big or small something is."] }
+        ]
+      },
+      'Wednesday': {
+        questionCount: 3,
+        questions: [
+          { text: "The word microorganism is made up of two smaller words. What are the smaller words?", type: "text" },
+          { text: "What do the smaller words that you wrote in the last question mean?", type: "text" },
+          { text: "We'll be learning about cells today. Write down everything you can think of about cells.", type: "text"}
+        ]
+      },
+      'Thursday': {
+        questionCount: 1,
+        questions: [
+          { text: "Write 3 sentences about the cells article that we read yesterday.", type: "text" }
+          
+        ]
+      },
+      'Friday': {
+        questionCount: 4,
+        questions: [
+          { text: "Write a sentence (or two!) about cells, using the words 'scale' and 'size'.", type: "text" },
+          { text: "When you read the word 'culture', what do you think of?", type: "text" },
+          { text: "Which is bigger: cells or molecules?",type: "multi-select", options: ["cells", "molecules"]},
+          { text: "True or False: All bacteria are dangerous for humans.", type: "multi-select", options: ["True","False"]}
+        ]
+      }
+    },
+    '7': {
+      'Monday': {
+        questionCount: 3,
+        questions: [
+          { text: "If you could dig all the way to the center of the Earth, what would you see along the way?", type: "text" },
+          { text: "The word 'habitable' can be broken down into two smaller words. What do you think they are?", type: "text" },
+          { text: "What do the two smaller words that you wrote in the previous question mean?", type: "text"}
+        ]
+      },
+      'Tuesday': {
+        questionCount: 2,
+        questions: [
+          { text: "How many spheres does Earth have?", type: "number-choice", options: ["1", "2", "3", "4", "5"] },
+          { text: "What does the word 'habitable' mean?", type: "text" }
+        ]
+      },
+      'Wednesday': {
+        questionCount: 2,
+        questions: [
+          { text: "The word 'landform' can be broken down into two smaller words. What are they?", type: "text" },
+          { text: "Select the sphere that is farther away from the center of the Earth: geosphere OR atmosphere", type: "multi-select", options: ["geosphere", "atmosphere"] }
+        ]
+      },
+      'Thursday': {
+        questionCount: 2,
+        questions: [
+          { text: "The word 'geologic' can be broken down into two smaller words. What are they?", type: "text" },
+          { text: "How would you explain what the word 'evidence' means to a classmate?", type: "text" }
+        ]
+      },
+      'Friday': {
+        questionCount: 2,
+        questions: [
+          { text: "What are the three parts of a scientific argument?", type: "text" },
+          { text: "Which part of a scientific argument usually contains the word 'because'?", type: "text" }
+        ]
+      }
+    },
+    '8A': {
+      'Monday': {
+        questionCount: 3,
+        questions: [
+          { text: "How would you describe 'energy' to a classmate?", type: "text" },
+          { text: "When you read the word 'kinetic', what do you think of?", type: "text" },
+          { text: "When you read the word 'potential', what do you think of?", type: "text" }
+        ]
+      },
+      'Tuesday': {
+        questionCount: 2,
+        questions: [
+          { text: "Which option below has energy?",type: "multi-select", options: ["A rock","A paperclip", "A stretched rubber band", "A feather"]},
+          { text: "Consider this sentence: 'This phone has energy.' Is this sentence a CLAIM, EVIDENCE, or REASONING?", type: "multi-select", options: ["CLAIM", "EVIDENCE", "REASONING"] }
+
+        ]
+      },
+      'Wednesday': {
+        questionCount: 3,
+        questions: [
+          { text: "Write an example of a claim.", type: "text" },
+          { text: "Write an example of evidence.", type: "text" },
+          { text: "Write an example of reasoning.", type: "text" }
+        ]
+      },
+      'Thursday': {
+        questionCount: 2,
+        questions: [
+          { text: "Read these statements, then decide which part of a scientific argument is missing: 'Dark chocolate is better than milk chocolate. Dark chocolate has 30% less sugar than milk chocolate.", type: "multi-select", options: ["CLAIM", "EVIDENCE", "REASONING"] },
+          { text: "Read these statements, then decide which part of a scientific argument is missing: 'A dog brain is 20% bigger than a cat brain, on average. Because dog brains are larger, they are smarter.", type: "multi-select", options: ["CLAIM", "EVIDENCE", "REASONING"] },
+
+        ]
+      },
+      'Friday': {
+        questionCount: 2,
+        questions: [
+          { text: "Write a CER about anything you want.", type: "text" },
+          { text: "Write a CER about energy.", type: "text" }
+
+        ]
+      }
+    },
+    '8B': {
+      'Monday': {
+        questionCount: 2,
+        questions: [
+          { text: "What does the prefix 'aero' mean?", type: "text" },
+          { text: "Solve for x: x + 3 = 16", type: "text" }
+        ]
+      },
+      'Tuesday': {
+        questionCount: 2,
+        questions: [
+          { text: "What does the suffix 'ology' mean?", type: "text" },
+          { text: "Solve for x: x - 5 = 16", type: "text" }
+        ]
+      },
+      'Wednesday': {
+        questionCount: 2,
+        questions: [
+          { text: "What does the prefix 'chromo' mean?", type: "text" },
+          { text: "Solve for x: 3x = 12", type: "text" }
+        ]
+      },
+      'Thursday': {
+        questionCount: 2,
+        questions: [
+          { text: "What does the miniword 'hydro' mean?", type: "text" },
+          { text: "Solve for x: x/2 = 16", type: "text" }
+        ]
+      },
+      'Friday': {
+        questionCount: 2,
+        questions: [
+          { text: "What does the miniword 'thermic' mean?", type: "text" },
+          { text: "Solve for x: 2x - 5 = 15", type: "text" }
+        ]
+      }
+    }
+  },
   
-  // Labels for each question 
-  questionLabels: [
-    "Question 1",
-    "Question 2",
-    "Question 3",
-    "Question 4 (optional)",
-    "Question 5 (optional)",
-    "Question 6 (optional)",
-    "Question 7 (optional)"
-  ],
-  
-  // Header 
+  // header
   headerEmoji: "🔔",
   headerTitle: "Bell Ringer",
   headerSub: "Take 3 minutes to respond.",
   
-  // Class roster - aspen update
-  roster: [
-   "names here"
-  ]
+  // roster
+  roster: {
+    '6A': [
+    "Anderson, Demarlo",
+    "Fears, Ashanti",
+    "Fenton, Karter",
+    "French, Tyliah",
+    "Hall, Janylah",
+    "Harris, Ariana",
+    "Johnson, Calvin",
+    "Mallory, Charissa",
+    "Matthews, Jonylah",
+    "McCoy Jr., Jonathan",
+    "Nooner, Poseidon",
+    "Osuji, David",
+    "Palmer, Alliyah",
+    "Robertson, Burrell",
+    "Ross, Aidyn",
+    "Smith, Meeka",
+    "Thomas, Khloe",
+    "White, Albert"
+    ],
+    '6B': [
+    "Burns, Amaria",
+    "Hall, Alonzo",
+    "Harris, Amir",
+    "Lewis, Kaziyah",
+    "Mardis Jr., Deandre",
+    "McCormick, Demontae",
+    "Mccune, Rylie",
+    "McGregory, Namiah",
+    "Moore, Sincere",
+    "Robertson, Terrell",
+    "Ross, Makayla",
+    "Thomas, Caprice",
+    "Ware, Laila",
+    "White, Johnathan",
+    "Williams, Eternity",
+    "Wright, Kylan"
+    ],
+    '7': [
+    "Burris, Harlem",
+    "Cole, Wyatt",
+    "Cross, Shaniya",
+    "Donaldson Jr., Jameel",
+    "Ferguson, Kephra",
+    "Hinton, Carey",
+    "Jackson, Malaysia",
+    "Johnson, King",
+    "Jordan, Kyran",
+    "Lawrence, Jonas",
+    "Lewis, Winter",
+    "Lucas, Janiyah",
+    "McCampbell, Derrick",
+    "McGehee, Jayceon",
+    "Miller, Jordan",
+    "Milon, Robert",
+    "Ornelas, Phoenix",
+    "Parker, Free",
+    "Parker, Kyon",
+    "Rhodes, Kayleb",
+    "Robertson, Durrell",
+    "Robison, Corderro",
+    "Seck, Cheikh",
+    "Smith, Lariah",
+    "Weatherspoon, Jaquan",
+    "White, Journee",
+    "Willis, Frederick",
+    "Woods, Damarco"
+    ],
+    '8A': [
+    "Adams, Shyale",
+    "Bell, Keymani",
+    "Byrd, Sakina",
+    "Coleman, Anyssa",
+    "Coney, Layla",
+    "Denham, Loveree",
+    "Denny, Harmoni",
+    "Edwards, Semiya",
+    "Hudson, Jeremiah",
+    "Jackson, Ayden",
+    "Johnson, Lavayhia",
+    "McBride, Keyariah",
+    "McClendon, Akira",
+    "McCormick, Demari",
+    "Miller, Khalil",
+    "Osuji, Kimberly",
+    "Pargo, Justin",
+    "Robinson, My'joi",
+    "Sears, Dariyah",
+    "Small, Mckenzie",
+    "Williams, Taylor"
+    ],
+    '8B': [
+    "Adams, Shyale",
+    "Bell, Keymani",
+    "Byrd, Sakina",
+    "Coleman, Anyssa",
+    "Coney, Layla",
+    "Denham, Loveree",
+    "Denny, Harmoni",
+    "Edwards, Semiya",
+    "Hudson, Jeremiah",
+    "Jackson, Ayden",
+    "Johnson, Lavayhia",
+    "McBride, Keyariah",
+    "McClendon, Akira",
+    "McCormick, Demari",
+    "Miller, Khalil",
+    "Osuji, Kimberly",
+    "Pargo, Justin",
+    "Robinson, My'joi",
+    "Sears, Dariyah",
+    "Small, Mckenzie",
+    "Williams, Taylor"
+    ]
+  }
 };
 
 
-const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeJ2mqZseyMvdch4WXio27Oul-IP9QMudZ3jUeF_k_BP7WQkQ//formResponse";
+const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSeJ2mqZseyMvdch4WXio27Oul-IP9QMudZ3jUeF_k_BP7WQkQ/formResponse";
 const ENTRIES = {
   student_name: "entry.613533817",
   class_period: "entry.682790454",
+  day_of_week: "entry.536565568",
   response_1: "entry.1270009933",
   response_2: "entry.1217292012",
   response_3: "entry.851332020",
@@ -157,42 +491,184 @@ const ENTRIES = {
   response_7: "entry.1162169670"
 };
 
-
+//init
 // Set header
 document.getElementById('headerEmoji').textContent = SETTINGS.headerEmoji;
 document.getElementById('headerTitle').textContent = SETTINGS.headerTitle;
 document.getElementById('headerSub').textContent = SETTINGS.headerSub;
 
-// Populate name dropdown
+// Handle day or period selection to load questions and filter names
 const rosterSelect = document.getElementById('student_name');
-SETTINGS.roster.sort().forEach(name => {
-  const option = document.createElement('option');
-  option.value = name;
-  option.textContent = name;
-  rosterSelect.appendChild(option);
-});
+const periodSelect = document.getElementById('class_period');
+const daySelect = document.getElementById('day_of_week');
 
-// Build response fields dynamically
+const updateForm = () => {
+  const selectedDay = daySelect.value;
+  const selectedPeriod = periodSelect.value;
+  
+  // Build questions if both day and period are selected
+  if(selectedDay && selectedPeriod){
+    buildQuestionsForDayAndPeriod(selectedDay, selectedPeriod);
+  } else {
+    container.innerHTML = ''; // Clear questions if either is missing
+  }
+  
+  // Update name roster if period is selected
+  rosterSelect.innerHTML = '';
+  
+  if(!selectedPeriod){
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = '— Select your period first —';
+    rosterSelect.appendChild(option);
+  } else {
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = '— Select your name —';
+    rosterSelect.appendChild(option);
+    
+    const studentsInPeriod = SETTINGS.roster[selectedPeriod] || [];
+    studentsInPeriod.sort().forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      rosterSelect.appendChild(opt);
+    });
+  }
+};
+
+daySelect.addEventListener('change', updateForm);
+periodSelect.addEventListener('change', updateForm);
+
+// Global tracking for responses
 const container = document.getElementById('questionsContainer');
-for(let i = 1; i <= 7; i++){
-  const fieldDiv = document.createElement('div');
-  fieldDiv.className = 'form-section question-field';
-  fieldDiv.id = `q${i}-field`;
+let questionData = {}; // Track selected values for multi-select
+let currentPeriodQuestionCount = 0; // Track how many questions for current period
+
+// Function to build questions for selected day and period
+function buildQuestionsForDayAndPeriod(day, period){
+  container.innerHTML = ''; // Clear existing questions
+  questionData = {}; // Reset multi-select data
   
-  if(i <= SETTINGS.questionCount) fieldDiv.classList.add('active');
+  if(!day || !period) return;
   
-  const label = document.createElement('div');
-  label.className = i > SETTINGS.questionCount ? 'q-label optional' : 'q-label';
-  label.textContent = SETTINGS.questionLabels[i-1];
+  const dayPeriodConfig = SETTINGS.questionsByPeriodAndDay[period] && SETTINGS.questionsByPeriodAndDay[period][day];
+  if(!dayPeriodConfig) return;
   
-  const textarea = document.createElement('textarea');
-  textarea.name = `response_${i}`;
-  textarea.id = `response_${i}`;
-  textarea.placeholder = 'Type your response...';
+  const questions = dayPeriodConfig.questions;
+  currentPeriodQuestionCount = questions.length;
   
-  fieldDiv.appendChild(label);
-  fieldDiv.appendChild(textarea);
-  container.appendChild(fieldDiv);
+  questions.forEach((qConfig, idx) => {
+    const i = idx + 1;
+    const fieldDiv = document.createElement('div');
+    fieldDiv.className = 'form-section question-field active';
+    fieldDiv.id = `q${i}-field`;
+    
+    const label = document.createElement('div');
+    label.className = 'q-label';
+    label.textContent = qConfig.text;
+    
+    fieldDiv.appendChild(label);
+    
+    // Create input based on type
+    const qType = qConfig.type || 'text';
+    
+    if(qType === 'text'){
+      const textarea = document.createElement('textarea');
+      textarea.name = `response_${i}`;
+      textarea.id = `response_${i}`;
+      textarea.placeholder = 'Type your response...';
+      fieldDiv.appendChild(textarea);
+    }
+    else if(qType === 'number-choice'){
+      const optionsDiv = document.createElement('div');
+      optionsDiv.className = 'options opt-grid';
+      (qConfig.options || []).forEach(opt => {
+        const btn = document.createElement('div');
+        btn.className = 'opt';
+        btn.textContent = opt;
+        btn.dataset.value = opt;
+        btn.addEventListener('click', () => {
+          optionsDiv.querySelectorAll('.opt').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          const hiddenInput = document.getElementById(`response_${i}`);
+          if(hiddenInput) hiddenInput.value = opt;
+        });
+        optionsDiv.appendChild(btn);
+      });
+      const hiddenInput = document.createElement('input');
+      hiddenInput.type = 'hidden';
+      hiddenInput.id = `response_${i}`;
+      hiddenInput.name = `response_${i}`;
+      fieldDiv.appendChild(optionsDiv);
+      fieldDiv.appendChild(hiddenInput);
+    }
+    else if(qType === 'scale'){
+      const min = qConfig.min || 1;
+      const max = qConfig.max || 5;
+      const scaleDiv = document.createElement('div');
+      scaleDiv.className = 'scale-row';
+      for(let j = min; j <= max; j++){
+        const btn = document.createElement('div');
+        btn.className = 'scale-btn';
+        btn.textContent = j;
+        btn.dataset.value = j;
+        btn.addEventListener('click', () => {
+          scaleDiv.querySelectorAll('.scale-btn').forEach(b => b.classList.remove('selected'));
+          btn.classList.add('selected');
+          const hiddenInput = document.getElementById(`response_${i}`);
+          if(hiddenInput) hiddenInput.value = j;
+        });
+        scaleDiv.appendChild(btn);
+      }
+      const hiddenInput = document.createElement('input');
+      hiddenInput.type = 'hidden';
+      hiddenInput.id = `response_${i}`;
+      hiddenInput.name = `response_${i}`;
+      fieldDiv.appendChild(scaleDiv);
+      fieldDiv.appendChild(hiddenInput);
+    }
+    else if(qType === 'multi-select'){
+      const optionsDiv = document.createElement('div');
+      optionsDiv.className = 'options';
+      questionData[`response_${i}`] = [];
+      (qConfig.options || []).forEach(opt => {
+        const checkDiv = document.createElement('div');
+        checkDiv.style.display = 'flex';
+        checkDiv.style.alignItems = 'center';
+        checkDiv.style.gap = '8px';
+        checkDiv.style.padding = '10px 0';
+        
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.value = opt;
+        checkbox.style.width = '18px';
+        checkbox.style.height = '18px';
+        checkbox.style.cursor = 'pointer';
+        checkbox.addEventListener('change', () => {
+          const arr = questionData[`response_${i}`] || [];
+          if(checkbox.checked){
+            if(!arr.includes(opt)) arr.push(opt);
+          } else {
+            questionData[`response_${i}`] = arr.filter(x => x !== opt);
+          }
+          questionData[`response_${i}`] = arr;
+        });
+        
+        const label = document.createElement('label');
+        label.textContent = opt;
+        label.style.cursor = 'pointer';
+        label.style.margin = '0';
+        
+        checkDiv.appendChild(checkbox);
+        checkDiv.appendChild(label);
+        optionsDiv.appendChild(checkDiv);
+      });
+      fieldDiv.appendChild(optionsDiv);
+    }
+    
+    container.appendChild(fieldDiv);
+  });
 }
 
 // Form submission
@@ -201,9 +677,10 @@ document.getElementById('responseForm').addEventListener('submit', (e) => {
   
   const name = document.getElementById('student_name').value;
   const period = document.getElementById('class_period').value;
+  const day = document.getElementById('day_of_week').value;
   
-  if(!name || !period){
-    alert('Please select your name and class period.');
+  if(!name || !period || !day){
+    alert('Please select your name, class period, and day of the week.');
     return;
   }
   
@@ -213,9 +690,20 @@ document.getElementById('responseForm').addEventListener('submit', (e) => {
   const formData = new FormData();
   formData.append(ENTRIES.student_name, name);
   formData.append(ENTRIES.class_period, period);
+  formData.append(ENTRIES.day_of_week, day);
   
-  for(let i = 1; i <= 7; i++){
-    const val = document.getElementById(`response_${i}`).value;
+  for(let i = 1; i <= currentPeriodQuestionCount; i++){
+    const dayPeriodConfig = SETTINGS.questionsByPeriodAndDay[period] && SETTINGS.questionsByPeriodAndDay[period][day];
+    const qConfig = dayPeriodConfig && dayPeriodConfig.questions[i-1];
+    let val = '';
+    
+    if(qConfig && qConfig.type === 'multi-select'){
+      val = (questionData[`response_${i}`] || []).join(', ');
+    } else {
+      const input = document.getElementById(`response_${i}`);
+      val = input ? input.value : '';
+    }
+    
     formData.append(ENTRIES[`response_${i}`], val || '');
   }
   
