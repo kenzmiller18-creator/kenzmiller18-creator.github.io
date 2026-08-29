@@ -582,7 +582,7 @@ function loadActivities() {
         activity: r.c[2] && r.c[2].v != null ? r.c[2].v : '',
         link: r.c[3] && r.c[3].v != null ? r.c[3].v : ''
       }))
-      .filter(r => r.date && r.activity && r.grade === CLASS_GRADE && dateKey(r.date) === todayKey);
+      .filter(r => r.activity && r.grade === CLASS_GRADE && (!r.date || dateKey(r.date) === todayKey));
 
     renderTodoList(items);
   });
