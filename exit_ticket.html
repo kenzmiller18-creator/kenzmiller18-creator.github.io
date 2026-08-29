@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Exit Ticket</title>
+<title>Exit Ticket — Reflection</title>
 <style>
   :root{
     --purple1:#cd9bff; --purple2:#ab90ff; --purple3:#a78bfa;
@@ -74,19 +74,11 @@
   <div id="formArea">
     <div class="header">
       <div class="emoji">🪞</div>
-      <h1>Exit Ticket</h1>
+      <h1>Exit Ticket — Reflection</h1>
       <div class="sub">Take a moment to reflect on today.</div>
     </div>
 
     <form id="reflectionForm">
-      <!-- Name dropdown -->
-      <div class="form-section">
-        <label for="student_name">Your name</label>
-        <select id="student_name" name="student_name" required>
-          <option value="">— Select your name —</option>
-        </select>
-      </div>
-
       <!-- Class period dropdown -->
       <div class="form-section">
         <label for="class_period">Class period</label>
@@ -95,7 +87,16 @@
           <option value="6A">6A</option>
           <option value="6B">6B</option>
           <option value="7">7th grade</option>
-          <option value="8">8th grade</option>
+          <option value="8A">8A</option>
+          <option value="8B">8B</option>
+        </select>
+      </div>
+
+      <!-- Name dropdown -->
+      <div class="form-section">
+        <label for="student_name">Your name</label>
+        <select id="student_name" name="student_name" required>
+          <option value="">— Select your period first —</option>
         </select>
       </div>
 
@@ -166,13 +167,125 @@
 
 <script>
 
-// Class roster - need to update per aspen
-const ROSTER = [
-"test"
- 
-];
 
+const ROSTER = {
+    '6A': [
+    "Anderson, Demarlo",
+    "Fears, Ashanti",
+    "Fenton, Karter",
+    "French, Tyliah",
+    "Hall, Janylah",
+    "Harris, Ariana",
+    "Johnson, Calvin",
+    "Mallory, Charissa",
+    "Matthews, Jonylah",
+    "McCoy Jr., Jonathan",
+    "Nooner, Poseidon",
+    "Osuji, David",
+    "Palmer, Alliyah",
+    "Robertson, Burrell",
+    "Ross, Aidyn",
+    "Smith, Meeka",
+    "Thomas, Khloe",
+    "White, Albert"
+    ],
+    '6B': [
+    "Burns, Amaria",
+    "Hall, Alonzo",
+    "Harris, Amir",
+    "Lewis, Kaziyah",
+    "Mardis Jr., Deandre",
+    "McCormick, Demontae",
+    "Mccune, Rylie",
+    "McGregory, Namiah",
+    "Moore, Sincere",
+    "Robertson, Terrell",
+    "Ross, Makayla",
+    "Thomas, Caprice",
+    "Ware, Laila",
+    "White, Johnathan",
+    "Williams, Eternity",
+    "Wright, Kylan"
+    ],
+    '7': [
+    "Burris, Harlem",
+    "Cole, Wyatt",
+    "Cross, Shaniya",
+    "Donaldson Jr., Jameel",
+    "Ferguson, Kephra",
+    "Hinton, Carey",
+    "Jackson, Malaysia",
+    "Johnson, King",
+    "Jordan, Kyran",
+    "Lawrence, Jonas",
+    "Lewis, Winter",
+    "Lucas, Janiyah",
+    "McCampbell, Derrick",
+    "McGehee, Jayceon",
+    "Miller, Jordan",
+    "Milon, Robert",
+    "Ornelas, Phoenix",
+    "Parker, Free",
+    "Parker, Kyon",
+    "Rhodes, Kayleb",
+    "Robertson, Durrell",
+    "Robison, Corderro",
+    "Seck, Cheikh",
+    "Smith, Lariah",
+    "Weatherspoon, Jaquan",
+    "White, Journee",
+    "Willis, Frederick",
+    "Woods, Damarco"
+    ],
+    '8A': [
+    "Adams, Shyale",
+    "Bell, Keymani",
+    "Byrd, Sakina",
+    "Coleman, Anyssa",
+    "Coney, Layla",
+    "Denham, Loveree",
+    "Denny, Harmoni",
+    "Edwards, Semiya",
+    "Hudson, Jeremiah",
+    "Jackson, Ayden",
+    "Johnson, Lavayhia",
+    "McBride, Keyariah",
+    "McClendon, Akira",
+    "McCormick, Demari",
+    "Miller, Khalil",
+    "Osuji, Kimberly",
+    "Pargo, Justin",
+    "Robinson, My'joi",
+    "Sears, Dariyah",
+    "Small, Mckenzie",
+    "Williams, Taylor"
+    ],
+    '8B': [
+    "Adams, Shyale",
+    "Bell, Keymani",
+    "Byrd, Sakina",
+    "Coleman, Anyssa",
+    "Coney, Layla",
+    "Denham, Loveree",
+    "Denny, Harmoni",
+    "Edwards, Semiya",
+    "Hudson, Jeremiah",
+    "Jackson, Ayden",
+    "Johnson, Lavayhia",
+    "McBride, Keyariah",
+    "McClendon, Akira",
+    "McCormick, Demari",
+    "Miller, Khalil",
+    "Osuji, Kimberly",
+    "Pargo, Justin",
+    "Robinson, My'joi",
+    "Sears, Dariyah",
+    "Small, Mckenzie",
+    "Williams, Taylor"
+    ]
+};
 
+//gogole form
 const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLScSwQijCgEZDSXnBY26WAKVNmpDzJV7eJ46RSW9sbUNWz0QKQ/formResponse";
 const ENTRIES = {
   student_name: "entry.901554691",
@@ -182,16 +295,36 @@ const ENTRIES = {
   work: "entry.1789138687"
 };
 
-
+//init
 const answers = {};
 
-// Populate name dropdown
+// Handle class period selection to filter student names
 const rosterSelect = document.getElementById('student_name');
-ROSTER.sort().forEach(name => {
-  const option = document.createElement('option');
-  option.value = name;
-  option.textContent = name;
-  rosterSelect.appendChild(option);
+const periodSelect = document.getElementById('class_period');
+
+periodSelect.addEventListener('change', () => {
+  const selectedPeriod = periodSelect.value;
+  rosterSelect.innerHTML = '';
+  
+  if(!selectedPeriod){
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = '— Select your period first —';
+    rosterSelect.appendChild(option);
+  } else {
+    const option = document.createElement('option');
+    option.value = '';
+    option.textContent = '— Select your name —';
+    rosterSelect.appendChild(option);
+    
+    const studentsInPeriod = ROSTER[selectedPeriod] || [];
+    studentsInPeriod.sort().forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      rosterSelect.appendChild(opt);
+    });
+  }
 });
 
 // Set up scale buttons
