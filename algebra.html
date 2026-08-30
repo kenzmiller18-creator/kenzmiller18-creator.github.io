@@ -1,0 +1,732 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Algebra Practice</title>
+<style>
+:root{
+  --bg:#f7f4fb;
+  --card:#ffffff;
+  --ink:#231528;
+  --muted:#5a4a64;
+  --line: rgba(35,21,40,.12);
+
+  --accent:#eda6ff;
+  --accent2:#e9a9ff;
+
+  --good:#16a34a;
+  --bad:#dc2626;
+  --warn:#d97706;
+
+  --r:18px;
+  --shadow: 0 14px 40px rgba(35,21,40,.10);
+  --tileShadow: 0 10px 20px rgba(35,21,40,.10);
+
+  --font: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+}
+* { box-sizing: border-box; }
+body{
+  margin:0; min-height:100vh; background: var(--bg); color: var(--ink);
+  font-family: var(--font); display:flex; justify-content:center; padding: 18px;
+}
+.app{ width: min(720px, 100%); display:block; }
+.panel{ background: var(--card); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); overflow:hidden; }
+header{
+  padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,.22);
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  color:#000; display:flex; gap:12px; align-items:center; justify-content:space-between;
+}
+.title{ display:flex; flex-direction:column; gap:4px; flex-grow:1; }
+.title h1{ margin:0; font-size:18px; letter-spacing:.2px; }
+.title p{ margin:0; font-size:12px; color:#39136e; line-height:1.35; }
+.hubLink{ display:inline-block; margin-bottom:8px; text-decoration:none; font-weight:bold; color:#39136e; }
+.hubLink:hover{ text-decoration:underline; }
+button{
+  appearance:none; border:1px solid rgba(255,255,255,.28); background: rgba(255,255,255,.25);
+  color:#39136e; padding:10px 12px; border-radius:14px; cursor:pointer; font-weight:750; font-size:13px;
+  transition: transform .05s ease, background .2s ease, border-color .2s ease; user-select:none;
+}
+button:hover{ background: rgba(255,255,255,.40); }
+button:disabled{ opacity:.45; cursor:not-allowed; }
+.main{ padding:16px; }
+
+.modeRow{ display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap; }
+.modeBtn{ background:#f1e9fb; color:#39136e; border:1px solid var(--line); }
+.modeBtn.active{ background: linear-gradient(90deg, var(--accent), var(--accent2)); border-color: transparent; }
+
+.pillRow{ display:flex; gap:8px; flex-wrap:wrap; margin-bottom:14px; }
+.pill{ background:#f1e9fb; border:1px solid var(--line); border-radius:12px; padding:8px 12px; font-size:13px; }
+.pill em{ font-style:normal; font-weight:800; }
+
+.eqCard{
+  background:#fbf5ff; border:1px solid var(--line); border-radius:16px; padding:24px 20px; margin-bottom:14px; text-align:center;
+}
+.eqCard .tag{ font-size:12px; font-weight:800; color:#7c3aed; text-transform:uppercase; letter-spacing:.5px; }
+.eqGrid{ display:grid; grid-template-columns: 1fr auto 1fr; align-items:center; column-gap:14px; row-gap:4px; margin-top:12px; }
+.mainEq{ font-size:32px; font-weight:800; letter-spacing:.5px; }
+.eqLeft{ text-align:right; }
+.eqRight{ text-align:left; }
+.eqMid{ text-align:center; color: var(--muted); }
+.opLeft, .opRight{ font-size:21px; font-weight:800; color:#7c3aed; display:none; }
+.opLeft{ text-align:right; }
+.opRight{ text-align:left; }
+.divider{ grid-column: 1 / -1; border-top:2.5px solid var(--ink); margin-top:6px; display:none; }
+.answerInput{
+  display:none; font-size:22px; font-weight:800; text-align:center; color:#39136e;
+  padding:8px 10px; border:2px solid var(--line); border-radius:10px; background:#fff;
+  width:100%; font-family: var(--font);
+}
+.answerInput:focus{ outline:none; border-color:#a855f7; }
+.answerInput.wrongInput{ border-color: var(--bad); background:#fee2e2; animation: shake .32s; }
+.answerMidSign{ display:none; font-size:22px; font-weight:800; }
+.typeArea{ display:none; margin-bottom:14px; }
+.typeRow{ display:flex; gap:8px; }
+.typeRow input{ flex:1; }
+
+.msg{ text-align:center; font-size:14px; padding:10px; border-radius:12px; background:#f1e9fb; margin-bottom:10px; }
+.msg.good{ background:#dcfce7; color:#14532d; }
+.msg.bad{ background:#fee2e2; color:#7f1d1d; }
+.msg.warn{ background:#fef3c7; color:#78350f; }
+
+.historyStack{ display:flex; flex-direction:column; gap:4px; margin-bottom:14px; }
+.stepEq{ text-align:center; font-size:19px; font-weight:800; padding: 4px 0; }
+.stepNote{ text-align:center; font-size:12.5px; color: var(--muted); font-style:italic; padding-bottom:2px; }
+.stepFinal{ text-align:center; font-size:22px; font-weight:800; color: var(--good); padding:8px; margin:4px auto; max-width:220px; border:2px solid var(--good); border-radius:12px; background:#f0fdf4; }
+
+.bankLabel{ font-size:12px; color:var(--muted); margin: 4px 0 10px; text-align:center; }
+.tileBank{ display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-bottom:16px; }
+.tile{
+  background: linear-gradient(180deg, #fff, #f7f0ff); border:1px solid var(--line); border-radius:12px;
+  padding:12px 18px; font-weight:800; font-size:16px; box-shadow: var(--tileShadow); cursor:pointer;
+  min-width: 84px; text-align:center;
+}
+.tile:hover{ transform: translateY(-1px); }
+.tile.wrong{ animation: shake .32s; border-color: var(--bad); background:#fee2e2; color:#7f1d1d; }
+.tile.right{ border-color: var(--good); background:#dcfce7; color:#14532d; }
+@keyframes shake{
+  0%,100%{ transform: translateX(0); }
+  25%{ transform: translateX(-6px); }
+  75%{ transform: translateX(6px); }
+}
+
+.actionsRow{ display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+.actionsRow button{ flex:1; min-width:120px; }
+.btn-primary{ background:#39136e; color:#fff; border:none; }
+.btn-primary:hover{ background:#4c1d95; }
+
+.breakdown{ background:#fff; border:2px solid #a855f7; border-radius:18px; padding:20px 22px; margin-bottom:14px; display:none; }
+.breakdown.show{ display:block; }
+.breakdown h3{ margin:0 0 14px; font-size:18px; color:#7c3aed; }
+.breakdown .part{ font-size:16px; padding:4px 0; text-align:center; }
+.breakdown .part.finalPart{ font-weight:800; color:var(--good); font-size:19px; padding-top:10px; }
+
+#submit-modal{ display:none; position:fixed; inset:0; background:rgba(35,21,40,.55); align-items:center; justify-content:center; padding:16px; z-index:50; }
+#submit-modal.open{ display:flex; }
+.modal-card{ background:#fff; border-radius:18px; padding:20px; width:min(420px,100%); box-shadow:var(--shadow); }
+.modal-card h2{ margin:0 0 6px; font-size:18px; }
+.modal-sub{ font-size:13px; color:var(--muted); margin:0 0 14px; }
+.modal-label{ display:block; font-size:12px; font-weight:700; margin:10px 0 4px; color:var(--muted); }
+.modal-input{ width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; font-size:14px; }
+.teacher-grid{ display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
+.teacher-btn{ background:#f1e9fb; border:1px solid var(--line); color:#39136e; }
+.teacher-btn.selected{ background:#39136e; color:#fff; }
+.modal-error{ color:var(--bad); font-size:12px; min-height:16px; margin-top:8px; }
+.modal-actions{ display:flex; gap:10px; margin-top:14px; }
+.modal-actions button{ flex:1; }
+.btn-cancel{ background:#f1e9fb; color:#39136e; border:1px solid var(--line); }
+</style>
+</head>
+<body>
+<div class="app">
+  <section class="panel">
+    <header>
+      <div class="title">
+        <a href="index.html" class="hubLink">← Back to Hub</a>
+        <h1>🧮 Math Lab</h1>
+        <p>Solve for x by doing the same thing to both sides.</p>
+      </div>
+      <button id="btnNew">New Equation</button>
+    </header>
+
+    <div class="main">
+      <div class="modeRow" id="levelRow"></div>
+
+      <div class="pillRow">
+        <div class="pill">🏆 Points: <em id="scoreCount">0</em></div>
+        <div class="pill">🔥 Clean streak: <em id="streakCount">0</em></div>
+      </div>
+
+      <div class="eqCard">
+        <div class="tag" id="eqTag">Solve for x</div>
+        <div class="eqGrid">
+          <div class="eqLeft mainEq" id="eqLeft">Loading…</div>
+          <div class="eqMid mainEq">=</div>
+          <div class="eqRight mainEq" id="eqRight"></div>
+          <div class="opLeft" id="opLeftReveal"></div>
+          <div class="opMid"></div>
+          <div class="opRight" id="opRightReveal"></div>
+          <div class="divider" id="opDivider"></div>
+          <input type="text" class="answerInput" id="answerLeft" autocomplete="off" />
+          <div class="eqMid answerMidSign" id="answerMidSign">=</div>
+          <input type="text" class="answerInput" id="answerRight" autocomplete="off" />
+        </div>
+      </div>
+
+      <div id="message" class="msg">Pick the operation that undoes the highlighted part of the equation.</div>
+
+      <div class="historyStack" id="historyStack"></div>
+
+      <div class="bankLabel" id="bankLabel">Tap the operation to apply it to <strong>both sides</strong> of the equation.</div>
+      <div class="tileBank" id="tileBank"></div>
+
+      <div class="typeArea" id="typeArea">
+        <div class="typeRow">
+          <button id="btnCheck" class="btn-primary">Check</button>
+        </div>
+        <div class="modal-error" id="typeError"></div>
+      </div>
+
+      <div class="actionsRow">
+        <button id="btnRestart">Restart This Equation</button>
+      </div>
+
+      <div class="breakdown" id="breakdown">
+        <h3>Nice work! Here's the full solution:</h3>
+        <div id="breakdownParts"></div>
+      </div>
+
+      <button id="btnReportScore" class="btn-primary" style="width:100%; padding:14px; border-radius:14px; border:none; font-weight:700; font-size:15px;">Submit Final Score (0)</button>
+    </div>
+  </section>
+</div>
+
+<div id="submit-modal">
+  <div class="modal-card">
+    <h2>Submit Your Points</h2>
+    <p class="modal-sub">You are turning in a cumulative score of <strong id="modal-points-display">0</strong> points. Enter your info below.</p>
+    <label class="modal-label" for="student-id-input">Student ID</label>
+    <input class="modal-input" id="student-id-input" type="text" placeholder="e.g. 123456" autocomplete="off" />
+    <label class="modal-label" for="student-name-input">Your Name</label>
+    <input class="modal-input" id="student-name-input" type="text" placeholder="First and last name" autocomplete="off" />
+    <label class="modal-label">Your Teacher</label>
+    <div class="teacher-grid" id="teacher-grid"></div>
+    <div class="modal-error" id="modal-error"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="modal-cancel-btn">Cancel</button>
+      <button class="btn-primary" id="modal-confirm-btn">Submit Points</button>
+    </div>
+  </div>
+</div>
+
+<script>
+
+const TEACHERS = {
+  "Miller": {
+    formUrl: "https://docs.google.com/forms/d/e/1FAIpQLSfKuu6ioAl329-GWATCl5NBI1urDAzD3uFzjH6hCSv8LSqmXg/formResponse",
+    entries: { studentID:"entry.613533817", displayName:"entry.682790454", sim:"entry.536565568", score:"entry.1270009933", token:"entry.1217292012" }
+  },
+};
+const SIM_ID = "algebra";
+const TOKEN_SALT = "MoLeCuTeOrG";
+
+// ── Fraction helpers (all equation math is exact, no floating point) ──
+function gcd(a,b){ a=Math.abs(a); b=Math.abs(b); while(b){ [a,b]=[b,a%b]; } return a||1; }
+function makeFrac(n,d=1){ if(d<0){ n=-n; d=-d; } const g=gcd(n,d)||1; return { n:n/g, d:d/g }; }
+function fAdd(x,y){ return makeFrac(x.n*y.d + y.n*x.d, x.d*y.d); }
+function fMul(x,y){ return makeFrac(x.n*y.n, x.d*y.d); }
+function fDiv(x,y){ return makeFrac(x.n*y.d, x.d*y.n); }
+function fNeg(x){ return { n:-x.n, d:x.d }; }
+function fEq(x,y){ return x.n===y.n && x.d===y.d; }
+function fIsZero(x){ return x.n===0; }
+function fIsOne(x){ return x.n===x.d; }
+function numStr(n){ return n<0 ? ("−"+(-n)) : String(n); }
+function fToStr(x){ return x.d===1 ? numStr(x.n) : `${numStr(x.n)}/${x.d}`; }
+function fSigned(x){ const neg = x.n<0; const abs = neg? fNeg(x): x; return (neg?"− ":"+ ") + fToStr(abs); }
+function fAbsNZ(x){ const a = x.n<0? fNeg(x): x; return fIsZero(a) ? makeFrac(2,1) : a; }
+
+function coeffTermStr(a){
+  if(a.d===1){
+    if(a.n===1) return "x";
+    if(a.n===-1) return "−x";
+    return numStr(a.n)+"x";
+  } else if(a.n===1){
+    return `x/${a.d}`;
+  } else if(a.n===-1){
+    return `−x/${a.d}`;
+  }
+  return `(${fToStr(a)})x`;
+}
+function eqLeftStr(state){
+  return coeffTermStr(state.a) + (fIsZero(state.b) ? "" : " " + fSigned(state.b));
+}
+function equationStr(state){
+  return `${eqLeftStr(state)} = ${fToStr(state.target)}`;
+}
+function canonicalEq(s){
+  return String(s).toLowerCase()
+    .replace(/\s+/g,"")
+    .replace(/[−–—]/g,"-")
+    .replace(/[()]/g,"")
+    .replace(/[*×]/g,"");
+}
+
+// ── Random helpers ──
+function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function nz(min,max){ let v; do{ v = randInt(min,max); } while(v===0); return v; }
+function shuffle(arr){ const a = arr.slice(); for(let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+// ── Equation generators, one per level ──
+function genLevel1(){
+  const b = nz(-12,12);
+  const x = nz(-12,12);
+  const target = fAdd(makeFrac(x,1), makeFrac(b,1));
+  return { a: makeFrac(1,1), b: makeFrac(b,1), target, expectedX: makeFrac(x,1) };
+}
+function genLevel2(){
+  const useDivForm = Math.random() < 0.5;
+  const aVal = randInt(2,9);
+  const x = nz(-9,9);
+  if(useDivForm){
+    const target = makeFrac(x, aVal);
+    return { a: makeFrac(1,aVal), b: makeFrac(0,1), target, expectedX: makeFrac(x,1) };
+  }
+  const target = makeFrac(x*aVal,1);
+  return { a: makeFrac(aVal,1), b: makeFrac(0,1), target, expectedX: makeFrac(x,1) };
+}
+function genLevel3(){
+  const a = randInt(2,9);
+  const b = nz(-12,12);
+  const x = nz(-9,9);
+  const target = fAdd(fMul(makeFrac(a,1), makeFrac(x,1)), makeFrac(b,1));
+  return { a: makeFrac(a,1), b: makeFrac(b,1), target, expectedX: makeFrac(x,1) };
+}
+function genLevel4(){
+  let a = nz(-9,9); while(Math.abs(a)===1) a = nz(-9,9);
+  const b = nz(-12,12);
+  let x;
+  if(Math.random() < 0.5){
+    x = makeFrac(nz(-9,9),1);
+  } else {
+    const d = [2,3,4][randInt(0,2)];
+    x = makeFrac(nz(-6,6), d);
+  }
+  const target = fAdd(fMul(makeFrac(a,1), x), makeFrac(b,1));
+  return { a: makeFrac(a,1), b: makeFrac(b,1), target, expectedX: x };
+}
+
+const LEVELS = [
+  { id:1, label:"Level 1 · +/−", tag:"One-step: undo addition or subtraction", gen: genLevel1, base: 6 },
+  { id:2, label:"Level 2 · ×/÷", tag:"One-step: undo multiplication or division", gen: genLevel2, base: 8 },
+  { id:3, label:"Level 3 · Two-Step", tag:"Undo the +/− part, then the ×/÷ part", gen: genLevel3, base: 12 },
+  { id:4, label:"Level 4 · Challenge", tag:"Negative coefficients & fraction answers", gen: genLevel4, base: 16 },
+];
+
+// ── Step engine ──
+function getStepInfo(state){
+  if(!fIsZero(state.b)){
+    const value = fNeg(state.b);
+    const correct = { kind:"add", value, label: fSigned(value) };
+    const wrongSign = { kind:"add", value: state.b, label: fSigned(state.b),
+      reason: "Check the sign — pick the operation that makes that term cancel out to zero." };
+    const babs = fAbsNZ(state.b);
+    const wrongMul = { kind:"multiply", value: babs, label: "× " + fToStr(babs),
+      reason: "That term is being added or subtracted, not multiplied — undo it with +/− instead." };
+    const wrongDiv = { kind:"divide", value: babs, label: "÷ " + fToStr(babs),
+      reason: "That term is being added or subtracted, not divided — undo it with +/− instead." };
+    return { type:"undo_b", correct, options: shuffle([correct, wrongSign, wrongMul, wrongDiv]) };
+  }
+  if(!fIsOne(state.a)){
+    let correct;
+    if(state.a.d===1){
+      correct = { kind:"divide", value: state.a, label: (state.a.n<0 ? `÷ (${numStr(state.a.n)})` : `÷ ${state.a.n}`) };
+    } else {
+      correct = { kind:"multiply", value: makeFrac(state.a.d,1), label: `× ${state.a.d}` };
+    }
+    const flippedKind = correct.kind==="divide" ? "multiply" : "divide";
+    const flippedLabel = (flippedKind==="multiply" ? "× " : "÷ ") + fToStr(correct.value);
+    const wrongOp = { kind: flippedKind, value: correct.value, label: flippedLabel,
+      reason: "That's the right number, but the wrong operation — check whether you need to multiply or divide to undo it." };
+    const negVal = fNeg(correct.value);
+    const wrongSign = { kind: correct.kind, value: negVal,
+      label: (correct.kind==="divide" ? `÷ (${numStr(negVal.n)})` : `× (${numStr(negVal.n)})`),
+      reason: "Check the sign on that number before applying the operation." };
+    const wrongCat = { kind:"add", value: correct.value, label: fSigned(correct.value),
+      reason: "The x-term is being multiplied or divided here, not added — that won't isolate x." };
+    return { type:"undo_a", correct, options: shuffle([correct, wrongOp, wrongSign, wrongCat]) };
+  }
+  return { type:"solved" };
+}
+function applyCorrect(state, op){
+  if(op.kind==="add") return { a: state.a, b: fAdd(state.b, op.value), target: fAdd(state.target, op.value) };
+  if(op.kind==="divide") return { a: fDiv(state.a, op.value), b: state.b, target: fDiv(state.target, op.value) };
+  if(op.kind==="multiply") return { a: fMul(state.a, op.value), b: state.b, target: fMul(state.target, op.value) };
+}
+function guidanceText(info, state){
+  if(info.type==="undo_b"){
+    return `Step: undo the ${fSigned(state.b)} on the left. Pick the operation that cancels it.`;
+  }
+  if(info.type==="undo_a"){
+    const isFracCoeff = state.a.d!==1;
+    return isFracCoeff
+      ? `Step: x is being divided by ${state.a.d}. Pick the operation that undoes that.`
+      : `Step: x is being multiplied by ${state.a.n}. Pick the operation that undoes that.`;
+  }
+  return "";
+}
+
+// ── DOM refs ──
+const levelRow = document.getElementById("levelRow");
+const eqTag = document.getElementById("eqTag");
+const eqLeftEl = document.getElementById("eqLeft");
+const eqRightEl = document.getElementById("eqRight");
+const opLeftReveal = document.getElementById("opLeftReveal");
+const opRightReveal = document.getElementById("opRightReveal");
+const opDivider = document.getElementById("opDivider");
+const bankLabel = document.getElementById("bankLabel");
+const typeArea = document.getElementById("typeArea");
+const answerLeft = document.getElementById("answerLeft");
+const answerRight = document.getElementById("answerRight");
+const answerMidSign = document.getElementById("answerMidSign");
+const typeError = document.getElementById("typeError");
+const btnCheck = document.getElementById("btnCheck");
+const msgEl = document.getElementById("message");
+const historyStack = document.getElementById("historyStack");
+const tileBank = document.getElementById("tileBank");
+const btnRestart = document.getElementById("btnRestart");
+const btnNew = document.getElementById("btnNew");
+const breakdownEl = document.getElementById("breakdown");
+const breakdownParts = document.getElementById("breakdownParts");
+const btnReportScore = document.getElementById("btnReportScore");
+const scoreCountEl = document.getElementById("scoreCount");
+const streakCountEl = document.getElementById("streakCount");
+
+const submitModal = document.getElementById("submit-modal");
+const modalPointsDisplay = document.getElementById("modal-points-display");
+const studentIdInput = document.getElementById("student-id-input");
+const studentNameInput = document.getElementById("student-name-input");
+const teacherGrid = document.getElementById("teacher-grid");
+const modalError = document.getElementById("modal-error");
+const modalCancelBtn = document.getElementById("modal-cancel-btn");
+const modalConfirmBtn = document.getElementById("modal-confirm-btn");
+
+let levelIdx = 0;
+let origEquation = null;
+let state = null;
+let mistakes = 0;
+let historyLines = [];
+let gameOver = false;
+let totalScore = 0;
+let selectedTeacher = null;
+
+// ── Type-in flow state ──
+let phase = "choose"; // "choose" | "typeAnswer"
+let pendingOpLabel = null;
+let pendingNewState = null;
+
+function setMessage(text, cls){
+  msgEl.textContent = text;
+  msgEl.className = "msg" + (cls ? " " + cls : "");
+}
+function fnv1a(str){
+  let h = 0x811c9dc5;
+  for(let i=0;i<str.length;i++){ h ^= str.charCodeAt(i); h = (h*0x01000193)>>>0; }
+  return h >>> 0;
+}
+
+function buildLevelRow(){
+  levelRow.innerHTML = "";
+  LEVELS.forEach((lvl, i) => {
+    const b = document.createElement("button");
+    b.className = "modeBtn" + (i===levelIdx ? " active" : "");
+    b.textContent = lvl.label;
+    b.addEventListener("click", () => { levelIdx = i; startNewEquation(); });
+    levelRow.appendChild(b);
+  });
+}
+
+function startNewEquation(){
+  const lvl = LEVELS[levelIdx];
+  origEquation = lvl.gen();
+  state = { a: origEquation.a, b: origEquation.b, target: origEquation.target };
+  mistakes = 0;
+  historyLines = [];
+  gameOver = false;
+  eqTag.textContent = lvl.tag;
+  breakdownEl.classList.remove("show");
+  historyStack.innerHTML = "";
+  renderStep();
+  buildLevelRow();
+}
+
+function resetStepUI(){
+  phase = "choose";
+  pendingOpLabel = null; pendingNewState = null;
+  opLeftReveal.style.display = "none";
+  opRightReveal.style.display = "none";
+  opDivider.style.display = "none";
+  answerLeft.style.display = "none";
+  answerRight.style.display = "none";
+  answerMidSign.style.display = "none";
+  typeArea.style.display = "none";
+  tileBank.style.display = "flex";
+  bankLabel.innerHTML = "Tap the operation to apply it to <strong>both sides</strong> of the equation.";
+  bankLabel.style.display = "block";
+  answerLeft.value = ""; answerRight.value = "";
+  answerLeft.classList.remove("wrongInput"); answerRight.classList.remove("wrongInput");
+  typeError.textContent = "";
+}
+
+function renderStep(){
+  const info = getStepInfo(state);
+  if(info.type === "solved"){
+    finishEquation();
+    return;
+  }
+  resetStepUI();
+  eqLeftEl.textContent = eqLeftStr(state);
+  eqRightEl.textContent = fToStr(state.target);
+  setMessage(guidanceText(info, state));
+  renderTiles(info);
+}
+
+function renderTiles(info){
+  tileBank.innerHTML = "";
+  info.options.forEach(opt => {
+    const t = document.createElement("div");
+    t.className = "tile";
+    t.textContent = opt.label;
+    t.addEventListener("click", () => handleTileClick(opt, info, t));
+    tileBank.appendChild(t);
+  });
+}
+
+function handleTileClick(opt, info, tileEl){
+  if(gameOver || phase !== "choose") return;
+  const isCorrect = opt.kind === info.correct.kind && fEq(opt.value, info.correct.value);
+  if(!isCorrect){
+    mistakes++;
+    tileEl.classList.add("wrong");
+    setMessage(opt.reason || "Not quite — think about which operation cancels that term.", "bad");
+    setTimeout(() => tileEl.classList.remove("wrong"), 320);
+    return;
+  }
+  tileEl.classList.add("right");
+  tileBank.style.display = "none";
+
+  const newState = applyCorrect(state, opt);
+  pendingNewState = newState;
+  pendingOpLabel = opt.label;
+
+  opLeftReveal.textContent = opt.label;
+  opRightReveal.textContent = opt.label;
+  opLeftReveal.style.display = "block";
+  opRightReveal.style.display = "block";
+  opDivider.style.display = "block";
+
+  answerLeft.value = ""; answerRight.value = "";
+  answerLeft.classList.remove("wrongInput"); answerRight.classList.remove("wrongInput");
+  answerLeft.style.display = "block";
+  answerRight.style.display = "block";
+  answerMidSign.style.display = "block";
+
+  phase = "typeAnswer";
+  const isFinal = fIsOne(newState.a) && fIsZero(newState.b);
+  bankLabel.innerHTML = isFinal
+    ? "Type the full answer — one side each:"
+    : "Type what <strong>each side</strong> equals now:";
+  bankLabel.style.display = "block";
+  typeArea.style.display = "block";
+  setMessage("Now write what that operation gives you on both sides.");
+  setTimeout(() => answerLeft.focus(), 50);
+}
+
+function checkTyped(){
+  if(gameOver || phase !== "typeAnswer") return;
+  const leftVal = answerLeft.value.trim();
+  const rightVal = answerRight.value.trim();
+  if(!leftVal || !rightVal) return;
+
+  const expectedLeft = eqLeftStr(pendingNewState);
+  const expectedRight = fToStr(pendingNewState.target);
+  const leftOk = canonicalEq(leftVal) === canonicalEq(expectedLeft);
+  const rightOk = canonicalEq(rightVal) === canonicalEq(expectedRight);
+
+  if(leftOk && rightOk){
+    answerLeft.classList.remove("wrongInput");
+    answerRight.classList.remove("wrongInput");
+    typeError.textContent = "";
+
+    historyLines.push({ text: `${equationStr(state)}   ${pendingOpLabel} both sides`, kind: "note" });
+    state = pendingNewState;
+    historyLines.push({ text: equationStr(state), kind: "eq" });
+    renderHistory();
+
+    opLeftReveal.style.display = "none";
+    opRightReveal.style.display = "none";
+    opDivider.style.display = "none";
+    answerLeft.style.display = "none";
+    answerRight.style.display = "none";
+    answerMidSign.style.display = "none";
+    typeArea.style.display = "none";
+
+    if(fIsOne(state.a) && fIsZero(state.b)){
+      setTimeout(() => finishEquation(), 200);
+    } else {
+      setTimeout(() => renderStep(), 200);
+    }
+  } else {
+    mistakes++;
+    if(!leftOk) answerLeft.classList.add("wrongInput");
+    if(!rightOk) answerRight.classList.add("wrongInput");
+    typeError.textContent = "Not quite — check your calculation and try again.";
+    setTimeout(() => {
+      answerLeft.classList.remove("wrongInput");
+      answerRight.classList.remove("wrongInput");
+    }, 320);
+  }
+}
+
+btnCheck.addEventListener("click", checkTyped);
+[answerLeft, answerRight].forEach(input => {
+  input.addEventListener("keydown", e => {
+    if(e.key === "Enter"){ e.preventDefault(); checkTyped(); }
+  });
+});
+
+function renderHistory(){
+  historyStack.innerHTML = "";
+  historyLines.forEach(line => {
+    const div = document.createElement("div");
+    div.className = line.kind === "note" ? "stepNote" : (line.kind === "final" ? "stepFinal" : "stepEq");
+    div.textContent = line.text;
+    historyStack.appendChild(div);
+  });
+}
+
+function finishEquation(){
+  gameOver = true;
+  const finalText = `${equationStr(state)}  🎉`;
+  if(historyLines.length && historyLines[historyLines.length - 1].kind === "eq"){
+    historyLines[historyLines.length - 1] = { text: finalText, kind: "final" };
+  } else {
+    historyLines.push({ text: finalText, kind: "final" });
+  }
+  renderHistory();
+  eqLeftEl.textContent = eqLeftStr(state);
+  eqRightEl.textContent = fToStr(state.target);
+  opLeftReveal.style.display = "none";
+  opRightReveal.style.display = "none";
+  opDivider.style.display = "none";
+  answerLeft.style.display = "none";
+  answerRight.style.display = "none";
+  answerMidSign.style.display = "none";
+  typeArea.style.display = "none";
+  tileBank.innerHTML = "";
+  const lvl = LEVELS[levelIdx];
+  const roundPoints = Math.max(3, lvl.base - mistakes * 2);
+  totalScore += roundPoints;
+  scoreCountEl.textContent = totalScore;
+  btnReportScore.textContent = `Submit Final Score (${totalScore})`;
+  if(mistakes === 0){
+    let cur = parseInt(streakCountEl.textContent, 10) || 0;
+    streakCountEl.textContent = cur + 1;
+  } else {
+    streakCountEl.textContent = 0;
+  }
+  setMessage(mistakes === 0
+    ? `Solved it clean! +${roundPoints} pts. Click "New Equation" to keep going.`
+    : `Solved! +${roundPoints} pts. Click "New Equation" to try another.`, "good");
+  showBreakdown();
+}
+
+function showBreakdown(){
+  breakdownParts.innerHTML = "";
+  historyLines.forEach(line => {
+    const row = document.createElement("div");
+    row.className = "part" + (line.kind === "final" ? " finalPart" : "");
+    row.textContent = line.text;
+    breakdownParts.appendChild(row);
+  });
+  breakdownEl.classList.add("show");
+}
+
+function restartEquation(){
+  if(!origEquation) return;
+  state = { a: origEquation.a, b: origEquation.b, target: origEquation.target };
+  mistakes = 0;
+  historyLines = [];
+  gameOver = false;
+  resetStepUI();
+  breakdownEl.classList.remove("show");
+  historyStack.innerHTML = "";
+  renderStep();
+}
+
+btnRestart.addEventListener("click", restartEquation);
+btnNew.addEventListener("click", startNewEquation);
+
+// ── Score submission (mirrors Root Builder) ──
+Object.keys(TEACHERS).forEach(name => {
+  const btn = document.createElement("button");
+  btn.className = "teacher-btn";
+  btn.textContent = name;
+  btn.type = "button";
+  btn.addEventListener("click", () => {
+    selectedTeacher = name;
+    document.querySelectorAll(".teacher-btn").forEach(b => b.classList.remove("selected"));
+    btn.classList.add("selected");
+    modalError.textContent = "";
+  });
+  teacherGrid.appendChild(btn);
+});
+btnReportScore.onclick = () => {
+  modalPointsDisplay.textContent = totalScore;
+  studentIdInput.value = "";
+  studentNameInput.value = "";
+  selectedTeacher = null;
+  modalError.textContent = "";
+  modalConfirmBtn.disabled = false;
+  modalConfirmBtn.textContent = "Submit Points";
+  document.querySelectorAll(".teacher-btn").forEach(b => b.classList.remove("selected"));
+  submitModal.classList.add("open");
+  setTimeout(() => studentIdInput.focus(), 100);
+};
+modalCancelBtn.onclick = () => submitModal.classList.remove("open");
+modalConfirmBtn.onclick = async () => {
+  const id = studentIdInput.value.trim();
+  const name = studentNameInput.value.trim();
+  if(!id){ modalError.textContent = "Please enter your student ID."; studentIdInput.focus(); return; }
+  if(!name){ modalError.textContent = "Please enter your name."; studentNameInput.focus(); return; }
+  if(!selectedTeacher){ modalError.textContent = "Please select your teacher."; return; }
+  modalError.textContent = "";
+  modalConfirmBtn.disabled = true;
+  modalConfirmBtn.textContent = "Submitting…";
+  const teacher = TEACHERS[selectedTeacher];
+  const payload = { v:1, sim: SIM_ID, name, score: totalScore, t: Date.now(), nonce: Math.random().toString(36).slice(2,10) };
+  const core = JSON.stringify(payload);
+  payload.sig = fnv1a(core + "|" + TOKEN_SALT).toString(16);
+  const token = btoa(JSON.stringify(payload));
+  const body = new URLSearchParams();
+  body.set(teacher.entries.studentID, id);
+  body.set(teacher.entries.displayName, name);
+  body.set(teacher.entries.sim, SIM_ID);
+  body.set(teacher.entries.score, String(totalScore));
+  body.set(teacher.entries.token, token);
+  try {
+    await fetch(teacher.formUrl, { method:"POST", mode:"no-cors", headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8"}, body: body.toString() });
+    alert(`Points successfully submitted to ${selectedTeacher}! Screen will now refresh.`);
+  } catch (error){
+    console.error(error);
+    alert("Network response failure. Please capture or show this screen to your teacher!");
+  } finally {
+    location.reload();
+  }
+};
+
+// ── Boot ──
+buildLevelRow();
+startNewEquation();
+</script>
+</body>
+</html>
