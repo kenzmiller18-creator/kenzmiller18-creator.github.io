@@ -182,6 +182,10 @@
   <div class="wrap tabview" id="view-today">
     <div class="card">
       <div class="badge"><span class="icon" id="dash-icon">⭐</span><span class="name" id="dash-name">Student</span></div>
+      <div class="card">
+  <div class="badge"><span class="icon" id="dash-icon">⭐</span><span class="name" id="dash-name">Student</span></div>
+  <button class="btn gray" style="width:auto;padding:8px 14px;font-size:.8rem;box-shadow:none;" onclick="logOut()">🔄 Not you? Switch account</button>
+</div>
     </div>
     <div class="card">
       <div class="uq-box" id="uq-box" style="display:none;">
@@ -436,7 +440,18 @@ function confirmIcon() {
   const s = roster.find(x => x.row === myRow); s.icon = pickedIcon;
   enterApp();
 }
-
+function logOut() {
+  pollTimers.forEach(clearInterval);
+  pollTimers = [];
+  localStorage.removeItem('pointsRow');
+  myRow = null;
+  myRequestRow = null;
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('tabbar').style.display = 'none';
+  document.getElementById('icon-screen').style.display = 'none';
+  document.getElementById('pick-screen').style.display = 'block';
+  document.getElementById('name-select').value = '';
+}
 function enterApp() {
   document.getElementById('pick-screen').style.display = 'none';
   document.getElementById('icon-screen').style.display = 'none';
